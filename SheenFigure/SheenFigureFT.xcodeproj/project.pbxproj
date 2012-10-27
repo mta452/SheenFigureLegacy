@@ -1,0 +1,460 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 46;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		6E0214C3157B460700057721 /* SFFont.c in Sources */ = {isa = PBXBuildFile; fileRef = 6E02149D157B460700057721 /* SFFont.c */; };
+		6E0214C4157B460700057721 /* SFFont.h in Headers */ = {isa = PBXBuildFile; fileRef = 6E02149E157B460700057721 /* SFFont.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		6E0214C5157B460700057721 /* SFText.c in Sources */ = {isa = PBXBuildFile; fileRef = 6E02149F157B460700057721 /* SFText.c */; };
+		6E0214C6157B460700057721 /* SFText.h in Headers */ = {isa = PBXBuildFile; fileRef = 6E0214A0157B460700057721 /* SFText.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		6E0214EC157B467B00057721 /* bidi.c in Sources */ = {isa = PBXBuildFile; fileRef = 6E0214C9157B467B00057721 /* bidi.c */; };
+		6E0214ED157B467B00057721 /* bidi.h in Headers */ = {isa = PBXBuildFile; fileRef = 6E0214CA157B467B00057721 /* bidi.h */; };
+		6E0214EE157B467B00057721 /* bidi_class.h in Headers */ = {isa = PBXBuildFile; fileRef = 6E0214CB157B467B00057721 /* bidi_class.h */; };
+		6E0214EF157B467B00057721 /* interaction.c in Sources */ = {isa = PBXBuildFile; fileRef = 6E0214CC157B467B00057721 /* interaction.c */; };
+		6E0214F0157B467B00057721 /* interaction.h in Headers */ = {isa = PBXBuildFile; fileRef = 6E0214CD157B467B00057721 /* interaction.h */; };
+		6E0214F1157B467B00057721 /* fribidi_tab_char_type_9.i in Sources */ = {isa = PBXBuildFile; fileRef = 6E0214CE157B467B00057721 /* fribidi_tab_char_type_9.i */; };
+		6E0214F3157B467B00057721 /* fribidi_tab_mirroring.i in Sources */ = {isa = PBXBuildFile; fileRef = 6E0214D0157B467B00057721 /* fribidi_tab_mirroring.i */; };
+		6E0214F5157B467B00057721 /* SFCMAPData.c in Sources */ = {isa = PBXBuildFile; fileRef = 6E0214D2157B467B00057721 /* SFCMAPData.c */; };
+		6E0214F6157B467B00057721 /* SFCMAPData.h in Headers */ = {isa = PBXBuildFile; fileRef = 6E0214D3157B467B00057721 /* SFCMAPData.h */; };
+		6E0214F7157B467B00057721 /* SFCMAPUtilization.c in Sources */ = {isa = PBXBuildFile; fileRef = 6E0214D4157B467B00057721 /* SFCMAPUtilization.c */; };
+		6E0214F8157B467B00057721 /* SFCMAPUtilization.h in Headers */ = {isa = PBXBuildFile; fileRef = 6E0214D5157B467B00057721 /* SFCMAPUtilization.h */; };
+		6E0214F9157B467B00057721 /* SFCommonData.c in Sources */ = {isa = PBXBuildFile; fileRef = 6E0214D6157B467B00057721 /* SFCommonData.c */; };
+		6E0214FA157B467B00057721 /* SFCommonData.h in Headers */ = {isa = PBXBuildFile; fileRef = 6E0214D7157B467B00057721 /* SFCommonData.h */; };
+		6E0214FB157B467B00057721 /* SFCommonMethods.c in Sources */ = {isa = PBXBuildFile; fileRef = 6E0214D8157B467B00057721 /* SFCommonMethods.c */; };
+		6E0214FC157B467B00057721 /* SFCommonMethods.h in Headers */ = {isa = PBXBuildFile; fileRef = 6E0214D9157B467B00057721 /* SFCommonMethods.h */; };
+		6E0214FD157B467B00057721 /* SFGDEFData.c in Sources */ = {isa = PBXBuildFile; fileRef = 6E0214DA157B467B00057721 /* SFGDEFData.c */; };
+		6E0214FE157B467B00057721 /* SFGDEFData.h in Headers */ = {isa = PBXBuildFile; fileRef = 6E0214DB157B467B00057721 /* SFGDEFData.h */; };
+		6E0214FF157B467B00057721 /* SFGDEFUtilization.c in Sources */ = {isa = PBXBuildFile; fileRef = 6E0214DC157B467B00057721 /* SFGDEFUtilization.c */; };
+		6E021500157B467B00057721 /* SFGDEFUtilization.h in Headers */ = {isa = PBXBuildFile; fileRef = 6E0214DD157B467B00057721 /* SFGDEFUtilization.h */; };
+		6E021501157B467B00057721 /* SFGlobal.h in Headers */ = {isa = PBXBuildFile; fileRef = 6E0214DE157B467B00057721 /* SFGlobal.h */; };
+		6E021502157B467B00057721 /* SFGPOSData.c in Sources */ = {isa = PBXBuildFile; fileRef = 6E0214DF157B467B00057721 /* SFGPOSData.c */; };
+		6E021503157B467B00057721 /* SFGPOSData.h in Headers */ = {isa = PBXBuildFile; fileRef = 6E0214E0157B467B00057721 /* SFGPOSData.h */; };
+		6E021504157B467B00057721 /* SFGPOSUtilization.c in Sources */ = {isa = PBXBuildFile; fileRef = 6E0214E1157B467B00057721 /* SFGPOSUtilization.c */; };
+		6E021505157B467B00057721 /* SFGPOSUtilization.h in Headers */ = {isa = PBXBuildFile; fileRef = 6E0214E2157B467B00057721 /* SFGPOSUtilization.h */; };
+		6E021506157B467B00057721 /* SFGSUBData.c in Sources */ = {isa = PBXBuildFile; fileRef = 6E0214E3157B467B00057721 /* SFGSUBData.c */; };
+		6E021507157B467B00057721 /* SFGSUBData.h in Headers */ = {isa = PBXBuildFile; fileRef = 6E0214E4157B467B00057721 /* SFGSUBData.h */; };
+		6E021508157B467B00057721 /* SFGSUBUtilization.c in Sources */ = {isa = PBXBuildFile; fileRef = 6E0214E5157B467B00057721 /* SFGSUBUtilization.c */; };
+		6E021509157B467B00057721 /* SFGSUBUtilization.h in Headers */ = {isa = PBXBuildFile; fileRef = 6E0214E6157B467B00057721 /* SFGSUBUtilization.h */; };
+		6E02150A157B467B00057721 /* SFInternal.c in Sources */ = {isa = PBXBuildFile; fileRef = 6E0214E7157B467B00057721 /* SFInternal.c */; };
+		6E02150B157B467B00057721 /* SFInternal.h in Headers */ = {isa = PBXBuildFile; fileRef = 6E0214E8157B467B00057721 /* SFInternal.h */; };
+		6E02150C157B467B00057721 /* ssunistr.c in Sources */ = {isa = PBXBuildFile; fileRef = 6E0214EA157B467B00057721 /* ssunistr.c */; };
+		6E02150D157B467B00057721 /* ssunistr.h in Headers */ = {isa = PBXBuildFile; fileRef = 6E0214EB157B467B00057721 /* ssunistr.h */; };
+		6E021562157B46EF00057721 /* SFTypes.h in Headers */ = {isa = PBXBuildFile; fileRef = 6EC20377157AD7E7002666E9 /* SFTypes.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		6E2A9678163B32EA000B9FA1 /* libfreetype.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 6E2A9677163B32E3000B9FA1 /* libfreetype.a */; };
+		6EC20373157AD461002666E9 /* SFConfig.h in Headers */ = {isa = PBXBuildFile; fileRef = 6EC2034B157AD461002666E9 /* SFConfig.h */; settings = {ATTRIBUTES = (Private, ); }; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		6E2A9676163B32E3000B9FA1 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 6E2A966F163B32E2000B9FA1 /* FreeType.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 6EBB5E63157BB68200F2D861;
+			remoteInfo = freetype;
+		};
+		6E2A9679163B32EC000B9FA1 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 6E2A966F163B32E2000B9FA1 /* FreeType.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 6EBB5E62157BB68200F2D861;
+			remoteInfo = freetype;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		6E02149D157B460700057721 /* SFFont.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = SFFont.c; sourceTree = "<group>"; };
+		6E02149E157B460700057721 /* SFFont.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SFFont.h; sourceTree = "<group>"; };
+		6E02149F157B460700057721 /* SFText.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = SFText.c; sourceTree = "<group>"; };
+		6E0214A0157B460700057721 /* SFText.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SFText.h; sourceTree = "<group>"; };
+		6E0214C9157B467B00057721 /* bidi.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = bidi.c; sourceTree = "<group>"; };
+		6E0214CA157B467B00057721 /* bidi.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = bidi.h; sourceTree = "<group>"; };
+		6E0214CB157B467B00057721 /* bidi_class.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = bidi_class.h; sourceTree = "<group>"; };
+		6E0214CC157B467B00057721 /* interaction.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = interaction.c; sourceTree = "<group>"; };
+		6E0214CD157B467B00057721 /* interaction.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = interaction.h; sourceTree = "<group>"; };
+		6E0214CE157B467B00057721 /* fribidi_tab_char_type_9.i */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c.preprocessed; path = fribidi_tab_char_type_9.i; sourceTree = "<group>"; };
+		6E0214D0157B467B00057721 /* fribidi_tab_mirroring.i */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c.preprocessed; path = fribidi_tab_mirroring.i; sourceTree = "<group>"; };
+		6E0214D2157B467B00057721 /* SFCMAPData.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = SFCMAPData.c; sourceTree = "<group>"; };
+		6E0214D3157B467B00057721 /* SFCMAPData.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SFCMAPData.h; sourceTree = "<group>"; };
+		6E0214D4157B467B00057721 /* SFCMAPUtilization.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = SFCMAPUtilization.c; sourceTree = "<group>"; };
+		6E0214D5157B467B00057721 /* SFCMAPUtilization.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SFCMAPUtilization.h; sourceTree = "<group>"; };
+		6E0214D6157B467B00057721 /* SFCommonData.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = SFCommonData.c; sourceTree = "<group>"; };
+		6E0214D7157B467B00057721 /* SFCommonData.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SFCommonData.h; sourceTree = "<group>"; };
+		6E0214D8157B467B00057721 /* SFCommonMethods.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = SFCommonMethods.c; sourceTree = "<group>"; };
+		6E0214D9157B467B00057721 /* SFCommonMethods.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SFCommonMethods.h; sourceTree = "<group>"; };
+		6E0214DA157B467B00057721 /* SFGDEFData.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = SFGDEFData.c; sourceTree = "<group>"; };
+		6E0214DB157B467B00057721 /* SFGDEFData.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SFGDEFData.h; sourceTree = "<group>"; };
+		6E0214DC157B467B00057721 /* SFGDEFUtilization.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = SFGDEFUtilization.c; sourceTree = "<group>"; };
+		6E0214DD157B467B00057721 /* SFGDEFUtilization.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SFGDEFUtilization.h; sourceTree = "<group>"; };
+		6E0214DE157B467B00057721 /* SFGlobal.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SFGlobal.h; sourceTree = "<group>"; };
+		6E0214DF157B467B00057721 /* SFGPOSData.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = SFGPOSData.c; sourceTree = "<group>"; };
+		6E0214E0157B467B00057721 /* SFGPOSData.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SFGPOSData.h; sourceTree = "<group>"; };
+		6E0214E1157B467B00057721 /* SFGPOSUtilization.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = SFGPOSUtilization.c; sourceTree = "<group>"; };
+		6E0214E2157B467B00057721 /* SFGPOSUtilization.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SFGPOSUtilization.h; sourceTree = "<group>"; };
+		6E0214E3157B467B00057721 /* SFGSUBData.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = SFGSUBData.c; sourceTree = "<group>"; };
+		6E0214E4157B467B00057721 /* SFGSUBData.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SFGSUBData.h; sourceTree = "<group>"; };
+		6E0214E5157B467B00057721 /* SFGSUBUtilization.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = SFGSUBUtilization.c; sourceTree = "<group>"; };
+		6E0214E6157B467B00057721 /* SFGSUBUtilization.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SFGSUBUtilization.h; sourceTree = "<group>"; };
+		6E0214E7157B467B00057721 /* SFInternal.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = SFInternal.c; sourceTree = "<group>"; };
+		6E0214E8157B467B00057721 /* SFInternal.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SFInternal.h; sourceTree = "<group>"; };
+		6E0214EA157B467B00057721 /* ssunistr.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = ssunistr.c; sourceTree = "<group>"; };
+		6E0214EB157B467B00057721 /* ssunistr.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ssunistr.h; sourceTree = "<group>"; };
+		6E2A966F163B32E2000B9FA1 /* FreeType.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = FreeType.xcodeproj; path = ../FreeType/FreeType.xcodeproj; sourceTree = "<group>"; };
+		6EC20319157AD40B002666E9 /* libsheenfigure.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libsheenfigure.a; sourceTree = BUILT_PRODUCTS_DIR; };
+		6EC2034B157AD461002666E9 /* SFConfig.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SFConfig.h; sourceTree = "<group>"; };
+		6EC20377157AD7E7002666E9 /* SFTypes.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SFTypes.h; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		6EC20316157AD40B002666E9 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				6E2A9678163B32EA000B9FA1 /* libfreetype.a in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		6E02149C157B460700057721 /* SFGraphics */ = {
+			isa = PBXGroup;
+			children = (
+				6E02149D157B460700057721 /* SFFont.c */,
+				6E02149E157B460700057721 /* SFFont.h */,
+				6E02149F157B460700057721 /* SFText.c */,
+				6E0214A0157B460700057721 /* SFText.h */,
+			);
+			path = SFGraphics;
+			sourceTree = "<group>";
+		};
+		6E0214C7157B467B00057721 /* SFInternal */ = {
+			isa = PBXGroup;
+			children = (
+				6E0214E9157B467B00057721 /* ssunistr */,
+				6E0214C8157B467B00057721 /* bidi */,
+				6E0214D2157B467B00057721 /* SFCMAPData.c */,
+				6E0214D3157B467B00057721 /* SFCMAPData.h */,
+				6E0214D4157B467B00057721 /* SFCMAPUtilization.c */,
+				6E0214D5157B467B00057721 /* SFCMAPUtilization.h */,
+				6E0214D6157B467B00057721 /* SFCommonData.c */,
+				6E0214D7157B467B00057721 /* SFCommonData.h */,
+				6E0214D8157B467B00057721 /* SFCommonMethods.c */,
+				6E0214D9157B467B00057721 /* SFCommonMethods.h */,
+				6E0214DA157B467B00057721 /* SFGDEFData.c */,
+				6E0214DB157B467B00057721 /* SFGDEFData.h */,
+				6E0214DC157B467B00057721 /* SFGDEFUtilization.c */,
+				6E0214DD157B467B00057721 /* SFGDEFUtilization.h */,
+				6E0214DE157B467B00057721 /* SFGlobal.h */,
+				6E0214DF157B467B00057721 /* SFGPOSData.c */,
+				6E0214E0157B467B00057721 /* SFGPOSData.h */,
+				6E0214E1157B467B00057721 /* SFGPOSUtilization.c */,
+				6E0214E2157B467B00057721 /* SFGPOSUtilization.h */,
+				6E0214E3157B467B00057721 /* SFGSUBData.c */,
+				6E0214E4157B467B00057721 /* SFGSUBData.h */,
+				6E0214E5157B467B00057721 /* SFGSUBUtilization.c */,
+				6E0214E6157B467B00057721 /* SFGSUBUtilization.h */,
+				6E0214E7157B467B00057721 /* SFInternal.c */,
+				6E0214E8157B467B00057721 /* SFInternal.h */,
+			);
+			path = SFInternal;
+			sourceTree = "<group>";
+		};
+		6E0214C8157B467B00057721 /* bidi */ = {
+			isa = PBXGroup;
+			children = (
+				6E0214C9157B467B00057721 /* bidi.c */,
+				6E0214CA157B467B00057721 /* bidi.h */,
+				6E0214CB157B467B00057721 /* bidi_class.h */,
+				6E0214CE157B467B00057721 /* fribidi_tab_char_type_9.i */,
+				6E0214D0157B467B00057721 /* fribidi_tab_mirroring.i */,
+				6E0214CC157B467B00057721 /* interaction.c */,
+				6E0214CD157B467B00057721 /* interaction.h */,
+			);
+			path = bidi;
+			sourceTree = "<group>";
+		};
+		6E0214E9157B467B00057721 /* ssunistr */ = {
+			isa = PBXGroup;
+			children = (
+				6E0214EA157B467B00057721 /* ssunistr.c */,
+				6E0214EB157B467B00057721 /* ssunistr.h */,
+			);
+			path = ssunistr;
+			sourceTree = "<group>";
+		};
+		6E2A9670163B32E2000B9FA1 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				6E2A9677163B32E3000B9FA1 /* libfreetype.a */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		6EC2030E157AD40B002666E9 = {
+			isa = PBXGroup;
+			children = (
+				6E2A966F163B32E2000B9FA1 /* FreeType.xcodeproj */,
+				6E0214C7157B467B00057721 /* SFInternal */,
+				6E02149C157B460700057721 /* SFGraphics */,
+				6EC2034B157AD461002666E9 /* SFConfig.h */,
+				6EC20377157AD7E7002666E9 /* SFTypes.h */,
+				6EC2031A157AD40B002666E9 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		6EC2031A157AD40B002666E9 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				6EC20319157AD40B002666E9 /* libsheenfigure.a */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXHeadersBuildPhase section */
+		6EC20317157AD40B002666E9 /* Headers */ = {
+			isa = PBXHeadersBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				6EC20373157AD461002666E9 /* SFConfig.h in Headers */,
+				6E021562157B46EF00057721 /* SFTypes.h in Headers */,
+				6E0214C4157B460700057721 /* SFFont.h in Headers */,
+				6E0214C6157B460700057721 /* SFText.h in Headers */,
+				6E0214ED157B467B00057721 /* bidi.h in Headers */,
+				6E0214EE157B467B00057721 /* bidi_class.h in Headers */,
+				6E0214F0157B467B00057721 /* interaction.h in Headers */,
+				6E0214F6157B467B00057721 /* SFCMAPData.h in Headers */,
+				6E0214F8157B467B00057721 /* SFCMAPUtilization.h in Headers */,
+				6E0214FA157B467B00057721 /* SFCommonData.h in Headers */,
+				6E0214FC157B467B00057721 /* SFCommonMethods.h in Headers */,
+				6E0214FE157B467B00057721 /* SFGDEFData.h in Headers */,
+				6E021500157B467B00057721 /* SFGDEFUtilization.h in Headers */,
+				6E021501157B467B00057721 /* SFGlobal.h in Headers */,
+				6E021503157B467B00057721 /* SFGPOSData.h in Headers */,
+				6E021505157B467B00057721 /* SFGPOSUtilization.h in Headers */,
+				6E021507157B467B00057721 /* SFGSUBData.h in Headers */,
+				6E021509157B467B00057721 /* SFGSUBUtilization.h in Headers */,
+				6E02150B157B467B00057721 /* SFInternal.h in Headers */,
+				6E02150D157B467B00057721 /* ssunistr.h in Headers */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXHeadersBuildPhase section */
+
+/* Begin PBXNativeTarget section */
+		6EC20318157AD40B002666E9 /* sheenfigure */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 6EC2031D157AD40B002666E9 /* Build configuration list for PBXNativeTarget "sheenfigure" */;
+			buildPhases = (
+				6EC20315157AD40B002666E9 /* Sources */,
+				6EC20316157AD40B002666E9 /* Frameworks */,
+				6EC20317157AD40B002666E9 /* Headers */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				6E2A967A163B32EC000B9FA1 /* PBXTargetDependency */,
+			);
+			name = sheenfigure;
+			productName = sheenfigure;
+			productReference = 6EC20319157AD40B002666E9 /* libsheenfigure.a */;
+			productType = "com.apple.product-type.library.static";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		6EC20310157AD40B002666E9 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				LastUpgradeCheck = 0430;
+				ORGANIZATIONNAME = "Sheen Solutions";
+			};
+			buildConfigurationList = 6EC20313157AD40B002666E9 /* Build configuration list for PBXProject "SheenFigureFT" */;
+			compatibilityVersion = "Xcode 3.2";
+			developmentRegion = English;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+			);
+			mainGroup = 6EC2030E157AD40B002666E9;
+			productRefGroup = 6EC2031A157AD40B002666E9 /* Products */;
+			projectDirPath = "";
+			projectReferences = (
+				{
+					ProductGroup = 6E2A9670163B32E2000B9FA1 /* Products */;
+					ProjectRef = 6E2A966F163B32E2000B9FA1 /* FreeType.xcodeproj */;
+				},
+			);
+			projectRoot = "";
+			targets = (
+				6EC20318157AD40B002666E9 /* sheenfigure */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXReferenceProxy section */
+		6E2A9677163B32E3000B9FA1 /* libfreetype.a */ = {
+			isa = PBXReferenceProxy;
+			fileType = archive.ar;
+			path = libfreetype.a;
+			remoteRef = 6E2A9676163B32E3000B9FA1 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+/* End PBXReferenceProxy section */
+
+/* Begin PBXSourcesBuildPhase section */
+		6EC20315157AD40B002666E9 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				6E0214C3157B460700057721 /* SFFont.c in Sources */,
+				6E0214C5157B460700057721 /* SFText.c in Sources */,
+				6E0214EC157B467B00057721 /* bidi.c in Sources */,
+				6E0214EF157B467B00057721 /* interaction.c in Sources */,
+				6E0214F1157B467B00057721 /* fribidi_tab_char_type_9.i in Sources */,
+				6E0214F3157B467B00057721 /* fribidi_tab_mirroring.i in Sources */,
+				6E0214F5157B467B00057721 /* SFCMAPData.c in Sources */,
+				6E0214F7157B467B00057721 /* SFCMAPUtilization.c in Sources */,
+				6E0214F9157B467B00057721 /* SFCommonData.c in Sources */,
+				6E0214FB157B467B00057721 /* SFCommonMethods.c in Sources */,
+				6E0214FD157B467B00057721 /* SFGDEFData.c in Sources */,
+				6E0214FF157B467B00057721 /* SFGDEFUtilization.c in Sources */,
+				6E021502157B467B00057721 /* SFGPOSData.c in Sources */,
+				6E021504157B467B00057721 /* SFGPOSUtilization.c in Sources */,
+				6E021506157B467B00057721 /* SFGSUBData.c in Sources */,
+				6E021508157B467B00057721 /* SFGSUBUtilization.c in Sources */,
+				6E02150A157B467B00057721 /* SFInternal.c in Sources */,
+				6E02150C157B467B00057721 /* ssunistr.c in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		6E2A967A163B32EC000B9FA1 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = freetype;
+			targetProxy = 6E2A9679163B32EC000B9FA1 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		6EC2031B157AD40B002666E9 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
+				CLANG_ENABLE_OBJC_ARC = NO;
+				COPY_PHASE_STRIP = NO;
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_ENABLE_OBJC_EXCEPTIONS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				GCC_VERSION = "";
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				HEADER_SEARCH_PATHS = ../FreeType/include;
+				MACOSX_DEPLOYMENT_TARGET = "";
+				ONLY_ACTIVE_ARCH = YES;
+				OTHER_CFLAGS = (
+					"-DFT2_BUILD_LIBRARY",
+					"-DDARWIN_NO_CARBON",
+					"-DSF_IOS",
+				);
+				SDKROOT = iphoneos;
+			};
+			name = Debug;
+		};
+		6EC2031C157AD40B002666E9 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
+				CLANG_ENABLE_OBJC_ARC = NO;
+				COPY_PHASE_STRIP = YES;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_ENABLE_OBJC_EXCEPTIONS = YES;
+				GCC_VERSION = "";
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				HEADER_SEARCH_PATHS = ../FreeType/include;
+				MACOSX_DEPLOYMENT_TARGET = "";
+				OTHER_CFLAGS = (
+					"-DFT2_BUILD_LIBRARY",
+					"-DDARWIN_NO_CARBON",
+					"-DSF_IOS",
+				);
+				SDKROOT = iphoneos;
+			};
+			name = Release;
+		};
+		6EC2031E157AD40B002666E9 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
+				EXECUTABLE_PREFIX = lib;
+				OTHER_CFLAGS = (
+					"-DFT2_BUILD_LIBRARY",
+					"-DDARWIN_NO_CARBON",
+					"-DSF_IOS",
+				);
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+			};
+			name = Debug;
+		};
+		6EC2031F157AD40B002666E9 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
+				EXECUTABLE_PREFIX = lib;
+				OTHER_CFLAGS = (
+					"-DFT2_BUILD_LIBRARY",
+					"-DDARWIN_NO_CARBON",
+					"-DSF_IOS",
+				);
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		6EC20313157AD40B002666E9 /* Build configuration list for PBXProject "SheenFigureFT" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				6EC2031B157AD40B002666E9 /* Debug */,
+				6EC2031C157AD40B002666E9 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		6EC2031D157AD40B002666E9 /* Build configuration list for PBXNativeTarget "sheenfigure" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				6EC2031E157AD40B002666E9 /* Debug */,
+				6EC2031F157AD40B002666E9 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 6EC20310157AD40B002666E9 /* Project object */;
+}

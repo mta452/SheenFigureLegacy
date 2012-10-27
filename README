@@ -1,0 +1,71 @@
+This is SheenFigure
+An open source library to render arabic/urdu fonts on smartphones
+Introduction
+============
+Sheen Figure is a library written in pure C language that allows rendering
+of beautiful Nastaliq/Naskh script on mobile operating systems. With this
+library, it is possible to use any Nastaliq or Naskh font. The fonts of
+other scripts can also be used with a little addition of code in the library.
+Technical Discussion
+====================As now you have read the basic purpose of this library, let's talk on it
+in depth. First of all, let's see what it supports and what it does not.
+Mobile OS
+=========Sheen Figure can be used in any mobile operating system that supports C
+language. As of now, it has been ported to two popular mobile platforms
+which are iOS from Apple inc. and android from Google inc. As android's
+primary language is JAVA , therefore a wrapper is written in JNI to use
+the functionality of the library.
+Kinds
+=====For iOS, Sheen Figure consist of two kinds. One of them uses external
+Freetype library to render glyphs while the other uses Apples' internal
+CoreGraphics Framework.
+
+For android, only Freetype can be used.
+
+Compiling FreeType
+==================
+
+To compile FreeType, download its latest version from official website.
+Then copy all the files in FreeType folder, open
+FreeType/include/freetype/config/ftmodule.h and comment the lines containing
+the following:
+    1. autofit_module_class
+    2. t1_driver_class
+    3. t1cid_driver_class
+    4. pfr_driver_class
+    5. t42_driver_class
+    6. winfnt_driver_class
+    7. pcf_driver_class
+    8. psaux_module_class
+    9. bdf_driver_class
+
+After making the given changes you can run either android or iOS sample app
+and FreeType will be automatically compiled.
+Font Limitations
+================
+If you read documentation of open type fonts, you will see that they provide
+eight tables for substitution and nine tables for positioning of glyphs.
+Some of the tables are common in substitution and positioning and some of
+the tables further consist of more than one formats (or forms).
+Eight substitution tables provided by open type fonts are:    1. Single substitution table    2. Multiple substitution table    3. Alternate substitution table    4. Ligature substitution table    5. Context substitution table    6. Chaining context substitution table
+    7. Extension substitution table    8. Reverse chaining context substitution table
+Nine positioning table provided by open type fonts are:    1. Single positioning table    2. Pair positioning table    3. Mark-to-base positioning table
+    4. Mark-to-ligature positioning table
+    5. Mark-to-mark positioning table    6. Context positioning table    7. Chaining context positioning table
+    8. Extension positioning table    9. Reverse chaining context positioning table
+
+Among from all these tables Sheen Figure does not support just two tables
+which are Context tables, and Reverse chaining context tables.
+Moreover only 1st format is supported from chaining context tables. These
+are not supported because I could not find a font using them. I could write
+the code on theoretical basis for them as well but it would lead to crashing
+of application while reading them.
+BiDi (Bidirectional Algorithm)
+==============================
+Bidi is an algorithm used to correct the position of characters when words
+from right-to- left and left-to-right languages are written together. Sheen
+Figure make use of BiDi algorithm v4.0 so that RTL and LTR scripts can be
+written together. But till now it supports only right-to-left direction.Conclusion
+==========
+Sheen Figure is powerful enough to display any Nastaliq or Naskh font and
+with a little addition, other scripts can also be used.
