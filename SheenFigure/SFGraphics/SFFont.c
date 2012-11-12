@@ -82,8 +82,21 @@ typedef struct SFFont {
     SFUInt _retainCount;
 } SFFont;
 
-#include "SFFont.h"
+#ifndef _SF_STRING_RECORD_REF
+#define _SF_STRING_RECORD_REF
 
+typedef struct SFStringRecord *SFStringRecordRef;
+
+#endif
+
+#ifndef _SF_FONT_REF
+#define _SF_FONT_REF
+
+typedef struct SFFont *SFFontRef;
+
+#endif
+
+#include "SFFont.h"
 
 #ifdef SF_IOS_CG
 
@@ -180,15 +193,17 @@ CGFontRef SFFontGetCGFont(SFFontRef sfFont) {
 static void readCMAPTable(SFFontRef sfFont) {
 	FT_ULong length = 0;
     
-	FT_Tag tag = FT_MAKE_TAG('c', 'm', 'a', 'p');
-	int error = FT_Load_Sfnt_Table(sfFont->_ftFace, tag, 0, NULL, &length);
+    FT_Tag tag;
+    FT_Byte *buffer;
+    
+    FT_Error error;
+    
+	tag = FT_MAKE_TAG('c', 'm', 'a', 'p');
+	error = FT_Load_Sfnt_Table(sfFont->_ftFace, tag, 0, NULL, &length);
 	if (error)
 		return;
     
-	FT_Byte *buffer = malloc(length);
-	if (buffer == NULL)
-		return;
-    
+	buffer = malloc(length);
 	error = FT_Load_Sfnt_Table(sfFont->_ftFace, tag, 0, buffer, &length);
 	if (!error) {
 		SFReadCMAP(buffer, &sfFont->_cmap, length);
@@ -201,15 +216,17 @@ static void readCMAPTable(SFFontRef sfFont) {
 static void readGDEFTable(SFFontRef sfFont) {
 	FT_ULong length = 0;
     
-	FT_Tag tag = FT_MAKE_TAG('G', 'D', 'E', 'F');
-	int error = FT_Load_Sfnt_Table(sfFont->_ftFace, tag, 0, NULL, &length);
+    FT_Tag tag;
+    FT_Byte *buffer;
+    
+    FT_Error error;
+    
+	tag = FT_MAKE_TAG('G', 'D', 'E', 'F');
+	error = FT_Load_Sfnt_Table(sfFont->_ftFace, tag, 0, NULL, &length);
 	if (error)
 		return;
     
-	FT_Byte *buffer = malloc(length);
-	if (buffer == NULL)
-		return;
-    
+	buffer = malloc(length);
 	error = FT_Load_Sfnt_Table(sfFont->_ftFace, tag, 0, buffer, &length);
 	if (!error) {
 		SFReadGDEF(buffer, &sfFont->_gdef);
@@ -222,15 +239,17 @@ static void readGDEFTable(SFFontRef sfFont) {
 static void readGSUBTable(SFFontRef sfFont) {
 	FT_ULong length = 0;
     
-	FT_Tag tag = FT_MAKE_TAG('G', 'S', 'U', 'B');
-	int error = FT_Load_Sfnt_Table(sfFont->_ftFace, tag, 0, NULL, &length);
+    FT_Tag tag;
+    FT_Byte *buffer;
+    
+    FT_Error error;
+    
+	tag = FT_MAKE_TAG('G', 'S', 'U', 'B');
+	error = FT_Load_Sfnt_Table(sfFont->_ftFace, tag, 0, NULL, &length);
 	if (error)
 		return;
     
-	FT_Byte *buffer = malloc(length);
-	if (buffer == NULL)
-		return;
-    
+	buffer = malloc(length);
 	error = FT_Load_Sfnt_Table(sfFont->_ftFace, tag, 0, buffer, &length);
 	if (!error) {
 		SFReadGSUB(buffer, &sfFont->_gsub);
@@ -243,16 +262,18 @@ static void readGSUBTable(SFFontRef sfFont) {
 static void readGPOSTable(SFFontRef sfFont) {
 	FT_ULong length = 0;
     
-	FT_Tag tag = FT_MAKE_TAG('G', 'P', 'O', 'S');
-	int error = FT_Load_Sfnt_Table(sfFont->_ftFace, tag, 0, NULL, &length);
+    FT_Tag tag;
+    FT_Byte *buffer;
+    
+    FT_Error error;
+    
+	tag = FT_MAKE_TAG('G', 'P', 'O', 'S');
+	error = FT_Load_Sfnt_Table(sfFont->_ftFace, tag, 0, NULL, &length);
 	if (error)
 		return;
     
-	FT_Byte *buffer = malloc(length);
-	if (buffer == NULL)
-		return;
-    
-	error = FT_Load_Sfnt_Table(sfFont->_ftFace, tag, 0, buffer, &length);
+	buffer = malloc(length);
+    error = FT_Load_Sfnt_Table(sfFont->_ftFace, tag, 0, buffer, &length);
 	if (!error) {
 		SFReadGPOS(buffer, &sfFont->_gpos);
 		sfFont->_availableFontTables |= itGPOS;
@@ -272,13 +293,13 @@ static void setFontSize(SFFontRef sfFont, SFFloat size) {
 SFFontRef SFFontCreateWithFileName(const char *name, SFFloat size) {
 	SFFont *sfFont = malloc(sizeof(SFFont));
 	int error = FT_Init_FreeType(&sfFont->_ftLib);
+
 	if (error) {
 		printf("Could not init freetype library\n");
 		return NULL;
 	}
     
 	error = FT_New_Face(sfFont->_ftLib, name, 0, &sfFont->_ftFace);
-    
 	if (error) {
 		printf("Could not open font from path \"%s\"", name);
         
@@ -286,7 +307,7 @@ SFFontRef SFFontCreateWithFileName(const char *name, SFFloat size) {
         
 		return NULL;
 	}
-    
+
 	FT_Set_Char_Size(sfFont->_ftFace, 0, size * 64, 72, 72);
 	//FT_Set_Pixel_Sizes(sfFont->_ftFace, 0, size);
     
@@ -307,9 +328,9 @@ FT_Face SFFontGetFTFace(SFFontRef sfFont) {
 #endif
 
 SFFontRef SFFontMakeClone(SFFontRef sfFont, SFFloat size) {
-	sfFont = SFFontRetain(sfFont);
-    
 	SFFont *clone = malloc(sizeof(SFFont));
+    
+    sfFont = SFFontRetain(sfFont);
     
 #ifdef SF_IOS_CG
 	clone->_cgFont = sfFont->_cgFont;
@@ -343,38 +364,40 @@ static void readFontTables(SFFontRef sfFont) {
 }
 
 SFStringRecordRef SFFontAllocateStringRecordForString(SFFontRef sfFont, SFUnichar *inputString, int length) {
-	if (!inputString || !length)
-		return NULL;
+	if (inputString && length) {
+        SFStringRecordRef record = malloc(sizeof(SFStringRecord));
+        
+        int allocSize = (sizeof(int) * length);
+        int *types = malloc(allocSize);
+        int *levels = malloc(allocSize);
+        int *lOrder = malloc(allocSize);
+        
+        resolveBidi(inputString, types, levels, length, lOrder);
+        
+        // SFDeallocateStringRecord will be responsible for freeing inputString, levels and lOrder
+        SFAllocateStringRecord(record, inputString, levels, lOrder, length);
+        
+        free(types);
+        
+        readFontTables(sfFont);
+        
+        if (sfFont->_availableFontTables & itCMAP)
+            SFApplyCMAP(&sfFont->_cmap, record);
+        
+        if (sfFont->_availableFontTables & itGSUB)
+            SFApplyGSUB(&sfFont->_gsub,
+                        (sfFont->_availableFontTables & itGDEF) ? &sfFont->_gdef : NULL
+                        , record);
+        
+        if (sfFont->_availableFontTables & itGPOS)
+            SFApplyGPOS(&sfFont->_gpos,
+                        (sfFont->_availableFontTables & itGDEF) ? &sfFont->_gdef : NULL
+                        , record);
+        
+        return record;
+    }
     
-	SFStringRecordRef record = malloc(sizeof(SFStringRecord));
-    
-	int allocSize = (sizeof(int) * length);
-	int *types = malloc(allocSize);
-	int *levels = malloc(allocSize);
-	int *lOrder = malloc(allocSize);
-    
-	resolveBidi(inputString, types, levels, length, lOrder);
-    // SFDeallocateStringRecord will be responsible for freeing inputString, levels and lOrder
-	SFAllocateStringRecord(record, inputString, levels, lOrder, length);
-    
-	free(types);
-    
-	readFontTables(sfFont);
-    
-	if (sfFont->_availableFontTables & itCMAP)
-		SFApplyCMAP(&sfFont->_cmap, record);
-    
-	if (sfFont->_availableFontTables & itGSUB)
-		SFApplyGSUB(&sfFont->_gsub,
-                    (sfFont->_availableFontTables & itGDEF) ? &sfFont->_gdef : NULL
-                    , record);
-    
-	if (sfFont->_availableFontTables & itGPOS)
-		SFApplyGPOS(&sfFont->_gpos,
-                    (sfFont->_availableFontTables & itGDEF) ? &sfFont->_gdef : NULL
-                    , record);
-    
-	return record;
+	return NULL;
 }
 
 void SFFontDeallocateStringRecord(SFFontRef sfFont, SFStringRecordRef strRecord) {

@@ -20,11 +20,18 @@
 #include "SFConfig.h"
 #include "SFTypes.h"
 
-typedef struct SFFont *SFFontRef;
+#ifndef _SF_FONT_REF
+#define _SF_FONT_REF
+
+typedef void *SFFontRef;
+
+#endif
 
 #ifndef _SF_STRING_RECORD_REF
 #define _SF_STRING_RECORD_REF
+
 typedef void *SFStringRecordRef;
+
 #endif
 
 #ifdef SF_IOS_CG

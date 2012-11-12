@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-#include <stdbool.h>
 #include <stdlib.h>
 
 #include "SFGlobal.h"
@@ -53,31 +52,32 @@ int SFCompareGlyphIndex(const SFGlyphIndex index1, const SFGlyphIndex index2) {
 }
 
 void SFInsertGlyphs(SFGlyphRecord **src, const SFGlyph *val, int srcsize, int valsize, int sidx, int *length) {
-    if (valsize == 0 || sidx > srcsize)
-        return;
-
-    *length = sidx + valsize;
-    *src = realloc(*src, sizeof(SFGlyphRecord) * *length);
-    
-    int i = 0;
-    while (sidx < valsize) {
-        (*src)[sidx].glyph = val[i++];
-        (*src)[sidx].glyphProp = gpNotReceived;
-        (*src)[sidx].posRec = SFPositionRecordZero;
-        sidx++;
+    if (valsize > 0 && sidx <= srcsize) {
+        int i = 0;
+        
+        *length = sidx + valsize;
+        *src = realloc(*src, sizeof(SFGlyphRecord) * *length);
+        
+        while (sidx < valsize) {
+            (*src)[sidx].glyph = val[i++];
+            (*src)[sidx].glyphProp = gpNotReceived;
+            (*src)[sidx].posRec = SFPositionRecordZero;
+            sidx++;
+        }
     }
 }
 
-bool SFGetPreviousValidGlyphIndex(SFGlyphIndex *index, LookupFlag lookupFlag) {
+SFBool SFGetPreviousValidGlyphIndex(SFGlyphIndex *index, LookupFlag lookupFlag) {
+	int i = index->recordIndex;
     int j = index->glyphIndex - 1;
     
-    for (int i = index->recordIndex; i >= 0;) {
+    for (; i >= 0;) {
         for (; j >= 0; j--) {
             if (!SFIsIgnoredGlyph(i, j, lookupFlag)) {
                 index->recordIndex = i;
                 index->glyphIndex = j;
                 
-                return true;
+                return SFTrue;
             }
         }
         
@@ -85,19 +85,20 @@ bool SFGetPreviousValidGlyphIndex(SFGlyphIndex *index, LookupFlag lookupFlag) {
         j = record->charRecord[i].glyphCount - 1;
     }
     
-    return false;
+    return SFFalse;
 }
 
-bool SFGetNextValidGlyphIndex(SFGlyphIndex *index, LookupFlag lookupFlag) {
+SFBool SFGetNextValidGlyphIndex(SFGlyphIndex *index, LookupFlag lookupFlag) {
+	int i = index->recordIndex;
     int j = index->glyphIndex + 1;
     
-    for (int i = index->recordIndex; i < record->charCount;) {
+    for (; i < record->charCount;) {
         for (; j < record->charRecord[i].glyphCount; j++) {
             if (!SFIsIgnoredGlyph(i, j, lookupFlag)) {
                 index->recordIndex = i;
                 index->glyphIndex = j;
                 
-                return true;
+                return SFTrue;
             }
         }
         
@@ -105,13 +106,14 @@ bool SFGetNextValidGlyphIndex(SFGlyphIndex *index, LookupFlag lookupFlag) {
         j = 0;
     }
     
-    return false;
+    return SFFalse;
 }
 
-bool SFGetPreviousBaseGlyphIndex(SFGlyphIndex *index, const LookupFlag lookupFlag) {
+SFBool SFGetPreviousBaseGlyphIndex(SFGlyphIndex *index, const LookupFlag lookupFlag) {
+	int i = index->recordIndex;
     int j = index->glyphIndex - 1;
     
-    for (int i = index->recordIndex; i >= 0;) {
+    for (; i >= 0;) {
         for (; j >= 0; j--) {
             if (!SFIsIgnoredGlyph(i, j, lookupFlag)) {
                 SFGlyphProperty prop = record->charRecord[i].gRec[j].glyphProp;
@@ -120,9 +122,11 @@ bool SFGetPreviousBaseGlyphIndex(SFGlyphIndex *index, const LookupFlag lookupFla
                     index->recordIndex = i;
                     index->glyphIndex = j;
                     
-                    return true;
-                } else if (!(prop & gpMark))
-                    return false;
+                    return SFTrue;
+                }
+				
+				if (!(prop & gpMark))
+                    return SFFalse;
             }
         }
         
@@ -130,31 +134,34 @@ bool SFGetPreviousBaseGlyphIndex(SFGlyphIndex *index, const LookupFlag lookupFla
         j = record->charRecord[i].glyphCount - 1;
     }
     
-    return false;
+    return SFFalse;
 }
 
-bool SFGetPreviousLigatureGlyphIndex(SFGlyphIndex *index, const LookupFlag lookupFlag, int *emptyGlyphs) {
+SFBool SFGetPreviousLigatureGlyphIndex(SFGlyphIndex *index, const LookupFlag lookupFlag, int *emptyGlyphs) {
+	int i = index->recordIndex;
     int j = index->glyphIndex - 1;
     
-    for (int i = index->recordIndex; i >= 0;) {
+    for (; i >= 0;) {
         for (; j >= 0; j--) {
             SFGlyph currentGlyph = record->charRecord[i].gRec[j].glyph;
-
+            
             if (currentGlyph == 0) {
                 ++*emptyGlyphs;
                 continue;
             }
-                
+            
             if (!SFIsIgnoredGlyph(i, j, lookupFlag)) {
                 SFGlyphProperty prop = record->charRecord[i].gRec[j].glyphProp;
                 
                 if (prop & gpLigature) {
                     index->recordIndex = i;
                     index->glyphIndex = j;
-                
-                    return true;
-                } else if (!(prop & gpMark))
-                    return false;
+                    
+                    return SFTrue;
+                }
+				
+				if (!(prop & gpMark))
+                    return SFFalse;
             }
         }
         
@@ -162,6 +169,5 @@ bool SFGetPreviousLigatureGlyphIndex(SFGlyphIndex *index, const LookupFlag looku
         j = record->charRecord[i].glyphCount - 1;
     }
     
-    return false;
+    return SFFalse;
 }
-

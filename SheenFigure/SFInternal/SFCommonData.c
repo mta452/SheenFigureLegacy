@@ -26,25 +26,26 @@
 const SFPositionRecord SFPositionRecordZero = {{0, 0}, {0, 0}, 0, {0, 0}};
 
 void SFReadLangSysTable(const SFUByte * const lsTable, LangSysTable *tablePtr) {
+    SFUShort *featureIndexes;
+    SFUShort i;
+    
 #ifdef SCRIPT_TEST
     SFUShort lookupOrderOffset = SFReadUShort(lsTable, 0);
 #endif
     
     tablePtr->reqFeatureIndex = SFReadUShort(lsTable, 2);
-    
-    SFUShort featureCount = SFReadUShort(lsTable, 4);
-    tablePtr->featureCount = featureCount;
+    tablePtr->featureCount = SFReadUShort(lsTable, 4);
     
 #ifdef SCRIPT_TEST
     printf("\n     Lookup Order Offset: %d", lookupOrderOffset);
     printf("\n     Required Feature Index: %d", tablePtr->reqFeatureIndex);
-    printf("\n     Total Features: %d", featureCount);
+    printf("\n     Total Features: %d", tablePtr->featureCount);
     printf("\n     Feature Indexes:");
 #endif
     
-    SFUShort *featureIndexes = malloc(2 * featureCount);
+    featureIndexes = malloc(2 * tablePtr->featureCount);
     
-    for (SFUShort i = 0; i < featureCount; i++) {
+    for (i = 0; i < tablePtr->featureCount; i++) {
         featureIndexes[i] = SFReadUShort(lsTable, 6 + (i * 2));
         
 #ifdef SCRIPT_TEST
@@ -61,28 +62,31 @@ void SFFreeLangSysTable(LangSysTable *tablePtr) {
 
 
 void SFReadScriptTable(const SFUByte * const sTable, ScriptTable *tablePtr) {
-    ;
+    SFUShort langSysOffset = SFReadUShort(sTable, 0);
     
-    SFUShort defaultLangSysOffset = SFReadUShort(sTable, 0);
+    SFUShort langSysCount;
+    LangSysRecord *langSysRecords;
     
+	SFUByte i;
+
 #ifdef SCRIPT_TEST
     printf("\n    Default Lang Sys:");
-    printf("\n     Offset: %d", defaultLangSysOffset);
+    printf("\n     Offset: %d", langSysOffset);
 #endif
     
-    SFReadLangSysTable(&sTable[defaultLangSysOffset], &tablePtr->defaultLangSys);
+    SFReadLangSysTable(&sTable[langSysOffset], &tablePtr->defaultLangSys);
     
-    SFUShort langSysCount = SFReadUShort(sTable, 2);
+    langSysCount = SFReadUShort(sTable, 2);
     tablePtr->langSysCount = langSysCount;
     
 #ifdef SCRIPT_TEST
     printf("\n    Total Lang Sys: %d", langSysCount);
 #endif
     
-    LangSysRecord *langSysRecords = malloc(sizeof(LangSysRecord) * langSysCount);
+    langSysRecords = malloc(sizeof(LangSysRecord) * langSysCount);
     
-    for (SFUByte i = 0, offset; i < langSysCount; i++) {
-        offset = 4 + (i * 4);
+    for (i = 0; i < langSysCount; i++) {
+        SFUByte offset = 4 + (i * 4);
         
         langSysRecords[i].LangSysTag[0] = sTable[0 + offset];
         langSysRecords[i].LangSysTag[1] = sTable[1 + offset];
@@ -90,7 +94,7 @@ void SFReadScriptTable(const SFUByte * const sTable, ScriptTable *tablePtr) {
         langSysRecords[i].LangSysTag[3] = sTable[3 + offset];
         langSysRecords[i].LangSysTag[4] = 0;
         
-        SFUShort langSysOffset = SFReadUShort(sTable, 4 + offset);
+        langSysOffset = SFReadUShort(sTable, 4 + offset);
         
 #ifdef SCRIPT_TEST
         printf("\n    Lang Sys Record At Index %d:", i);
@@ -106,9 +110,11 @@ void SFReadScriptTable(const SFUByte * const sTable, ScriptTable *tablePtr) {
 }
 
 void SFFreeScriptTable(ScriptTable *tablePtr) {
+	int i;
+
     SFFreeLangSysTable(&tablePtr->defaultLangSys);
     
-    for (int i = 0; i < tablePtr->langSysCount; i++)
+    for (i = 0; i < tablePtr->langSysCount; i++)
         SFFreeLangSysTable(&tablePtr->langSysRecord[i].LangSys);
     
     free(tablePtr->langSysRecord);
@@ -116,17 +122,21 @@ void SFFreeScriptTable(ScriptTable *tablePtr) {
 
 
 void SFReadScriptListTable(const SFUByte * const slTable, ScriptListTable *tablePtr) {
-    SFUShort count = SFReadUShort(slTable, 0);
-    tablePtr->scriptCount = count;
+    ScriptRecord *scriptRecords;
+    SFUShort scriptOffset;
+    
+	SFUShort i;
+
+    tablePtr->scriptCount = SFReadUShort(slTable, 0);
     
 #ifdef SCRIPT_TEST
-    printf("\n  Total Scripts: %d", count);
+    printf("\n  Total Scripts: %d", tablePtr->scriptCount);
 #endif
     
-    ScriptRecord *scriptRecords = malloc(sizeof(ScriptRecord) * count);
+    scriptRecords = malloc(sizeof(ScriptRecord) * tablePtr->scriptCount);
     
-    for (SFUShort i = 0, offset; i < count; i++) {
-        offset = 2 + (i * 6);
+    for (i = 0; i < tablePtr->scriptCount; i++) {
+        SFUShort offset = 2 + (i * 6);
         
         scriptRecords[i].scriptTag[0] = slTable[0 + offset];
         scriptRecords[i].scriptTag[1] = slTable[1 + offset];
@@ -134,7 +144,7 @@ void SFReadScriptListTable(const SFUByte * const slTable, ScriptListTable *table
         scriptRecords[i].scriptTag[3] = slTable[3 + offset];
         scriptRecords[i].scriptTag[4] = 0;
         
-        SFUShort scriptOffset = SFReadUShort(slTable, 4 + offset);
+        scriptOffset = SFReadUShort(slTable, 4 + offset);
         
 #ifdef SCRIPT_TEST
         printf("\n  Script Record At Index %d:", i);
@@ -150,7 +160,8 @@ void SFReadScriptListTable(const SFUByte * const slTable, ScriptListTable *table
 }
 
 void SFFreeScriptListTable(ScriptListTable *tablePtr) {
-    for (int i = 0; i < tablePtr->scriptCount; i++)
+	int i;
+    for (i = 0; i < tablePtr->scriptCount; i++)
         SFFreeScriptTable(&tablePtr->scriptRecord[i].script);
     
     free(tablePtr->scriptRecord);
@@ -160,21 +171,27 @@ void SFFreeScriptListTable(ScriptListTable *tablePtr) {
 
 void SFReadFeatureTable(const SFUByte * const fTable, FeatureTable *tablePtr) {
 #ifdef FEATURE_TEST
-    SFUShort featureParams = SFReadUShort(fTable, 0);
+    SFUShort featureParams;
 #endif
     
-    SFUShort lookupCount = SFReadUShort(fTable, 2);
-    tablePtr->lookupCount = lookupCount;
+    SFUShort *lookupListIndexes;
+    SFUShort i;
+    
+#ifdef FEATURE_TEST
+    featureParams = SFReadUShort(fTable, 0);
+#endif
+    
+    tablePtr->lookupCount = SFReadUShort(fTable, 2);
     
 #ifdef FEATURE_TEST
     printf("\n    Feature Params: %d", featureParams);
-    printf("\n    Total Lookups: %d", lookupCount);
+    printf("\n    Total Lookups: %d", tablePtr->lookupCount);
     printf("\n    Lookup Indexes:");
 #endif
     
-    SFUShort *lookupListIndexes = malloc(sizeof(SFUShort) * lookupCount);
+    lookupListIndexes = malloc(sizeof(SFUShort) * tablePtr->lookupCount);
     
-    for (SFUShort i = 0; i < lookupCount; i++) {
+    for (i = 0; i < tablePtr->lookupCount; i++) {
         lookupListIndexes[i] = SFReadUShort(fTable, 4 + (i * 2));
         
 #ifdef FEATURE_TEST
@@ -191,25 +208,30 @@ void SFFreeFeatureTable(FeatureTable *tablePtr) {
 
 
 void SFReadFeatureListTable(const SFUByte * const flTable, FeatureListTable *tablePtr) {
-    SFUShort count = SFReadUShort(flTable, 0);
-    tablePtr->featureCount = count;
+    FeatureRecord *featureRecords;
+    SFUShort i;
+    
+    tablePtr->featureCount = SFReadUShort(flTable, 0);
     
 #ifdef FEATURE_TEST
-    printf("\n  Total Feature: %d", count);
+    printf("\n  Total Feature: %d", tablePtr->featureCount);
 #endif
     
-    FeatureRecord *featureRecords = malloc(sizeof(FeatureRecord) * count);
+    featureRecords = malloc(sizeof(FeatureRecord) * tablePtr->featureCount);
     
-    for (SFUShort i = 0, offset; i < count; i++) {
-        offset = 2 + (i * 6);
+    for (i = 0; i < tablePtr->featureCount; i++) {
+        SFUShort currentOffset;
+        SFUShort featureOffset;
         
-        featureRecords[i].featureTag[0] = flTable[0 + offset];
-        featureRecords[i].featureTag[1] = flTable[1 + offset];
-        featureRecords[i].featureTag[2] = flTable[2 + offset];
-        featureRecords[i].featureTag[3] = flTable[3 + offset];
+        currentOffset = 2 + (i * 6);
+        
+        featureRecords[i].featureTag[0] = flTable[0 + currentOffset];
+        featureRecords[i].featureTag[1] = flTable[1 + currentOffset];
+        featureRecords[i].featureTag[2] = flTable[2 + currentOffset];
+        featureRecords[i].featureTag[3] = flTable[3 + currentOffset];
         featureRecords[i].featureTag[4] = 0;
         
-        SFUShort featureOffset = SFReadUShort(flTable, 4 + offset);
+        featureOffset = SFReadUShort(flTable, 4 + currentOffset);
         
 #ifdef FEATURE_TEST
         printf("\n  Feature Record At Index %d:", i);
@@ -225,18 +247,27 @@ void SFReadFeatureListTable(const SFUByte * const flTable, FeatureListTable *tab
 }
 
 void SFFreeFeatureListTable(FeatureListTable *tablePtr) {
-    for (int i = 0; i < tablePtr->featureCount; i++) {
+	int i;
+    for (i = 0; i < tablePtr->featureCount; i++)
         SFFreeFeatureTable(&tablePtr->featureRecord[i].feature);
-    }
     
     free(tablePtr->featureRecord);
 }
 
 void SFReadLookupTable(const SFUByte * const llTable, LookupTable *tablePtr, SubtableFunction func) {
-    LookupType lookupType = SFReadUShort(llTable, 0);
-    LookupFlag lookupFlag = SFReadUShort(llTable, 2);
-
-    SFUShort subTableCount = SFReadUShort(llTable, 4);
+    LookupType lookupType;
+    LookupFlag lookupFlag;
+    SFUShort subTableCount;
+    
+    void **subtables;
+    
+    LookupType tmpLookup;
+    SFUShort i, offset;
+    
+    lookupType = SFReadUShort(llTable, 0);
+    lookupFlag = SFReadUShort(llTable, 2);
+    subTableCount = SFReadUShort(llTable, 4);
+    
     tablePtr->subTableCount = subTableCount;
     
 #ifdef LOOKUP_TEST
@@ -244,12 +275,11 @@ void SFReadLookupTable(const SFUByte * const llTable, LookupTable *tablePtr, Sub
     printf("\n    Lookup Flag: %d", lookupFlag);
     printf("\n    Total Subtables: %d", subTableCount);
 #endif
-
-    void **subtables = malloc(sizeof(void *) * subTableCount);
-    LookupType tmpLookup = lookupType;
     
-    SFUShort offset = 0;
-    for (SFUShort i = 0; i < subTableCount; i++) {
+    subtables = malloc(sizeof(void *) * subTableCount);
+    tmpLookup = lookupType;
+    
+    for (i = 0, offset = 0; i < subTableCount; i++) {
         offset = SFReadUShort(llTable, 6 + (i * 2));
         
 #ifdef LOOKUP_TEST
@@ -277,7 +307,8 @@ void SFReadLookupTable(const SFUByte * const llTable, LookupTable *tablePtr, Sub
 }
 
 void SFFreeLookupTable(LookupTable *tablePtr, FreeSubtableFunction func) {
-    for (int i = 0; i < tablePtr->subTableCount; i++)
+	int i;
+    for (i = 0; i < tablePtr->subTableCount; i++)
         (*func)(tablePtr->subtables[i], tablePtr->lookupType);
     
     free(tablePtr->subtables);
@@ -285,17 +316,19 @@ void SFFreeLookupTable(LookupTable *tablePtr, FreeSubtableFunction func) {
 
 
 void SFReadLookupListTable(const SFUByte * const llTable, LookupListTable *tablePtr, SubtableFunction func) {
-    SFUShort count = SFReadUShort(llTable, 0);
-    tablePtr->lookupCount = count;
+    LookupTable *lookupTables;
+    SFUShort i = 0;
+    
+    tablePtr->lookupCount = SFReadUShort(llTable, 0);
     
 #ifdef LOOKUP_TEST
-    printf("\n  Total Lookup Tables: %d", count);
+    printf("\n  Total Lookup Tables: %d", tablePtr->lookupCount);
 #endif
     
-    LookupTable *lookupTables = malloc(sizeof(LookupTable) * count);
+    lookupTables = malloc(sizeof(LookupTable) * tablePtr->lookupCount);
     
-    for (SFUShort i = 0, offset; i < count; i++) {
-        offset = SFReadUShort(llTable, 2 + (i * 2));
+    for (i = 0; i < tablePtr->lookupCount; i++) {
+        SFUShort offset = SFReadUShort(llTable, 2 + (i * 2));
         
 #ifdef LOOKUP_TEST
         printf("\n  Lookup Table At Index %d:", i);
@@ -309,7 +342,8 @@ void SFReadLookupListTable(const SFUByte * const llTable, LookupListTable *table
 }
 
 void SFFreeLookupListTable(LookupListTable *tablePtr, FreeSubtableFunction func) {
-    for (int i = 0; i < tablePtr->lookupCount; i++)
+	int i;
+    for (i = 0; i < tablePtr->lookupCount; i++)
         SFFreeLookupTable(&tablePtr->lookupTables[i], func);
     
     free(tablePtr->lookupTables);
@@ -326,21 +360,26 @@ void SFReadClassDefTable(const SFUByte * const cdTable, ClassDefTable *tablePtr)
     switch (format) {
         case 1:
         {
+            SFUShort glyphCount;
+            SFUShort *classValueArray;
+            
+			SFUShort i;
+
             tablePtr->format.format1.startGlyph = SFReadUShort(cdTable, 2);
             
 #ifdef LOOKUP_TEST
             printf("\n         Start Glyph: %d", tablePtr->format.format1.startGlyph);
 #endif
             
-            SFUShort glyphCount = SFReadUShort(cdTable, 4);
+            glyphCount = SFReadUShort(cdTable, 4);
             tablePtr->format.format1.glyphCount = glyphCount;
             
 #ifdef LOOKUP_TEST
             printf("\n         Total Class Values: %d", glyphCount);
 #endif
             
-            SFUShort *classValueArray = malloc(sizeof(SFUShort) * glyphCount);
-            for (SFUShort i = 0; i < glyphCount; i++) {
+            classValueArray = malloc(sizeof(SFUShort) * glyphCount);
+            for (i = 0; i < glyphCount; i++) {
                 classValueArray[i] = SFReadUShort(cdTable, 6 + (i * 2));
                 
 #ifdef LOOKUP_TEST
@@ -353,16 +392,21 @@ void SFReadClassDefTable(const SFUByte * const cdTable, ClassDefTable *tablePtr)
             break;
         case 2:
         {
-            SFUShort classRangeCount = SFReadUShort(cdTable, 2);
+            SFUShort classRangeCount;
+            ClassRangeRecord *classRangeRecords;
+            
+            SFUShort i;
+            
+            classRangeCount = SFReadUShort(cdTable, 2);
             tablePtr->format.format2.classRangeCount = classRangeCount;
             
 #ifdef LOOKUP_TEST
             printf("\n         Total Class Ranges: %d", classRangeCount);
 #endif
             
-            ClassRangeRecord *classRangeRecords = malloc(sizeof(ClassRangeRecord) * classRangeCount);
+            classRangeRecords = malloc(sizeof(ClassRangeRecord) * classRangeCount);
             
-            for (SFUShort i = 0; i < classRangeCount; i++) {
+            for (i = 0; i < classRangeCount; i++) {
                 SFUShort offset = 4 + (i * 6);
                 
                 classRangeRecords[i].start = SFReadUShort(cdTable, offset);
@@ -397,56 +441,74 @@ void SFFreeClassDefTable(ClassDefTable *tablePtr) {
 
 
 void SFReadCoverageTable(const SFUByte * const cTable, CoverageTable *tablePtr) {
-    SFUShort coverageFormat = SFReadUShort(cTable, 0);
+    SFUShort coverageFormat;
+    SFUShort count;
+    
+    coverageFormat = SFReadUShort(cTable, 0);
+    count = SFReadUShort(cTable, 2);
+    
     tablePtr->coverageFormat = coverageFormat;
     
 #ifdef LOOKUP_TEST
     printf("\n        Coverage Format: %d", coverageFormat);
 #endif
     
-    SFUShort count = SFReadUShort(cTable, 2);
-    
-    if (coverageFormat == 1) {
-        tablePtr->format.format1.glyphCount = count;
-        
-#ifdef LOOKUP_TEST
-        printf("\n        Total Glyphs: %d", count);
-#endif
-        
-        SFGlyph *glyphs = malloc(2 * count);
-        for (SFUShort i = 0; i < count; i++) {
-            glyphs[i] = SFReadUShort(cTable, 4 + (i * 2));
+    switch (coverageFormat) {
+        case 1:
+        {
+            SFGlyph *glyphs;
+            SFUShort glyphIndex;
+            
+            tablePtr->format.format1.glyphCount = count;
             
 #ifdef LOOKUP_TEST
-            printf("\n        Glyph At Index %d: %d", i, glyphs[i]);
+            printf("\n        Total Glyphs: %d", count);
 #endif
+            
+            glyphs = malloc(2 * count);
+            for (glyphIndex = 0; glyphIndex < count; glyphIndex++) {
+                glyphs[glyphIndex] = SFReadUShort(cTable, 4 + (glyphIndex * 2));
+                
+#ifdef LOOKUP_TEST
+                printf("\n        Glyph At Index %d: %d", glyphIndex, glyphs[glyphIndex]);
+#endif
+            }
+            
+            tablePtr->format.format1.glyphArray = glyphs;
         }
-        
-        tablePtr->format.format1.glyphArray = glyphs;
-    } else if (coverageFormat == 2) {
-        tablePtr->format.format2.rangeCount = count;
-        
-#ifdef LOOKUP_TEST
-        printf("\n        Total Ranges: %d", count);
-#endif
-        RangeRecord *rangeRecords = malloc(sizeof(RangeRecord) * count);
-        
-        for (SFUShort i = 0; i < count; i++) {
-            SFUShort offset = 4 + (i * 6);
+            break;
             
-            rangeRecords[i].start = SFReadUShort(cTable, 0 + offset);
-            rangeRecords[i].end = SFReadUShort(cTable, 2 + offset);
-            rangeRecords[i].startCoverageIndex = SFReadUShort(cTable, 4 + offset);
+        case 2:
+        {
+            RangeRecord *rangeRecords;
+            SFUShort recordIndex;
+            
+            tablePtr->format.format2.rangeCount = count;
             
 #ifdef LOOKUP_TEST
-            printf("\n         Range Record At Index %d:", i);
-            printf("\n          Start: %d", rangeRecords[i].start);
-            printf("\n          End: %d", rangeRecords[i].end);
-            printf("\n          Start Coverage Index: %d", rangeRecords[i].startCoverageIndex);
+            printf("\n        Total Ranges: %d", count);
 #endif
+            
+            rangeRecords = malloc(sizeof(RangeRecord) * count);
+            
+            for (recordIndex = 0; recordIndex < count; recordIndex++) {
+                SFUShort offset = 4 + (recordIndex * 6);
+                
+                rangeRecords[recordIndex].start = SFReadUShort(cTable, 0 + offset);
+                rangeRecords[recordIndex].end = SFReadUShort(cTable, 2 + offset);
+                rangeRecords[recordIndex].startCoverageIndex = SFReadUShort(cTable, 4 + offset);
+                
+#ifdef LOOKUP_TEST
+                printf("\n         Range Record At Index %d:", recordIndex);
+                printf("\n          Start: %d", rangeRecords[recordIndex].start);
+                printf("\n          End: %d", rangeRecords[recordIndex].end);
+                printf("\n          Start Coverage Index: %d", rangeRecords[recordIndex].startCoverageIndex);
+#endif
+            }
+            
+            tablePtr->format.format2.rangeRecord = rangeRecords;
         }
-        
-        tablePtr->format.format2.rangeRecord = rangeRecords;
+            break;
     }
 }
 
@@ -479,16 +541,19 @@ void SFReadDeviceTable(const SFUByte * const dTable, DeviceTable *tablePtr) {
 
 
 void SFAllocateStringRecord(SFStringRecord *record, SFUnichar *charsPtr, int *levelsPtr, int *lOrderPtr, int len) {
+    SFCharRecord *charRecord;
+    int recordIndex;
+    
     record->charCount = len;
     record->glyphCount = len;
     
-    SFCharRecord *charRecord = malloc(sizeof(SFCharRecord) * len);
+    charRecord = malloc(sizeof(SFCharRecord) * len);
     
-    for (int i = 0; i < len; i++) {
-        charRecord[i].glyphCount = 1;
-        charRecord[i].gRec = malloc(sizeof(SFGlyphRecord));
-        charRecord[i].gRec[0].glyphProp = gpNotReceived;
-        charRecord[i].gRec[0].posRec = SFPositionRecordZero;
+    for (recordIndex = 0; recordIndex < len; recordIndex++) {
+        charRecord[recordIndex].glyphCount = 1;
+        charRecord[recordIndex].gRec = malloc(sizeof(SFGlyphRecord));
+        charRecord[recordIndex].gRec[0].glyphProp = gpNotReceived;
+        charRecord[recordIndex].gRec[0].posRec = SFPositionRecordZero;
     }
     
     record->chars = charsPtr;
@@ -499,9 +564,10 @@ void SFAllocateStringRecord(SFStringRecord *record, SFUnichar *charsPtr, int *le
 }
 
 void SFFreeStringRecord(SFStringRecord *record) {
-    for (int i = 0; i < record->charCount; i++)
+	int i;
+    for (i = 0; i < record->charCount; i++)
         free(record->charRecord[i].gRec);
-
+    
     free(record->chars);
     free(record->levels);
     free(record->lOrder);
@@ -510,9 +576,10 @@ void SFFreeStringRecord(SFStringRecord *record) {
 
 int SFGetIndexOfGlyphInCoverage(CoverageTable *tablePtr, SFGlyph glyph) {
     int index = UNDEFINED_INDEX;
+	int j;
     
     if (tablePtr->coverageFormat == 1) {
-        for (int j = 0; j < tablePtr->format.format1.glyphCount; j++) {
+        for (j = 0; j < tablePtr->format.format1.glyphCount; j++) {
             SFGlyph inputGlyph = tablePtr->format.format1.glyphArray[j];
             
             if (inputGlyph == glyph) {
@@ -521,7 +588,7 @@ int SFGetIndexOfGlyphInCoverage(CoverageTable *tablePtr, SFGlyph glyph) {
             }
         }
     } else if (tablePtr->coverageFormat == 2) {
-        for (int j = 0; j < tablePtr->format.format2.rangeCount; j++) {
+        for (j = 0; j < tablePtr->format.format2.rangeCount; j++) {
             RangeRecord record = tablePtr->format.format2.rangeRecord[j];
             
             if (glyph >= record.start && glyph <= record.end) {
@@ -533,4 +600,3 @@ int SFGetIndexOfGlyphInCoverage(CoverageTable *tablePtr, SFGlyph glyph) {
     
     return index;
 }
-

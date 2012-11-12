@@ -34,6 +34,8 @@ static DeviceTable nullDevice() {
 }
 
 static void SFReadValueRecord(const SFUByte * const table, SFUShort *offset, ValueRecord *tablePtr, ValueFormat format) {
+    DeviceTable nullDev;
+    
     if (format & vfXPlacement) {
         tablePtr->xPlacement = SFReadUShort(table, *offset);
         *offset += 2;
@@ -74,7 +76,7 @@ static void SFReadValueRecord(const SFUByte * const table, SFUShort *offset, Val
     } else
         tablePtr->yAdvance = 0;
     
-    DeviceTable nullDev = nullDevice();
+    nullDev = nullDevice();
     tablePtr->xPlaDevice = nullDev;
     tablePtr->yPlaDevice = nullDev;
     tablePtr->xAdvDevice = nullDev;
@@ -87,10 +89,10 @@ static void SFReadValueRecord(const SFUByte * const table, SFUShort *offset, Val
         printf("\n          X Placement Device Table:");
         printf("\n           Offset: %d", xPlaDeviceOffset);
 #endif
-
+        
         if (xPlaDeviceOffset)
             SFReadDeviceTable(gposTable[xPlaDeviceOffset], &tablePtr->xPlaDevice);
-            
+        
         *offset += 2;
     }
     
@@ -141,10 +143,13 @@ static void SFReadValueRecord(const SFUByte * const table, SFUShort *offset, Val
 #ifdef GPOS_SINGLE
 
 static void SFReadSingleAdjustment(const SFUByte * const saTable, SingleAdjustmentPosSubtable *tablePtr) {
-    SFUShort posFormat = SFReadUShort(saTable, 0);
+    SFUShort posFormat;
+    SFUShort coverageOffset;
+    
+    posFormat = SFReadUShort(saTable, 0);
     tablePtr->posFormat = posFormat;
     
-    SFUShort coverageOffset = SFReadUShort(saTable, 2);
+    coverageOffset = SFReadUShort(saTable, 2);
     
 #ifdef LOOKUP_TEST
     printf("\n      Single Adjustment Positioning Table:");
@@ -159,9 +164,9 @@ static void SFReadSingleAdjustment(const SFUByte * const saTable, SingleAdjustme
 #ifdef LOOKUP_TEST
     printf("\n       Value Format: %d", tablePtr->valueFormat);
 #endif
-
+    
     switch (posFormat) {
-
+            
 #ifdef GPOS_SINGLE_FORMAT1
         case 1:
         {
@@ -179,21 +184,27 @@ static void SFReadSingleAdjustment(const SFUByte * const saTable, SingleAdjustme
 #ifdef GPOS_SINGLE_FORMAT2
         case 2:
         {
-            SFUShort valueCount = SFReadUShort(saTable, 6);
+            SFUShort valueCount;
+            ValueRecord *values;
+            
+            SFUShort nextValueOffset;
+            SFUShort i;
+            
+            valueCount = SFReadUShort(saTable, 6);
             tablePtr->format.format2.valueCount = valueCount;
             
 #ifdef LOOKUP_TEST
             printf("\n       Total Values: %d", valueCount);
 #endif
             
-            ValueRecord *values = malloc(sizeof(ValueRecord) * valueCount);
+            values = malloc(sizeof(ValueRecord) * valueCount);
             
-            SFUShort nextValueOffset = 8;            
-            for (SFUShort i = 0; i < valueCount; i++) {
+            nextValueOffset = 8;
+            for (i = 0; i < valueCount; i++) {
 #ifdef LOOKUP_TEST
                 printf("\n       Value Record At Index %d:", i);
 #endif
-
+                
                 SFReadValueRecord(saTable, &nextValueOffset, &values[i], tablePtr->valueFormat);
             }
             
@@ -219,10 +230,13 @@ static void SFFreeSingleAdjustment(SingleAdjustmentPosSubtable *tablePtr) {
 #ifdef GPOS_PAIR
 
 static void SFReadPairAdjustment(const SFUByte * const paTable, PairAdjustmentPosSubtable *tablePtr) {
-    SFUShort posFormat = SFReadUShort(paTable, 0);
+    SFUShort posFormat;
+    SFUShort coverageOffset;
+    
+    posFormat = SFReadUShort(paTable, 0);
     tablePtr->posFormat = posFormat;
     
-    SFUShort coverageOffset = SFReadUShort(paTable, 2);
+    coverageOffset = SFReadUShort(paTable, 2);
     
 #ifdef LOOKUP_TEST
     printf("\n      Pair Adjustment Positioning Table:");
@@ -246,35 +260,49 @@ static void SFReadPairAdjustment(const SFUByte * const paTable, PairAdjustmentPo
 #ifdef GPOS_PAIR_FORMAT1
         case 1:
         {
-            SFUShort pairSetCount = SFReadUShort(paTable, 8);
-            tablePtr->format.format1.pairSetCount = pairSetCount;
+            SFUShort pairSetCount;
+            PairSetTable *pairSetTables;
+            
+			SFUShort i;
 
+            pairSetCount = SFReadUShort(paTable, 8);
+            tablePtr->format.format1.pairSetCount = pairSetCount;
+            
 #ifdef LOOKUP_TEST
             printf("\n       Total Pair Sets: %d", pairSetCount);
 #endif
             
-            PairSetTable *pairSetTables = malloc(sizeof(PairSetTable) * pairSetCount);
+            pairSetTables = malloc(sizeof(PairSetTable) * pairSetCount);
             
-            for (SFUShort i = 0; i < pairSetCount; i++) {
-                SFUShort pairSetOffset = SFReadUShort(paTable, 10);
-                const SFUByte * const psTable = &paTable[pairSetOffset];
+            for (i = 0; i < pairSetCount; i++) {
+                SFUShort pairSetOffset;
+                const SFUByte *psTable;
+                
+                SFUShort pairValueCount;
+                PairValueRecord *pairValueRecords;
+                
+                SFUShort beginOffset;
+                SFUShort j;
+                
+                pairSetOffset = SFReadUShort(paTable, 10);
+                psTable = &paTable[pairSetOffset];
                 
 #ifdef LOOKUP_TEST
                 printf("\n       Pair Set At Index %d:", i);
                 printf("\n        Offset: %d", pairSetOffset);
 #endif
                 
-                SFUShort pairValueCount = SFReadUShort(psTable, 0);
+                pairValueCount = SFReadUShort(psTable, 0);
                 pairSetTables[i].pairValueCount = pairValueCount;
                 
 #ifdef LOOKUP_TEST
                 printf("\n        Total Pair Values: %d", pairValueCount);
 #endif
                 
-                PairValueRecord *pairValueRecords = malloc(sizeof(PairValueRecord) * pairValueCount);
+                pairValueRecords = malloc(sizeof(PairValueRecord) * pairValueCount);
                 
-                SFUShort beginOffset = 2;
-                for (SFUShort j = 0; j < pairValueCount; j++) {
+                beginOffset = 2;
+                for (j = 0; j < pairValueCount; j++) {
                     pairValueRecords[j].secondGlyph = SFReadUShort(psTable, beginOffset);
                     beginOffset += 2;
                     
@@ -304,7 +332,17 @@ static void SFReadPairAdjustment(const SFUByte * const paTable, PairAdjustmentPo
 #ifdef GPOS_PAIR_FORMAT2
         case 2:
         {
-            SFUShort classDef1Offset = SFReadUShort(paTable, 8);
+            SFUShort classDef1Offset;
+            SFUShort classDef2Offset;
+            
+            SFUShort class1Count;
+            SFUShort class2Count;
+            
+            Class1Record *class1Records;
+            SFUShort beginOffset;
+            SFUShort i = 0;
+            
+            classDef1Offset = SFReadUShort(paTable, 8);
             
 #ifdef LOOKUP_TEST
             printf("\n       Class Definition 1:");
@@ -313,7 +351,7 @@ static void SFReadPairAdjustment(const SFUByte * const paTable, PairAdjustmentPo
             
             SFReadClassDefTable(&paTable[classDef1Offset], &tablePtr->format.format2.classDef1);
             
-            SFUShort classDef2Offset = SFReadUShort(paTable, 10);
+            classDef2Offset = SFReadUShort(paTable, 10);
             
 #ifdef LOOKUP_TEST
             printf("\n       Class Definition 2:");
@@ -321,9 +359,9 @@ static void SFReadPairAdjustment(const SFUByte * const paTable, PairAdjustmentPo
 #endif
             
             SFReadClassDefTable(&paTable[classDef2Offset], &tablePtr->format.format2.classDef2);
-
-            SFUShort class1Count = SFReadUShort(paTable, 12);
-            SFUShort class2Count = SFReadUShort(paTable, 14);
+            
+            class1Count = SFReadUShort(paTable, 12);
+            class2Count = SFReadUShort(paTable, 14);
             
 #ifdef LOOKUP_TEST
             printf("\n       Total Classes in Class Definition 1: %d", class1Count);
@@ -333,17 +371,20 @@ static void SFReadPairAdjustment(const SFUByte * const paTable, PairAdjustmentPo
             tablePtr->format.format2.class1Count = class1Count;
             tablePtr->format.format2.class2Count = class2Count;
             
-            Class1Record *class1Records = malloc(sizeof(Class1Record) * class1Count);
+            class1Records = malloc(sizeof(Class1Record) * class1Count);
             
-            SFUShort beginOffset = 16;
-            for (SFUShort i = 0; i < class1Count; i++) {
+            beginOffset = 16;
+            for (i = 0; i < class1Count; i++) {
+                Class2Record *class2Records;
+                SFUShort j;
+
 #ifdef LOOKUP_TEST
                 printf("\n       Class 1 Record At Index %d:", i);
 #endif
                 
-                Class2Record *class2Records = malloc(sizeof(Class2Record) * class2Count);
-
-                for (SFUShort j = 0; j < class2Count; j++) {
+                class2Records = malloc(sizeof(Class2Record) * class2Count);
+                
+                for (j = 0; j < class2Count; j++) {
 #ifdef LOOKUP_TEST
                     printf("\n        Class 2 Record At Index %d:", j);
                     printf("\n         Value 1 Record:");
@@ -369,30 +410,34 @@ static void SFReadPairAdjustment(const SFUByte * const paTable, PairAdjustmentPo
 }
 
 static void SFFreePairAdjustment(PairAdjustmentPosSubtable *tablePtr) {
+    SFUShort i = 0;
+    
     SFFreeCoverageTable(&tablePtr->coverage);
     
     switch (tablePtr->posFormat) {
             
 #ifdef GPOS_PAIR_FORMAT1
         case 1:
-            for (SFUShort i = 0; i < tablePtr->format.format1.pairSetCount; i++)
+        {
+            for (; i < tablePtr->format.format1.pairSetCount; i++)
                 free(tablePtr->format.format1.pairSetTable[i].pairValueRecord);
-
-            free(tablePtr->format.format1.pairSetTable);
             
+            free(tablePtr->format.format1.pairSetTable);
+        }
             break;
 #endif
             
 #ifdef GPOS_PAIR_FORMAT2
         case 2:
+        {
             SFFreeClassDefTable(&tablePtr->format.format2.classDef1);
             SFFreeClassDefTable(&tablePtr->format.format2.classDef2);
             
-            for (SFUShort i = 0; i < tablePtr->format.format2.class1Count; i++)
+            for (; i < tablePtr->format.format2.class1Count; i++)
                 free(tablePtr->format.format2.class1Record[i].class2Record);
-
-            free(tablePtr->format.format2.class1Record);
             
+            free(tablePtr->format.format2.class1Record);
+        }
             break;
 #endif
     }
@@ -425,7 +470,10 @@ static void SFReadAnchorTable(const SFUByte * const aTable, AnchorTable *tablePt
             
         case 3:
         {
-            SFUShort xDeviceOffset = SFReadUShort(aTable, 6);
+            SFUShort xDeviceOffset;
+            SFUShort yDeviceOffset;
+            
+            xDeviceOffset = SFReadUShort(aTable, 6);
             
 #ifdef LOOKUP_TEST
             printf("\n         X Device Table:");
@@ -433,7 +481,7 @@ static void SFReadAnchorTable(const SFUByte * const aTable, AnchorTable *tablePt
 #endif
             SFReadDeviceTable(&aTable[xDeviceOffset], &tablePtr->format.format3.xDeviceTable);
             
-            SFUShort yDeviceOffset = SFReadUShort(aTable, 8);
+            yDeviceOffset = SFReadUShort(aTable, 8);
             
 #ifdef LOOKUP_TEST
             printf("\n         Y Device Table:");
@@ -451,10 +499,19 @@ static void SFReadAnchorTable(const SFUByte * const aTable, AnchorTable *tablePt
 #ifdef GPOS_CURSIVE
 
 static void SFReadCursiveAttachment(const SFUByte * const caTable, CursiveAttachmentPosSubtable *tablePtr) {
-    SFUShort posFormat = SFReadUShort(caTable, 0);
+    SFUShort posFormat;
+    SFUShort coverageOffset;
+    
+    SFUShort entryExitCount;
+    EntryExitRecord *entryExitRecords;
+    
+    SFUShort beginOffset;
+    SFUShort i;
+    
+    posFormat = SFReadUShort(caTable, 0);
     tablePtr->posFormat = posFormat;
     
-    SFUShort coverageOffset = SFReadUShort(caTable, 2);
+    coverageOffset = SFReadUShort(caTable, 2);
     
 #ifdef LOOKUP_TEST
     printf("\n      Cursive Attachment Positioning Table:");
@@ -465,32 +522,35 @@ static void SFReadCursiveAttachment(const SFUByte * const caTable, CursiveAttach
     
     SFReadCoverageTable(&caTable[coverageOffset], &tablePtr->coverage);
     
-    SFUShort entryExitCount = SFReadUShort(caTable, 4);
+    entryExitCount = SFReadUShort(caTable, 4);
     
 #ifdef LOOKUP_TEST
     printf("\n       Total Entry Exits: %d", entryExitCount);
 #endif
     
-    EntryExitRecord *entryExitRecords = malloc(sizeof(EntryExitRecord) * entryExitCount);
+    entryExitRecords = malloc(sizeof(EntryExitRecord) * entryExitCount);
     
-    SFUShort beginOffset = 6;
-    for (SFUShort i = 0; i < entryExitCount; i++) {
+    beginOffset = 6;
+    for (i = 0; i < entryExitCount; i++) {
+        SFUShort entryAnchorOffset;
+        SFUShort exitAnchorOffset;
+        
 #ifdef LOOKUP_TEST
         printf("\n       Entry Exit At Index: %d", i);
 #endif
         
-        SFUShort entryAnchorOffset = SFReadUShort(caTable, beginOffset);
+        entryAnchorOffset = SFReadUShort(caTable, beginOffset);
         beginOffset += 2;
         
 #ifdef LOOKUP_TEST
         printf("\n        Entry Anchor:");
         printf("\n         Offset: %d", entryAnchorOffset);
 #endif
-
+        
         entryExitRecords[i].hasEntryAnchor = entryAnchorOffset;
         SFReadAnchorTable(&caTable[entryAnchorOffset], &entryExitRecords[i].entryAnchor);
         
-        SFUShort exitAnchorOffset = SFReadUShort(caTable, beginOffset);
+        exitAnchorOffset = SFReadUShort(caTable, beginOffset);
         beginOffset += 2;
         
 #ifdef LOOKUP_TEST
@@ -515,18 +575,26 @@ static void SFFreeCursiveAttachment(CursiveAttachmentPosSubtable *tablePtr) {
 
 #ifdef GPOS_MARK
 
-static void SFReadMarkArray(const SFUByte * const maTable, MarkArrayTable *tablePtr)  {
-    SFUShort markCount = SFReadUShort(maTable, 0);
+static void SFReadMarkArray(const SFUByte * const maTable, MarkArrayTable *tablePtr) {
+    SFUShort markCount;
+    MarkRecord *markRecords;
+    SFUShort beginOffset;
+    
+	SFUShort i;
+
+    markCount = SFReadUShort(maTable, 0);
     tablePtr->markCount = markCount;
     
 #ifdef LOOKUP_TEST
     printf("\n        Total Mark Records: %d", markCount);
 #endif
     
-    MarkRecord *markRecords = malloc(sizeof(MarkRecord) * markCount);
+    markRecords = malloc(sizeof(MarkRecord) * markCount);
     
-    SFUShort beginOffset = 2;
-    for (SFUShort i = 0; i < markCount; i++) {
+    beginOffset = 2;
+    for (i = 0; i < markCount; i++) {
+        SFUShort markAnchorOffset;
+        
         markRecords[i].cls = SFReadUShort(maTable, beginOffset);
         
 #ifdef LOOKUP_TEST
@@ -535,13 +603,13 @@ static void SFReadMarkArray(const SFUByte * const maTable, MarkArrayTable *table
 #endif
         
         beginOffset += 2;
-        SFUShort markAnchorOffset = SFReadUShort(maTable, beginOffset);
+        markAnchorOffset = SFReadUShort(maTable, beginOffset);
         
 #ifdef LOOKUP_TEST
         printf("\n         Mark Anchor Table:");
         printf("\n          Offset: %d", markAnchorOffset);
 #endif
-    
+        
         SFReadAnchorTable(&maTable[markAnchorOffset], &markRecords[i].markAnchor);
         
         beginOffset += 2;
@@ -560,10 +628,26 @@ static void SFFreeMarkArray(MarkArrayTable *tablePtr) {
 #ifdef GPOS_MARK_TO_BASE
 
 static void SFReadMarkToBaseAttachment(const SFUByte * const mtbTable, MarkToBaseAttachmentPosSubtable *tablePtr) {
-    SFUShort posFormat = SFReadUShort(mtbTable, 0);
+    SFUShort posFormat;
+    SFUShort markCoverageOffset;
+    SFUShort baseCoverageOffset;
+    SFUShort markArrayOffset;
+    SFUShort baseArrayOffset;
+    
+    SFUShort classCount;
+    
+    const SFUByte *baTable;
+    BaseArrayTable baseArrayTable;
+    SFUShort baseCount;
+    
+    BaseRecord *baseRecords;
+    SFUShort beginOffset;
+    SFUShort i;
+    
+    posFormat = SFReadUShort(mtbTable, 0);
     tablePtr->posFormat = posFormat;
     
-    SFUShort markCoverageOffset = SFReadUShort(mtbTable, 2);
+    markCoverageOffset = SFReadUShort(mtbTable, 2);
     
 #ifdef LOOKUP_TEST
     printf("\n      Mark To Base Attachment Positioning Table:");
@@ -574,7 +658,7 @@ static void SFReadMarkToBaseAttachment(const SFUByte * const mtbTable, MarkToBas
     
     SFReadCoverageTable(&mtbTable[markCoverageOffset], &tablePtr->markCoverage);
     
-    SFUShort baseCoverageOffset = SFReadUShort(mtbTable, 4);
+    baseCoverageOffset = SFReadUShort(mtbTable, 4);
     
 #ifdef LOOKUP_TEST
     printf("\n       Base Coverage Table:");
@@ -583,14 +667,14 @@ static void SFReadMarkToBaseAttachment(const SFUByte * const mtbTable, MarkToBas
     
     SFReadCoverageTable(&mtbTable[baseCoverageOffset], &tablePtr->baseCoverage);
     
-    SFUShort classCount = SFReadUShort(mtbTable, 6);
+    classCount = SFReadUShort(mtbTable, 6);
     tablePtr->classCount = classCount;
     
 #ifdef LOOKUP_TEST
     printf("\n       Total Classes: %d", classCount);
 #endif
     
-    SFUShort markArrayOffset = SFReadUShort(mtbTable, 8);
+    markArrayOffset = SFReadUShort(mtbTable, 8);
     
 #ifdef LOOKUP_TEST
     printf("\n       Mark Array Table:");
@@ -599,37 +683,37 @@ static void SFReadMarkToBaseAttachment(const SFUByte * const mtbTable, MarkToBas
     
     SFReadMarkArray(&mtbTable[markArrayOffset], &tablePtr->markArray);
     
-    SFUShort baseArrayOffset = SFReadUShort(mtbTable, 10);
+    baseArrayOffset = SFReadUShort(mtbTable, 10);
     
 #ifdef LOOKUP_TEST
     printf("\n       Base Array Table:");
     printf("\n        Offset: %d", baseArrayOffset);
 #endif
     
-    const SFUByte * const baTable = &mtbTable[baseArrayOffset];
+    baTable = &mtbTable[baseArrayOffset];
     
-    BaseArrayTable baseArrayTable;
-    
-    SFUShort baseCount = SFReadUShort(baTable, 0);
+    baseCount = SFReadUShort(baTable, 0);
     baseArrayTable.baseCount = baseCount;
     
 #ifdef LOOKUP_TEST
     printf("\n        Total Base Records: %d", baseCount);
 #endif
     
-    BaseRecord *baseRecords = malloc(sizeof(BaseRecord) * baseCount);
+    baseRecords = malloc(sizeof(BaseRecord) * baseCount);
     
-    SFUShort beginOffset = 2;
-    for (SFUShort i = 0; i < baseCount; i++) {
+    beginOffset = 2;
+    for (i = 0; i < baseCount; i++) {
+        AnchorTable *baseAnchors;
+        SFUShort j;
+        
 #ifdef LOOKUP_TEST
         printf("\n        Base Record At Index %d:", i);
         printf("\n         Total Base Anchors: %d", classCount);
 #endif
         
-        AnchorTable *baseAnchors = malloc(sizeof(AnchorTable) * classCount);
+        baseAnchors = malloc(sizeof(AnchorTable) * classCount);
         
-        SFUShort j = 0;
-        for (; j < classCount; j++) {
+        for (j = 0; j < classCount; j++) {
             SFUShort baseAnchorOffset = SFReadUShort(baTable, beginOffset);
             
 #ifdef LOOKUP_TEST
@@ -641,7 +725,7 @@ static void SFReadMarkToBaseAttachment(const SFUByte * const mtbTable, MarkToBas
             
             beginOffset += 2;
         }
-
+        
         baseRecords[i].baseAnchor = baseAnchors;
     }
     
@@ -650,13 +734,15 @@ static void SFReadMarkToBaseAttachment(const SFUByte * const mtbTable, MarkToBas
 }
 
 static void SFFreeMarkToBaseAttachment(MarkToBaseAttachmentPosSubtable *tablePtr) {
+	SFUShort i;
+
     SFFreeCoverageTable(&tablePtr->markCoverage);
     SFFreeCoverageTable(&tablePtr->baseCoverage);
     SFFreeMarkArray(&tablePtr->markArray);
-
-    for (SFUShort i = 0; i < tablePtr->baseArray.baseCount; i++)
+    
+    for (i = 0; i < tablePtr->baseArray.baseCount; i++)
         free(tablePtr->baseArray.baseRecord[i].baseAnchor);
-
+    
     free(tablePtr->baseArray.baseRecord);
 }
 
@@ -666,10 +752,25 @@ static void SFFreeMarkToBaseAttachment(MarkToBaseAttachmentPosSubtable *tablePtr
 #ifdef GPOS_MARK_TO_LIGATURE
 
 static void SFReadMarkToLigatureAttachment(const SFUByte * const mtlTable, MarkToLigatureAttachmentPosSubtable *tablePtr) {
-    SFUShort posFormat = SFReadUShort(mtlTable, 0);
+    SFUShort posFormat;
+    SFUShort markCoverageOffset;
+    SFUShort ligatureCoverageOffset;
+    SFUShort markArrayOffset;
+    SFUShort ligatureArrayOffset;
+    
+    SFUShort classCount;
+    
+    const SFUByte *laTable;
+    LigatureArrayTable ligatureArrayTable;
+    SFUShort ligatureCount;
+    
+    LigatureAttachTable *ligatureAttachTables;
+    SFUShort i;
+    
+    posFormat = SFReadUShort(mtlTable, 0);
     tablePtr->posFormat = posFormat;
     
-    SFUShort markCoverageOffset = SFReadUShort(mtlTable, 2);
+    markCoverageOffset = SFReadUShort(mtlTable, 2);
     
 #ifdef LOOKUP_TEST
     printf("\n      Mark To Ligature Attachment Positioning Table:");
@@ -680,7 +781,7 @@ static void SFReadMarkToLigatureAttachment(const SFUByte * const mtlTable, MarkT
     
     SFReadCoverageTable(&mtlTable[markCoverageOffset], &tablePtr->markCoverage);
     
-    SFUShort ligatureCoverageOffset = SFReadUShort(mtlTable, 4);
+    ligatureCoverageOffset = SFReadUShort(mtlTable, 4);
     
 #ifdef LOOKUP_TEST
     printf("\n       Ligature Coverage Table:");
@@ -689,14 +790,14 @@ static void SFReadMarkToLigatureAttachment(const SFUByte * const mtlTable, MarkT
     
     SFReadCoverageTable(&mtlTable[ligatureCoverageOffset], &tablePtr->ligatureCoverage);
     
-    SFUShort classCount = SFReadUShort(mtlTable, 6);
+    classCount = SFReadUShort(mtlTable, 6);
     tablePtr->classCount = classCount;
     
 #ifdef LOOKUP_TEST
     printf("\n       Total Classes: %d", classCount);
 #endif
     
-    SFUShort markArrayOffset = SFReadUShort(mtlTable, 8);
+    markArrayOffset = SFReadUShort(mtlTable, 8);
     
 #ifdef LOOKUP_TEST
     printf("\n       Mark Array Table:");
@@ -705,65 +806,73 @@ static void SFReadMarkToLigatureAttachment(const SFUByte * const mtlTable, MarkT
     
     SFReadMarkArray(&mtlTable[markArrayOffset], &tablePtr->markArray);
     
-    SFUShort ligatureArrayOffset = SFReadUShort(mtlTable, 10);
+    ligatureArrayOffset = SFReadUShort(mtlTable, 10);
     
 #ifdef LOOKUP_TEST
     printf("\n       Ligature Array Table:");
     printf("\n        Offset: %d", ligatureArrayOffset);
 #endif
     
-    const SFUByte * const laTable = &mtlTable[ligatureArrayOffset];
+    laTable = &mtlTable[ligatureArrayOffset];
     
-    LigatureArrayTable ligatureArrayTable;
-    
-    SFUShort ligatureCount = SFReadUShort(laTable, 0);
+    ligatureCount = SFReadUShort(laTable, 0);
     ligatureArrayTable.ligatureCount = ligatureCount;
     
 #ifdef LOOKUP_TEST
     printf("\n        Total Ligature Attach Tables: %d", ligatureCount);
 #endif
     
-    LigatureAttachTable *ligatureAttachTables = malloc(sizeof(LigatureAttachTable) * ligatureCount);
+    ligatureAttachTables = malloc(sizeof(LigatureAttachTable) * ligatureCount);
     
-    for (SFUShort i = 0; i < ligatureCount; i++) {
-        SFUShort ligatureAttachOffset = SFReadUShort(laTable, 2 + (i * 2));
+    for (i = 0; i < ligatureCount; i++) {
+        SFUShort ligatureAttachOffset;
+        const SFUByte *latTable;
+        
+        SFUShort componentCount;
+        ComponentRecord *componentRecords;
+        
+        SFUShort beginOffset;
+        SFUShort j;
+        
+        ligatureAttachOffset = SFReadUShort(laTable, 2 + (i * 2));
         
 #ifdef LOOKUP_TEST
         printf("\n        Ligature Attach Table At Index %d:", i);
         printf("\n         Offset: %d", ligatureAttachOffset);
 #endif
         
-        const SFUByte * const latTable = &laTable[ligatureAttachOffset];
+        latTable = &laTable[ligatureAttachOffset];
         
-        SFUShort componentCount = SFReadUShort(latTable, 0);
+        componentCount = SFReadUShort(latTable, 0);
         ligatureAttachTables[i].componentCount = componentCount;
         
 #ifdef LOOKUP_TEST
         printf("\n         Total Component Records: %d", componentCount);
 #endif
         
-        ComponentRecord *componentRecords = malloc(sizeof(ComponentRecord) * componentCount);
-
-        int beginOffset = 2;
-        for (SFUShort j = 0; j < componentCount; j++) {
+        componentRecords = malloc(sizeof(ComponentRecord) * componentCount);
+        
+        beginOffset = 2;
+        for (j = 0; j < componentCount; j++) {
+            AnchorTable *ligatureAnchors;
+            SFUShort k;
+            
 #ifdef LOOKUP_TEST
             printf("\n         Component Record At Index %d:", j);
             printf("\n          Total Ligature Anchor Tables: %d", classCount);
 #endif
             
-            //const UInt8 * const crTable = &latTable[2 + (j * componentCount)];
+            ligatureAnchors = malloc(sizeof(AnchorTable) * classCount);
             
-            AnchorTable *ligatureAnchors = malloc(sizeof(AnchorTable) * classCount);
-            
-            for (SFUShort k = 0; k < classCount; k++) {
+            for (k = 0; k < classCount; k++) {
                 SFUShort ligatureAnchorOffset = SFReadUShort(latTable, beginOffset);
                 beginOffset += 2;
-            
+                
 #ifdef LOOKUP_TEST
                 printf("\n          Ligature Anchor At Index %d:", k);
                 printf("\n           Offset: %d", ligatureAnchorOffset);
 #endif
-            
+                
                 SFReadAnchorTable(&latTable[ligatureAnchorOffset], &ligatureAnchors[k]);
             }
             
@@ -778,12 +887,14 @@ static void SFReadMarkToLigatureAttachment(const SFUByte * const mtlTable, MarkT
 }
 
 static void SFFreeMarkToLigatureAttachment(MarkToLigatureAttachmentPosSubtable *tablePtr) {
+	SFUShort i, j;
+
     SFFreeCoverageTable(&tablePtr->markCoverage);
     SFFreeCoverageTable(&tablePtr->ligatureCoverage);
     SFFreeMarkArray(&tablePtr->markArray);
     
-    for (SFUShort i = 0; i < tablePtr->ligatureArray.ligatureCount; i++) {
-        for (SFUShort j = 0; j < tablePtr->ligatureArray.ligatureAttach[i].componentCount; j++)
+    for (i = 0; i < tablePtr->ligatureArray.ligatureCount; i++) {
+        for (j = 0; j < tablePtr->ligatureArray.ligatureAttach[i].componentCount; j++)
             free(tablePtr->ligatureArray.ligatureAttach[i].componentRecord[j].ligatureAnchor);
         
         free(tablePtr->ligatureArray.ligatureAttach[i].componentRecord);
@@ -798,10 +909,26 @@ static void SFFreeMarkToLigatureAttachment(MarkToLigatureAttachmentPosSubtable *
 #ifdef GPOS_MARK_TO_MARK
 
 static void SFReadMarkToMarkAttachment(const SFUByte * const mtmTable, MarkToMarkAttachmentPosSubtable *tablePtr) {
-    SFUShort posFormat = SFReadUShort(mtmTable, 0);
+    SFUShort posFormat;
+    SFUShort mark1CoverageOffset;
+    SFUShort mark2CoverageOffset;
+    SFUShort mark1ArrayOffset;
+    SFUShort mark2ArrayOffset;
+    
+    SFUShort classCount;
+    
+    const SFUByte *m2aTable;
+    Mark2ArrayTable mark2ArrayTable;
+    SFUShort mark2Count;
+    
+    Mark2Record *mark2Records;
+    SFUShort beginOffset;
+    SFUShort i;
+    
+    posFormat = SFReadUShort(mtmTable, 0);
     tablePtr->posFormat = posFormat;
     
-    SFUShort mark1CoverageOffset = SFReadUShort(mtmTable, 2);
+    mark1CoverageOffset = SFReadUShort(mtmTable, 2);
     
 #ifdef LOOKUP_TEST
     printf("\n      Mark To Mark Attachment Positioning Table:");
@@ -812,7 +939,7 @@ static void SFReadMarkToMarkAttachment(const SFUByte * const mtmTable, MarkToMar
     
     SFReadCoverageTable(&mtmTable[mark1CoverageOffset], &tablePtr->mark1Coverage);
     
-    SFUShort mark2CoverageOffset = SFReadUShort(mtmTable, 4);
+    mark2CoverageOffset = SFReadUShort(mtmTable, 4);
     
 #ifdef LOOKUP_TEST
     printf("\n       Mark 2 Coverage Table:");
@@ -821,14 +948,14 @@ static void SFReadMarkToMarkAttachment(const SFUByte * const mtmTable, MarkToMar
     
     SFReadCoverageTable(&mtmTable[mark2CoverageOffset], &tablePtr->mark2Coverage);
     
-    SFUShort classCount = SFReadUShort(mtmTable, 6);
+    classCount = SFReadUShort(mtmTable, 6);
     tablePtr->classCount = classCount;
     
 #ifdef LOOKUP_TEST
     printf("\n       Total Classes: %d", classCount);
 #endif
     
-    SFUShort mark1ArrayOffset = SFReadUShort(mtmTable, 8);
+    mark1ArrayOffset = SFReadUShort(mtmTable, 8);
     
 #ifdef LOOKUP_TEST
     printf("\n       Mark 1 Array Table:");
@@ -837,37 +964,37 @@ static void SFReadMarkToMarkAttachment(const SFUByte * const mtmTable, MarkToMar
     
     SFReadMarkArray(&mtmTable[mark1ArrayOffset], &tablePtr->mark1Array);
     
-    SFUShort mark2ArrayOffset = SFReadUShort(mtmTable, 10);
+    mark2ArrayOffset = SFReadUShort(mtmTable, 10);
     
 #ifdef LOOKUP_TEST
     printf("\n       Mark 2 Array Table:");
     printf("\n        Offset: %d", mark2ArrayOffset);
 #endif
     
-    const SFUByte * const m2aTable = &mtmTable[mark2ArrayOffset];
+    m2aTable = &mtmTable[mark2ArrayOffset];
     
-    Mark2ArrayTable mark2ArrayTable;
-    
-    SFUShort mark2Count = SFReadUShort(m2aTable, 0);
+    mark2Count = SFReadUShort(m2aTable, 0);
     mark2ArrayTable.mark2Count = mark2Count;
     
 #ifdef LOOKUP_TEST
     printf("\n        Total Mark 2 Records: %d", mark2Count);
 #endif
     
-    Mark2Record *mark2Records = malloc(sizeof(Mark2Record) * mark2Count);
+    mark2Records = malloc(sizeof(Mark2Record) * mark2Count);
     
-    SFUShort beginOffset = 2;
-    for (SFUShort i = 0; i < mark2Count; i++) {
+    beginOffset = 2;
+    for (i = 0; i < mark2Count; i++) {
+        AnchorTable *mark2Anchors;
+        SFUShort j;
+        
 #ifdef LOOKUP_TEST
         printf("\n        Mark 2 Record At Index %d:", i);
         printf("\n         Total Mark 2 Anchor Tables: %d", classCount);
 #endif
-
-        AnchorTable *mark2Anchors = malloc(sizeof(AnchorTable) * classCount);
         
-        SFUShort j = 0;
-        for (; j < classCount; j++) {
+        mark2Anchors = malloc(sizeof(AnchorTable) * classCount);
+        
+        for (j = 0; j < classCount; j++) {
             SFUShort mark2AnchorOffset = SFReadUShort(m2aTable, beginOffset);
             
 #ifdef LOOKUP_TEST
@@ -879,7 +1006,7 @@ static void SFReadMarkToMarkAttachment(const SFUByte * const mtmTable, MarkToMar
             
             beginOffset += 2;
         }
-
+        
         mark2Records[i].mark2Anchor = mark2Anchors;
     }
     
@@ -888,11 +1015,13 @@ static void SFReadMarkToMarkAttachment(const SFUByte * const mtmTable, MarkToMar
 }
 
 static void SFFreeMarkToMarkAttachment(MarkToMarkAttachmentPosSubtable *tablePtr) {
+	SFUShort i;
+
     SFFreeCoverageTable(&tablePtr->mark1Coverage);
     SFFreeCoverageTable(&tablePtr->mark2Coverage);
     SFFreeMarkArray(&tablePtr->mark1Array);
     
-    for (SFUShort i = 0; i < tablePtr->mark2Array.mark2Count; i++)
+    for (i = 0; i < tablePtr->mark2Array.mark2Count; i++)
         free(tablePtr->mark2Array.mark2Record[i].mark2Anchor);
     
     free(tablePtr->mark2Array.mark2Record);
@@ -917,7 +1046,13 @@ static void SFReadContextPos(const SFUByte * const cpTable, ContextPosSubtable *
 #ifdef GPOS_CONTEXT_FORMAT1
         case 1:
         {
-            SFUShort coverageOffset = SFReadUShort(cpTable, 2);
+            SFUShort coverageOffset;
+            SFUShort posRuleSetCount;
+            PosRuleSetTable *posRuleSetTables;
+            
+            SFUShort i;
+            
+            coverageOffset = SFReadUShort(cpTable, 2);
             
 #ifdef LOOKUP_TEST
             printf("\n       Coverage Table:");
@@ -926,46 +1061,64 @@ static void SFReadContextPos(const SFUByte * const cpTable, ContextPosSubtable *
             
             SFReadCoverageTable(&cpTable[coverageOffset], &tablePtr->format.format1.coverage);
             
-            SFUShort posRuleSetCount = SFReadUShort(cpTable, 4);
+            posRuleSetCount = SFReadUShort(cpTable, 4);
             tablePtr->format.format1.posRuleSetCount = posRuleSetCount;
             
 #ifdef LOOKUP_TEST
             printf("\n       Total Position Rule Sets: %d", posRuleSetCount);
 #endif
             
-            PosRuleSetTable *posRuleSetTables = malloc(sizeof(PosRuleSetTable) * posRuleSetCount);
+            posRuleSetTables = malloc(sizeof(PosRuleSetTable) * posRuleSetCount);
             
-            for (SFUShort i = 0; i < posRuleSetCount; i++) {
-                SFUShort posRuleSetOffset = SFReadUShort(cpTable, 6 + (i * 2));
-                const SFUByte * const srsTable = &cpTable[posRuleSetOffset];
+            for (i = 0; i < posRuleSetCount; i++) {
+                SFUShort posRuleSetOffset;
+                const SFUByte *srsTable;
+                
+                SFUShort posRuleCount;
+                PosRuleTable *posRuleTables;
+                SFUShort j;
+                
+                posRuleSetOffset = SFReadUShort(cpTable, 6 + (i * 2));
+                srsTable = &cpTable[posRuleSetOffset];
                 
 #ifdef LOOKUP_TEST
                 printf("\n       Position Rule Set %d:", i + 1);
                 printf("\n        Offset: %d", posRuleSetOffset);
 #endif
                 
-                SFUShort posRuleCount = SFReadUShort(srsTable, 0);
+                posRuleCount = SFReadUShort(srsTable, 0);
                 posRuleSetTables[i].posRuleCount = posRuleCount;
                 
 #ifdef LOOKUP_TEST
                 printf("\n        Total Position Rules: %d", posRuleCount);
 #endif
                 
-                PosRuleTable *posRuleTables = malloc(sizeof(PosRuleTable) * posRuleCount);
+                posRuleTables = malloc(sizeof(PosRuleTable) * posRuleCount);
                 
-                for (SFUShort j = 0; j < posRuleCount; j++) {
-                    SFUShort posRuleOffset = SFReadUShort(srsTable, 2 + (j * 2));
-                    const SFUByte * const srTable = &srsTable[posRuleOffset];
+                for (j = 0; j < posRuleCount; j++) {
+                    SFUShort posRuleOffset;
+                    const SFUByte *srTable;
+                    
+                    SFUShort glyphCount;
+                    SFUShort posCount;
+                    
+                    SFGlyph *glyphs;
+                    SFUShort k, l;
+                    
+                    PosLookupRecord *posLookupRecords;
+                    
+                    posRuleOffset = SFReadUShort(srsTable, 2 + (j * 2));
+                    srTable = &srsTable[posRuleOffset];
                     
 #ifdef LOOKUP_TEST
                     printf("\n        Position Rule %d:", j + 1);
                     printf("\n         Offset: %d", posRuleOffset);
 #endif
                     
-                    SFUShort glyphCount = SFReadUShort(srTable, 0);
+                    glyphCount = SFReadUShort(srTable, 0);
                     posRuleTables[j].glyphCount = glyphCount;
                     
-                    SFUShort posCount = SFReadUShort(srTable, 2);
+                    posCount = SFReadUShort(srTable, 2);
                     posRuleTables[j].posCount = posCount;
                     
 #ifdef LOOKUP_TEST
@@ -973,11 +1126,10 @@ static void SFReadContextPos(const SFUByte * const cpTable, ContextPosSubtable *
                     printf("\n         Total Lookup Records: %d", posCount);
 #endif
                     
-                    SFGlyph *glyphs = malloc(sizeof(SFGlyph) * glyphCount);
+                    glyphs = malloc(sizeof(SFGlyph) * glyphCount);
                     glyphs[0] = 0;
                     
-                    SFUShort k = 0;
-                    for (; k < glyphCount; k++) {
+                    for (k = 0; k < glyphCount; k++) {
                         glyphs[k + 1] = SFReadUShort(srTable, 4 + (k * 2));
                         
 #ifdef LOOKUP_TEST
@@ -989,8 +1141,8 @@ static void SFReadContextPos(const SFUByte * const cpTable, ContextPosSubtable *
                     
                     k += 4;
                     
-                    PosLookupRecord *posLookupRecords = malloc(sizeof(PosLookupRecord) * posCount);
-                    for (SFUShort l = 0; l < posCount; l++) {
+                    posLookupRecords = malloc(sizeof(PosLookupRecord) * posCount);
+                    for (l = 0; l < posCount; l++) {
                         SFUShort beginOffset = k + (l * 4);
                         
                         posLookupRecords[l].sequenceIndex = SFReadUShort(srTable, beginOffset);
@@ -1017,7 +1169,14 @@ static void SFReadContextPos(const SFUByte * const cpTable, ContextPosSubtable *
 #ifdef GPOS_CONTEXT_FORMAT2
         case 2:
         {
-            SFUShort coverageOffset = SFReadUShort(cpTable, 2);
+            SFUShort coverageOffset;
+            SFUShort classDefOffset;
+            SFUShort posClassSetCount;
+            PosClassSetTable *posRuleSetTables;
+            
+            SFUShort i;
+            
+            coverageOffset = SFReadUShort(cpTable, 2);
             
 #ifdef LOOKUP_TEST
             printf("\n       Coverage Table:");
@@ -1026,7 +1185,7 @@ static void SFReadContextPos(const SFUByte * const cpTable, ContextPosSubtable *
             
             SFReadCoverageTable(&cpTable[coverageOffset], &tablePtr->format.format2.coverage);
             
-            SFUShort classDefOffset = SFReadUShort(cpTable, 4);
+            classDefOffset = SFReadUShort(cpTable, 4);
             
 #ifdef LOOKUP_TEST
             printf("\n       Class Definition Table:");
@@ -1035,45 +1194,64 @@ static void SFReadContextPos(const SFUByte * const cpTable, ContextPosSubtable *
             
             SFReadClassDefTable(&cpTable[classDefOffset], &tablePtr->format.format2.classDef);
             
-            SFUShort posClassSetCount = SFReadUShort(cpTable, 6);
+            posClassSetCount = SFReadUShort(cpTable, 6);
             
 #ifdef LOOKUP_TEST
             printf("\n       Total Pos Class Sets: %d", posClassSetCount);
 #endif
             
-            PosClassSetTable *posRuleSetTables = malloc(sizeof(PosClassSetTable) * posClassSetCount);
+            posRuleSetTables = malloc(sizeof(PosClassSetTable) * posClassSetCount);
             
-            for (SFUShort i = 0; i < posClassSetCount; i++) {
-                SFUShort posClassSetOffset = SFReadUShort(cpTable, 8 + (i * 2));
-                const SFUByte * const scpTable = &cpTable[posClassSetOffset];
+            for (i = 0; i < posClassSetCount; i++) {
+                SFUShort posClassSetOffset;
+                const SFUByte *scpTable;
+                
+                SFUShort posClassRuleCount;
+                PosClassRuleTable *posRuleTables;
+                
+                PosLookupRecord *posLookupRecords;
+                
+                SFUShort j, l;
+                
+                posClassSetOffset = SFReadUShort(cpTable, 8 + (i * 2));
+                scpTable = &cpTable[posClassSetOffset];
                 
 #ifdef LOOKUP_TEST
                 printf("\n       Pos Class Set %d:", i + 1);
                 printf("\n        Offset: %d", posClassSetOffset);
 #endif
                 
-                SFUShort posClassRuleCount = SFReadUShort(scpTable, 0);
+                posClassRuleCount = SFReadUShort(scpTable, 0);
                 posRuleSetTables[i].posClassRuleCnt = posClassRuleCount;
                 
 #ifdef LOOKUP_TEST
                 printf("\n        Total Pos Class Rules: %d", posClassRuleCount);
 #endif
                 
-                PosClassRuleTable *posRuleTables = malloc(sizeof(PosClassRuleTable) * posClassRuleCount);
+                posRuleTables = malloc(sizeof(PosClassRuleTable) * posClassRuleCount);
                 
-                for (SFUShort j = 0; j < posClassRuleCount; j++) {
-                    SFUShort posClassRuleOffset = SFReadUShort(scpTable, 2 + (j * 2));
-                    const SFUByte * const scrTable = &scpTable[posClassRuleOffset];
+                for (j = 0; j < posClassRuleCount; j++) {
+                    SFUShort posClassRuleOffset;
+                    const SFUByte *scrTable;
+                    
+                    SFUShort glyphCount;
+                    SFUShort posCount;
+                    
+                    SFUShort *classes;
+                    SFUShort k;
+                    
+                    posClassRuleOffset = SFReadUShort(scpTable, 2 + (j * 2));
+                    scrTable = &scpTable[posClassRuleOffset];
                     
 #ifdef LOOKUP_TEST
                     printf("\n        Pos Class Rule %d:", j + 1);
                     printf("\n         Offset: %d", posClassRuleOffset);
 #endif
                     
-                    SFUShort glyphCount = SFReadUShort(scrTable, 0);
+                    glyphCount = SFReadUShort(scrTable, 0);
                     posRuleTables[j].glyphCount = glyphCount;
                     
-                    SFUShort posCount = SFReadUShort(scrTable, 2);
+                    posCount = SFReadUShort(scrTable, 2);
                     posRuleTables[j].posCount = posCount;
                     
 #ifdef LOOKUP_TEST
@@ -1081,11 +1259,10 @@ static void SFReadContextPos(const SFUByte * const cpTable, ContextPosSubtable *
                     printf("\n         Total Lookup Records: %d", posCount);
 #endif
                     
-                    SFUShort *classes = malloc(sizeof(SFUShort) * glyphCount);
+                    classes = malloc(sizeof(SFUShort) * glyphCount);
                     classes[0] = 0;
                     
-                    SFUShort k = 0;
-                    for (; k < glyphCount; k++) {
+                    for (k = 0; k < glyphCount; k++) {
                         classes[k + 1] = SFReadUShort(scrTable, 4 + (k * 2));
                         
 #ifdef LOOKUP_TEST
@@ -1097,8 +1274,8 @@ static void SFReadContextPos(const SFUByte * const cpTable, ContextPosSubtable *
                     
                     k += 4;
                     
-                    PosLookupRecord *posLookupRecords = malloc(sizeof(PosLookupRecord) * posCount);
-                    for (SFUShort l = 0; l < posCount; l++) {
+                    posLookupRecords = malloc(sizeof(PosLookupRecord) * posCount);
+                    for (l = 0; l < posCount; l++) {
                         SFUShort beginOffset = k + (l * 4);
                         
                         posLookupRecords[l].sequenceIndex = SFReadUShort(scrTable, beginOffset);
@@ -1125,8 +1302,16 @@ static void SFReadContextPos(const SFUByte * const cpTable, ContextPosSubtable *
 #ifdef GPOS_CONTEXT_FORMAT3
         case 3:
         {
-            SFUShort glyphCount = SFReadUShort(cpTable, 2);
-            SFUShort posCount = SFReadUShort(cpTable, 4);
+            SFUShort glyphCount;
+            SFUShort posCount;
+            
+            PosLookupRecord *posLookupRecords;
+            
+            CoverageTable *coverageTables;
+            SFUShort i, j;
+            
+            glyphCount = SFReadUShort(cpTable, 2);
+            posCount = SFReadUShort(cpTable, 4);
             
 #ifdef LOOKUP_TEST
             printf("\n       Total Coverage Tables: %d", glyphCount);
@@ -1136,9 +1321,9 @@ static void SFReadContextPos(const SFUByte * const cpTable, ContextPosSubtable *
             tablePtr->format.format3.glyphCount = glyphCount;
             tablePtr->format.format3.posCount = posCount;
             
-            CoverageTable *coverageTables = malloc(sizeof(CoverageTable) * glyphCount);
+            coverageTables = malloc(sizeof(CoverageTable) * glyphCount);
             
-            for (SFUShort i = 0; i < glyphCount; i++) {
+            for (i = 0; i < glyphCount; i++) {
                 SFUShort coverageOffset = SFReadUShort(cpTable, 6 + (i * 2));
                 
 #ifdef LOOKUP_TEST
@@ -1151,8 +1336,8 @@ static void SFReadContextPos(const SFUByte * const cpTable, ContextPosSubtable *
             
             tablePtr->format.format3.coverage = coverageTables;
             
-            PosLookupRecord *posLookupRecords = malloc(sizeof(PosLookupRecord) * posCount);
-            for (SFUShort j = 0; j < posCount; j++) {
+            posLookupRecords = malloc(sizeof(PosLookupRecord) * posCount);
+            for (j = 0; j < posCount; j++) {
                 SFUShort beginOffset = 8 + (j * 4);
                 
                 posLookupRecords[j].sequenceIndex = SFReadUShort(cpTable, beginOffset);
@@ -1173,14 +1358,17 @@ static void SFReadContextPos(const SFUByte * const cpTable, ContextPosSubtable *
 }
 
 static void SFFreeContextPos(ContextPosSubtable *tablePtr) {
+	int i, j;
+
     switch (tablePtr->posFormat) {
             
 #ifdef GPOS_CONTEXT_FORMAT1
         case 1:
+        {
             SFFreeCoverageTable(&tablePtr->format.format1.coverage);
             
-            for (int i = 0; i < tablePtr->format.format1.posRuleSetCount; i++) {
-                for (int j = 0; j < tablePtr->format.format1.posRuleSet[i].posRuleCount; j++) {
+            for (i = 0; i < tablePtr->format.format1.posRuleSetCount; i++) {
+                for (j = 0; j < tablePtr->format.format1.posRuleSet[i].posRuleCount; j++) {
                     free(tablePtr->format.format1.posRuleSet[i].posRule[j].input);
                     free(tablePtr->format.format1.posRuleSet[i].posRule[j].posLookupRecord);
                 }
@@ -1189,16 +1377,17 @@ static void SFFreeContextPos(ContextPosSubtable *tablePtr) {
             }
             
             free(tablePtr->format.format1.posRuleSet);
-            
+        }
             break;
 #endif
             
 #ifdef GPOS_CONTEXT_FORMAT2
         case 2:
+        {
             SFFreeCoverageTable(&tablePtr->format.format2.coverage);
             
-            for (int i = 0; i < tablePtr->format.format2.posClassSetCnt; i++) {
-                for (int j = 0; j < tablePtr->format.format2.posClassSet[i].posClassRuleCnt; j++) {
+            for (i = 0; i < tablePtr->format.format2.posClassSetCnt; i++) {
+                for (j = 0; j < tablePtr->format.format2.posClassSet[i].posClassRuleCnt; j++) {
                     free(tablePtr->format.format2.posClassSet[i].posClassRule[j].cls);
                     free(tablePtr->format.format2.posClassSet[i].posClassRule[j].posLookupRecord);
                 }
@@ -1208,18 +1397,19 @@ static void SFFreeContextPos(ContextPosSubtable *tablePtr) {
             
             SFFreeClassDefTable(&tablePtr->format.format2.classDef);
             free(tablePtr->format.format2.posClassSet);
-            
+        }
             break;
 #endif
             
 #ifdef GPOS_CONTEXT_FORMAT3
         case 3:
-            for (int i = 0; i < tablePtr->format.format3.glyphCount; i++)
+        {
+            for (i = 0; i < tablePtr->format.format3.glyphCount; i++)
                 SFFreeCoverageTable(&tablePtr->format.format3.coverage[i]);
             
             free(tablePtr->format.format3.coverage);
             free(tablePtr->format.format3.posLookupRecord);
-            
+        }
             break;
 #endif
     }
@@ -1244,7 +1434,14 @@ static void SFReadChainingContextPos(const SFUByte * const ccpTable, ChainingCon
 #ifdef GPOS_CHAINING_CONTEXT_FORMAT1
         case 1:
         {
-            SFUShort coverageOffset = SFReadUShort(ccpTable, 2);
+            SFUShort coverageOffset;
+            SFUShort chainPosRuleSetCount;
+            
+            ChainPosRuleSetTable *chainPosRuleSetTables;
+            
+            SFUShort i;
+            
+            coverageOffset = SFReadUShort(ccpTable, 2);
             
 #ifdef LOOKUP_TEST
             printf("\n       Coverage Table:");
@@ -1252,53 +1449,78 @@ static void SFReadChainingContextPos(const SFUByte * const ccpTable, ChainingCon
 #endif
             SFReadCoverageTable(&ccpTable[coverageOffset], &tablePtr->format.format1.coverage);
             
-            SFUShort chainPosRuleSetCount = SFReadUShort(ccpTable, 4);
+            chainPosRuleSetCount = SFReadUShort(ccpTable, 4);
             
 #ifdef LOOKUP_TEST
             printf("\n       Total Chain Pos Rule Sets: %d", chainPosRuleSetCount);
 #endif
             tablePtr->format.format1.chainPosRuleSetCount = chainPosRuleSetCount;
             
-            ChainPosRuleSetTable *chainPosRuleSetTables = malloc(sizeof(ChainPosRuleSetTable) * chainPosRuleSetCount);
+            chainPosRuleSetTables = malloc(sizeof(ChainPosRuleSetTable) * chainPosRuleSetCount);
             
-            for (SFUShort i = 0; i < chainPosRuleSetCount; i++) {
-                SFUShort chainPosRuleSetOffset = SFReadUShort(ccpTable, 6 + (i * 2));
-                const SFUByte * const csrsTable = &ccpTable[chainPosRuleSetOffset];
+            for (i = 0; i < chainPosRuleSetCount; i++) {
+                SFUShort chainPosRuleSetOffset;
+                const SFUByte *csrsTable;
+                
+                SFUShort chainPosRuleCount;
+                ChainPosRuleSubtable *chainPosRuleTables;
+                
+                SFUShort j;
+                
+                chainPosRuleSetOffset = SFReadUShort(ccpTable, 6 + (i * 2));
+                csrsTable = &ccpTable[chainPosRuleSetOffset];
                 
 #ifdef LOOKUP_TEST
                 printf("\n       Chain Pos Rule Set %d:", i + 1);
                 printf("\n        Offset: %d", chainPosRuleSetOffset);
 #endif
                 
-                SFUShort chainPosRuleCount = SFReadUShort(csrsTable, 0);
+                chainPosRuleCount = SFReadUShort(csrsTable, 0);
                 chainPosRuleSetTables[i].chainPosRuleCount = chainPosRuleCount;
                 
 #ifdef LOOKUP_TEST
                 printf("\n        Total Chain Pos Rule Tables: %d", chainPosRuleCount);
 #endif
                 
-                ChainPosRuleSubtable *chainPosRuleTables = malloc(sizeof(ChainPosRuleSubtable) * chainPosRuleCount);
+                chainPosRuleTables = malloc(sizeof(ChainPosRuleSubtable) * chainPosRuleCount);
                 
-                for (SFUShort j = 0; j < chainPosRuleCount; j++) {
-                    SFUShort chainPosRuleOffset = SFReadUShort(csrsTable, 2 + (j * 2));
-                    const SFUByte * const csrTable = &csrsTable[chainPosRuleOffset];
+                for (j = 0; j < chainPosRuleCount; j++) {
+                    SFUShort chainPosRuleOffset;
+                    const SFUByte *csrTable;
+                    
+                    SFUShort backtrackGlyphCount;
+                    SFGlyph *backtrackGlyphs;
+                    
+                    SFUShort inputGlyphCount;
+                    SFGlyph *inputGlyphs;
+                    
+                    SFUShort lookaheadGlyphCount;
+                    SFGlyph *lookaheadGlyphs;
+                    
+                    SFUShort posCount;
+                    PosLookupRecord *posLookupRecords;
+                    
+                    SFUShort k, l, m, n;
+                    
+                    
+                    chainPosRuleOffset = SFReadUShort(csrsTable, 2 + (j * 2));
+                    csrTable = &csrsTable[chainPosRuleOffset];
                     
 #ifdef LOOKUP_TEST
                     printf("\n        Chain Pos Rule Table %d:", j + 1);
                     printf("\n         Offset: %d", chainPosRuleOffset);
 #endif
                     
-                    SFUShort backtrackGlyphCount = SFReadUShort(csrTable, 0);
+                    backtrackGlyphCount = SFReadUShort(csrTable, 0);
                     chainPosRuleTables[j].backtrackGlyphCount = backtrackGlyphCount;
                     
 #ifdef LOOKUP_TEST
                     printf("\n         Total Backtrack Glyphs: %d", backtrackGlyphCount);
 #endif
                     
-                    SFGlyph *backtrackGlyphs = malloc(sizeof(SFGlyph) * backtrackGlyphCount);
+                    backtrackGlyphs = malloc(sizeof(SFGlyph) * backtrackGlyphCount);
                     
-                    SFUShort k = 0;
-                    for (; k < backtrackGlyphCount; k++) {
+                    for (k = 0; k < backtrackGlyphCount; k++) {
                         backtrackGlyphs[k] = SFReadUShort(csrTable, 2 + (k * 2));
                         
 #ifdef LOOKUP_TEST
@@ -1309,19 +1531,18 @@ static void SFReadChainingContextPos(const SFUByte * const ccpTable, ChainingCon
                     
                     chainPosRuleTables[j].backtrack = backtrackGlyphs;
                     
-                    SFUShort inputGlyphCount = SFReadUShort(csrTable, k);
+                    inputGlyphCount = SFReadUShort(csrTable, k);
                     chainPosRuleTables[j].inputGlyphCount = inputGlyphCount;
                     
 #ifdef LOOKUP_TEST
                     printf("\n         Total Input Glyphs: %d", inputGlyphCount);
 #endif
                     
-                    SFGlyph *inputGlyphs = malloc(sizeof(SFGlyph) * inputGlyphCount);
+                    inputGlyphs = malloc(sizeof(SFGlyph) * inputGlyphCount);
                     inputGlyphs[0] = 0;
                     
                     k += 2;
-                    SFUShort l = 0;
-                    for (; l < inputGlyphCount - 1; l++) {
+                    for (l = 0; l < inputGlyphCount - 1; l++) {
                         inputGlyphs[l + 1] = SFReadUShort(csrTable, k + (l * 2));
                         
 #ifdef LOOKUP_TEST
@@ -1332,18 +1553,17 @@ static void SFReadChainingContextPos(const SFUByte * const ccpTable, ChainingCon
                     
                     chainPosRuleTables[j].input = inputGlyphs;
                     
-                    SFUShort lookaheadGlyphCount = SFReadUShort(csrTable, k);
+                    lookaheadGlyphCount = SFReadUShort(csrTable, k);
                     chainPosRuleTables[j].lookaheadGlyphCount = lookaheadGlyphCount;
                     
 #ifdef LOOKUP_TEST
                     printf("\n         Total Lookahead Glyphs: %d", lookaheadGlyphCount);
 #endif
                     
-                    SFGlyph *lookaheadGlyphs = malloc(sizeof(SFGlyph) * lookaheadGlyphCount);
+                    lookaheadGlyphs = malloc(sizeof(SFGlyph) * lookaheadGlyphCount);
                     
                     k += 2;
-                    SFUShort m = 0;
-                    for (; m < lookaheadGlyphCount; m++) {
+                    for (m = 0; m < lookaheadGlyphCount; m++) {
                         lookaheadGlyphs[m] = SFReadUShort(csrTable, k + (m * 2));
                         
 #ifdef LOOKUP_TEST
@@ -1354,15 +1574,15 @@ static void SFReadChainingContextPos(const SFUByte * const ccpTable, ChainingCon
                     
                     chainPosRuleTables[j].lookAhead = lookaheadGlyphs;
                     
-                    SFUShort posCount = SFReadUShort(csrTable, k);
+                    posCount = SFReadUShort(csrTable, k);
                     
 #ifdef LOOKUP_TEST
                     printf("\n         Total Positioning Lookup Records: %d", posCount);
 #endif
                     
-                    PosLookupRecord *posLookupRecords = malloc(sizeof(PosLookupRecord) * posCount);
+                    posLookupRecords = malloc(sizeof(PosLookupRecord) * posCount);
                     
-                    for (SFUShort n = 0; n < posCount; l++) {
+                    for (n = 0; n < posCount; l++) {
                         SFUShort beginOffset = k + (n * 4);
                         
                         posLookupRecords[n].sequenceIndex = SFReadUShort(csrTable, beginOffset);
@@ -1389,7 +1609,17 @@ static void SFReadChainingContextPos(const SFUByte * const ccpTable, ChainingCon
 #ifdef GPOS_CHAINING_CONTEXT_FORMAT2
         case 2:
         {
-            SFUShort coverageOffset = SFReadUShort(ccpTable, 2);
+            SFUShort coverageOffset;
+            SFUShort backtrackClassDefOffset;
+            SFUShort inputClassDefOffset;
+            SFUShort lookaheadClassDefOffset;
+            
+            SFUShort chainPosClassSetCount;
+            ChainPosClassSetTable *chainPosClassSets;
+            
+            SFUShort i;
+            
+            coverageOffset = SFReadUShort(ccpTable, 2);
             
 #ifdef LOOKUP_TEST
             printf("\n       Coverage Table:");
@@ -1398,7 +1628,7 @@ static void SFReadChainingContextPos(const SFUByte * const ccpTable, ChainingCon
             
             SFReadCoverageTable(&ccpTable[coverageOffset], &tablePtr->format.format2.coverage);
             
-            SFUShort backtrackClassDefOffset = SFReadUShort(ccpTable, 4);
+            backtrackClassDefOffset = SFReadUShort(ccpTable, 4);
             
 #ifdef LOOKUP_TEST
             printf("\n       Backtrack Class Definition:");
@@ -1407,7 +1637,7 @@ static void SFReadChainingContextPos(const SFUByte * const ccpTable, ChainingCon
             
             SFReadClassDefTable(&ccpTable[backtrackClassDefOffset], &tablePtr->format.format2.backtrackClassDef);
             
-            SFUShort inputClassDefOffset = SFReadUShort(ccpTable, 6);
+            inputClassDefOffset = SFReadUShort(ccpTable, 6);
             
 #ifdef LOOKUP_TEST
             printf("\n       Input Class Definition:");
@@ -1416,7 +1646,7 @@ static void SFReadChainingContextPos(const SFUByte * const ccpTable, ChainingCon
             
             SFReadClassDefTable(&ccpTable[inputClassDefOffset], &tablePtr->format.format2.inputClassDef);
             
-            SFUShort lookaheadClassDefOffset = SFReadUShort(ccpTable, 8);
+            lookaheadClassDefOffset = SFReadUShort(ccpTable, 8);
             
 #ifdef LOOKUP_TEST
             printf("\n       Lookahead Class Definition:");
@@ -1425,52 +1655,76 @@ static void SFReadChainingContextPos(const SFUByte * const ccpTable, ChainingCon
             
             SFReadClassDefTable(&ccpTable[lookaheadClassDefOffset], &tablePtr->format.format2.lookaheadClassDef);
             
-            SFUShort chainPosClassSetCount = SFReadUShort(ccpTable, 10);
+            chainPosClassSetCount = SFReadUShort(ccpTable, 10);
             
 #ifdef LOOKUP_TEST
             printf("\n       Total Chain Pos Class Sets: %d", chainPosClassSetCount);
 #endif
             
-            ChainPosClassSetTable *chainPosClassSets = malloc(sizeof(ChainPosClassSetTable) * chainPosClassSetCount);
+            chainPosClassSets = malloc(sizeof(ChainPosClassSetTable) * chainPosClassSetCount);
             
-            for (SFUShort i = 0; i < chainPosClassSetCount; i++) {
-                SFUShort chainPosClassSetOffset = SFReadUShort(ccpTable, 12 + (i * 2));
-                const SFUByte * const cscpTable = &ccpTable[chainPosClassSetOffset];
+            for (i = 0; i < chainPosClassSetCount; i++) {
+                SFUShort chainPosClassSetOffset;
+                const SFUByte *cscpTable;
+                
+                SFUShort chainPosClassRuleCount;
+                ChainPosClassRuleSubTable *chainPosClassRuleTables;
+                
+                SFUShort j;
+                
+                chainPosClassSetOffset = SFReadUShort(ccpTable, 12 + (i * 2));
+                cscpTable = &ccpTable[chainPosClassSetOffset];
                 
 #ifdef LOOKUP_TEST
                 printf("\n       Chain Pos Class Set %d:", i + 1);
                 printf("\n        Offset: %d", chainPosClassSetOffset);
 #endif
                 
-                SFUShort chainPosClassRuleCount = SFReadUShort(cscpTable, 0);
+                chainPosClassRuleCount = SFReadUShort(cscpTable, 0);
                 chainPosClassSets[i].ChainPosClassRuleCnt = chainPosClassRuleCount;
                 
 #ifdef LOOKUP_TEST
                 printf("\n        Total Chain Pos Class Rules: %d", chainPosClassRuleCount);
 #endif
                 
-                ChainPosClassRuleSubTable *chainPosClassRuleTables = malloc(sizeof(ChainPosClassRuleSubTable) * chainPosClassRuleCount);
+                chainPosClassRuleTables = malloc(sizeof(ChainPosClassRuleSubTable) * chainPosClassRuleCount);
                 
-                for (SFUShort j = 0; j < chainPosClassRuleCount; j++) {
-                    SFUShort chainPosClassRuleOffset = SFReadUShort(cscpTable, 2 + (j * 2));
-                    const SFUByte * const cscrTable = &cscpTable[chainPosClassRuleOffset];
+                for (j = 0; j < chainPosClassRuleCount; j++) {
+                    SFUShort chainPosClassRuleOffset;
+                    const SFUByte *cscrTable;
+                    
+                    SFUShort backtrackGlyphCount;
+                    SFGlyph *backtrackGlyphs;
+                    
+                    SFUShort inputGlyphCount;
+                    SFGlyph *inputGlyphs;
+                    
+                    SFUShort lookaheadGlyphCount;
+                    SFGlyph *lookaheadGlyphs;
+                    
+                    SFUShort posCount;
+                    PosLookupRecord *posLookupRecords;
+                    
+                    SFUShort k, l, m, n;
+                    
+                    chainPosClassRuleOffset = SFReadUShort(cscpTable, 2 + (j * 2));
+                    cscrTable = &cscpTable[chainPosClassRuleOffset];
                     
 #ifdef LOOKUP_TEST
                     printf("\n        Chain Pos Class Rule %d:", j + 1);
                     printf("\n         Offset: %d", chainPosClassRuleOffset);
 #endif
                     
-                    SFUShort backtrackGlyphCount = SFReadUShort(cscrTable, 0);
+                    backtrackGlyphCount = SFReadUShort(cscrTable, 0);
                     chainPosClassRuleTables[j].backtrackGlyphCount = backtrackGlyphCount;
                     
 #ifdef LOOKUP_TEST
                     printf("\n         Total Backtrack Glyphs: %d", backtrackGlyphCount);
 #endif
                     
-                    SFGlyph *backtrackGlyphs = malloc(sizeof(SFGlyph) * backtrackGlyphCount);
+                    backtrackGlyphs = malloc(sizeof(SFGlyph) * backtrackGlyphCount);
                     
-                    SFUShort k = 0;
-                    for (; k < backtrackGlyphCount; k++) {
+                    for (k = 0; k < backtrackGlyphCount; k++) {
                         backtrackGlyphs[k] = SFReadUShort(cscrTable, 2 + (k * 2));
                         
 #ifdef LOOKUP_TEST
@@ -1481,19 +1735,18 @@ static void SFReadChainingContextPos(const SFUByte * const ccpTable, ChainingCon
                     
                     chainPosClassRuleTables[j].backtrack = backtrackGlyphs;
                     
-                    SFUShort inputGlyphCount = SFReadUShort(cscrTable, k);
+                    inputGlyphCount = SFReadUShort(cscrTable, k);
                     chainPosClassRuleTables[j].inputGlyphCount = inputGlyphCount;
                     
 #ifdef LOOKUP_TEST
                     printf("\n         Total Input Glyphs: %d", inputGlyphCount);
 #endif
                     
-                    SFGlyph *inputGlyphs = malloc(sizeof(SFGlyph) * inputGlyphCount);
+                    inputGlyphs = malloc(sizeof(SFGlyph) * inputGlyphCount);
                     inputGlyphs[0] = 0;
                     
                     k += 2;
-                    SFUShort l = 0;
-                    for (; l < inputGlyphCount - 1; l++) {
+                    for (l = 0; l < inputGlyphCount - 1; l++) {
                         inputGlyphs[l + 1] = SFReadUShort(cscrTable, k + (l * 2));
                         
 #ifdef LOOKUP_TEST
@@ -1504,18 +1757,17 @@ static void SFReadChainingContextPos(const SFUByte * const ccpTable, ChainingCon
                     
                     chainPosClassRuleTables[j].input = inputGlyphs;
                     
-                    SFUShort lookaheadGlyphCount = SFReadUShort(cscrTable, k);
+                    lookaheadGlyphCount = SFReadUShort(cscrTable, k);
                     chainPosClassRuleTables[j].lookaheadGlyphCount = lookaheadGlyphCount;
                     
 #ifdef LOOKUP_TEST
                     printf("\n         Total Lookahead Glyphs: %d", lookaheadGlyphCount);
 #endif
                     
-                    SFGlyph *lookaheadGlyphs = malloc(sizeof(SFGlyph) * lookaheadGlyphCount);
+                    lookaheadGlyphs = malloc(sizeof(SFGlyph) * lookaheadGlyphCount);
                     
                     k += 2;
-                    SFUShort m = 0;
-                    for (; m < lookaheadGlyphCount; m++) {
+                    for (m = 0; m < lookaheadGlyphCount; m++) {
                         lookaheadGlyphs[m] = SFReadUShort(cscrTable, k + (m * 2));
                         
 #ifdef LOOKUP_TEST
@@ -1526,15 +1778,15 @@ static void SFReadChainingContextPos(const SFUByte * const ccpTable, ChainingCon
                     
                     chainPosClassRuleTables[j].lookAhead = lookaheadGlyphs;
                     
-                    SFUShort posCount = SFReadUShort(cscrTable, k);
+                    posCount = SFReadUShort(cscrTable, k);
                     
 #ifdef LOOKUP_TEST
                     printf("\n         Total Positioning Lookup Records: %d", posCount);
 #endif
                     
-                    PosLookupRecord posLookupRecords[posCount];
+                    posLookupRecords = malloc(sizeof(PosLookupRecord) * posCount);
                     
-                    for (SFUShort n = 0; n < posCount; l++) {
+                    for (n = 0; n < posCount; l++) {
                         SFUShort beginOffset = k + (n * 4);
                         
                         posLookupRecords[n].sequenceIndex = SFReadUShort(cscrTable, beginOffset);
@@ -1561,17 +1813,30 @@ static void SFReadChainingContextPos(const SFUByte * const ccpTable, ChainingCon
 #ifdef GPOS_CHAINING_CONTEXT_FORMAT3
         case 3:
         {
-            SFUShort backtrackGlyphCount = SFReadUShort(ccpTable, 2);
+            SFUShort backtrackGlyphCount;
+            CoverageTable *backtrackCoverageTables;
+            
+            SFUShort inputGlyphCount;
+            CoverageTable *inputCoverageTables;
+            
+            SFUShort lookaheadGlyphCount;
+            CoverageTable *lookaheadCoverageTables;
+            
+            SFUShort posCount;
+            PosLookupRecord *posLookupRecords;
+            
+            SFUShort i, j, k, l;
+            
+            backtrackGlyphCount = SFReadUShort(ccpTable, 2);
             tablePtr->format.format3.backtrackGlyphCount = backtrackGlyphCount;
             
 #ifdef LOOKUP_TEST
             printf("\n       Total Backtrack Glyphs: %d", backtrackGlyphCount);
 #endif
             
-            CoverageTable *backtrackCoverageTables = malloc(sizeof(CoverageTable) * backtrackGlyphCount);
+            backtrackCoverageTables = malloc(sizeof(CoverageTable) * backtrackGlyphCount);
             
-            SFUShort i = 0;
-            for (; i < backtrackGlyphCount; i++) {
+            for (i = 0; i < backtrackGlyphCount; i++) {
                 SFUShort coverageOffset = SFReadUShort(ccpTable, 4 + (i * 2));
                 
 #ifdef LOOKUP_TEST
@@ -1585,19 +1850,18 @@ static void SFReadChainingContextPos(const SFUByte * const ccpTable, ChainingCon
             
             tablePtr->format.format3.backtrackGlyphCoverage = backtrackCoverageTables;
             
-            SFUShort inputGlyphCount = SFReadUShort(ccpTable, i);
+            inputGlyphCount = SFReadUShort(ccpTable, i);
             tablePtr->format.format3.inputGlyphCount = inputGlyphCount;
             
 #ifdef LOOKUP_TEST
             printf("\n       Total Input Glyphs: %d", inputGlyphCount);
 #endif
             
-            CoverageTable *inputCoverageTables = malloc(sizeof(CoverageTable) * inputGlyphCount);
+            inputCoverageTables = malloc(sizeof(CoverageTable) * inputGlyphCount);
             
             i += 2;
             
-            SFUShort j = 0;
-            for (; j < inputGlyphCount; j++) {
+            for (j = 0; j < inputGlyphCount; j++) {
                 SFUShort coverageOffset = SFReadUShort(ccpTable, i + (j * 2));
                 
 #ifdef LOOKUP_TEST
@@ -1611,19 +1875,18 @@ static void SFReadChainingContextPos(const SFUByte * const ccpTable, ChainingCon
             
             tablePtr->format.format3.inputGlyphCoverage = inputCoverageTables;
             
-            SFUShort lookaheadGlyphCount = SFReadUShort(ccpTable, i);
+            lookaheadGlyphCount = SFReadUShort(ccpTable, i);
             tablePtr->format.format3.lookaheadGlyphCount = lookaheadGlyphCount;
             
 #ifdef LOOKUP_TEST
             printf("\n       Total Lookahead Glyphs: %d", lookaheadGlyphCount);
 #endif
             
-            CoverageTable *lookaheadCoverageTables = malloc(sizeof(CoverageTable) * lookaheadGlyphCount);
+            lookaheadCoverageTables = malloc(sizeof(CoverageTable) * lookaheadGlyphCount);
             
             i += 2;
             
-            SFUShort k = 0;
-            for (; k < lookaheadGlyphCount; k++) {
+            for (k = 0; k < lookaheadGlyphCount; k++) {
                 SFUShort coverageOffset = SFReadUShort(ccpTable, i + (k * 2));
                 
 #ifdef LOOKUP_TEST
@@ -1637,17 +1900,17 @@ static void SFReadChainingContextPos(const SFUByte * const ccpTable, ChainingCon
             
             tablePtr->format.format3.lookaheadGlyphCoverage = lookaheadCoverageTables;
             
-            SFUShort posCount = SFReadUShort(ccpTable, i);
+            posCount = SFReadUShort(ccpTable, i);
             tablePtr->format.format3.posCount = posCount;
             
-            PosLookupRecord *posLookupRecords = malloc(sizeof(PosLookupRecord) * posCount);
+            posLookupRecords = malloc(sizeof(PosLookupRecord) * posCount);
             
 #ifdef LOOKUP_TEST
             printf("\n         Total Positioning Lookup Records: %d", posCount);
 #endif
             
             i += 2;
-            for (SFUShort l = 0; l < posCount; l++) {
+            for (l = 0; l < posCount; l++) {
                 SFUShort beginOffset = i + (l * 4);
                 
                 posLookupRecords[l].sequenceIndex = SFReadUShort(ccpTable, beginOffset);
@@ -1668,14 +1931,17 @@ static void SFReadChainingContextPos(const SFUByte * const ccpTable, ChainingCon
 }
 
 static void SFFreeChainingContextPos(ChainingContextualPosSubtable *tablePtr) {
+	int i, j;
+
     switch (tablePtr->posFormat) {
             
 #ifdef GPOS_CHAINING_CONTEXT_FORMAT1
         case 1:
+        {
             SFFreeCoverageTable(&tablePtr->format.format1.coverage);
             
-            for (int i = 0; i < tablePtr->format.format1.chainPosRuleSetCount; i++) {
-                for (int j = 0; j < tablePtr->format.format1.chainPosRuleSet[i].chainPosRuleCount; j++) {
+            for (i = 0; i < tablePtr->format.format1.chainPosRuleSetCount; i++) {
+                for (j = 0; j < tablePtr->format.format1.chainPosRuleSet[i].chainPosRuleCount; j++) {
                     free(tablePtr->format.format1.chainPosRuleSet[i].chainPosRule[j].backtrack);
                     free(tablePtr->format.format1.chainPosRuleSet[i].chainPosRule[j].input);
                     free(tablePtr->format.format1.chainPosRuleSet[i].chainPosRule[j].lookAhead);
@@ -1686,20 +1952,21 @@ static void SFFreeChainingContextPos(ChainingContextualPosSubtable *tablePtr) {
             }
             
             free(tablePtr->format.format1.chainPosRuleSet);
-            
+        }
             break;
 #endif
             
 #ifdef GPOS_CHAINING_CONTEXT_FORMAT2
         case 2:
+        {
             SFFreeCoverageTable(&tablePtr->format.format2.coverage);
             
             SFFreeClassDefTable(&tablePtr->format.format2.backtrackClassDef);
             SFFreeClassDefTable(&tablePtr->format.format2.inputClassDef);
             SFFreeClassDefTable(&tablePtr->format.format2.lookaheadClassDef);
             
-            for (int i = 0; i < tablePtr->format.format2.chainPosClassSetCnt; i++) {
-                for (int j = 0; j < tablePtr->format.format2.chainPosClassSet[i].ChainPosClassRuleCnt; j++) {
+            for (i = 0; i < tablePtr->format.format2.chainPosClassSetCnt; i++) {
+                for (j = 0; j < tablePtr->format.format2.chainPosClassSet[i].ChainPosClassRuleCnt; j++) {
                     free(tablePtr->format.format2.chainPosClassSet[i].chainPosClassRule[j].backtrack);
                     free(tablePtr->format.format2.chainPosClassSet[i].chainPosClassRule[j].input);
                     free(tablePtr->format.format2.chainPosClassSet[i].chainPosClassRule[j].lookAhead);
@@ -1710,28 +1977,29 @@ static void SFFreeChainingContextPos(ChainingContextualPosSubtable *tablePtr) {
             }
             
             free(tablePtr->format.format2.chainPosClassSet);
-            
+        }
             break;
 #endif
             
 #ifdef GPOS_CHAINING_CONTEXT_FORMAT3
         case 3:
-            for (int i = 0; i < tablePtr->format.format3.backtrackGlyphCount; i++)
+        {
+            for (i = 0; i < tablePtr->format.format3.backtrackGlyphCount; i++)
                 SFFreeCoverageTable(&tablePtr->format.format3.backtrackGlyphCoverage[i]);
             
             free(tablePtr->format.format3.backtrackGlyphCoverage);
             
-            for (int i = 0; i < tablePtr->format.format3.inputGlyphCount; i++)
+            for (i = 0; i < tablePtr->format.format3.inputGlyphCount; i++)
                 SFFreeCoverageTable(&tablePtr->format.format3.inputGlyphCoverage[i]);
             
             free(tablePtr->format.format3.inputGlyphCoverage);
             
-            for (int i = 0; i < tablePtr->format.format3.lookaheadGlyphCount; i++)
+            for (i = 0; i < tablePtr->format.format3.lookaheadGlyphCount; i++)
                 SFFreeCoverageTable(&tablePtr->format.format3.lookaheadGlyphCoverage[i]);
             
             free(tablePtr->format.format3.lookaheadGlyphCoverage);
             free(tablePtr->format.format3.PosLookupRecord);
-            
+        }
             break;
 #endif
     }
@@ -1741,15 +2009,16 @@ static void SFFreeChainingContextPos(ChainingContextualPosSubtable *tablePtr) {
 
 
 static void *SFReadPositioning(const SFUByte * const sTable, LookupType *type) {
-
+    void *subtablePtr = NULL;
+    
     if (*type == ltpExtensionPositioning) {
+        SFUInt extensionOffset;
+        
         *type = SFReadUShort(sTable, 2);
-        SFUInt extensionOffset = SFReadUInt(sTable, 4);
+        extensionOffset = SFReadUInt(sTable, 4);
         
         return SFReadPositioning(&sTable[extensionOffset], type);
     }
-    
-    void *subtablePtr = NULL;
     
     switch (*type) {
             
@@ -1832,7 +2101,7 @@ static void *SFReadPositioning(const SFUByte * const sTable, LookupType *type) {
             break;
         }
 #endif
-
+            
         default:
             //Reserved for future use
             break;
@@ -1879,19 +2148,19 @@ static void SFFreePositioning(void *tablePtr, LookupType type) {
             SFFreeMarkToMarkAttachment(tablePtr);
             break;
 #endif
-
+            
 #ifdef GPOS_CONTEXT
         case ltpContextPositioning:
             SFFreeContextPos(tablePtr);
             break;
 #endif
-
+            
 #ifdef GPOS_CHAINING_CONTEXT
         case ltpChainedContextPositioning:
             SFFreeChainingContextPos(tablePtr);
             break;
 #endif
-
+            
         default:
             break;
     }
@@ -1901,11 +2170,15 @@ static void SFFreePositioning(void *tablePtr, LookupType type) {
 
 
 void SFReadGPOS(const SFUByte * const table, SFTableGPOS *tablePtr) {
+    SFUShort scriptListOffset;
+    SFUShort featureListOffset;
+    SFUShort lookupListOffset;
+    
     gposTable = (void **)&table;
-
+    
     tablePtr->version = SFReadUInt(table, 0);
     
-    SFUShort scriptListOffset = SFReadUShort(table, 4);
+    scriptListOffset = SFReadUShort(table, 4);
     
 #ifdef SCRIPT_TEST
     printf("\nGPOS Header:");
@@ -1916,7 +2189,7 @@ void SFReadGPOS(const SFUByte * const table, SFTableGPOS *tablePtr) {
     
     SFReadScriptListTable(&table[scriptListOffset], &tablePtr->scriptList);
     
-    SFUShort featureListOffset = SFReadUShort(table, 6);
+    featureListOffset = SFReadUShort(table, 6);
     
 #ifdef FEATURE_TEST
     printf("\n Feature List:");
@@ -1925,7 +2198,7 @@ void SFReadGPOS(const SFUByte * const table, SFTableGPOS *tablePtr) {
     
     SFReadFeatureListTable(&table[featureListOffset], &tablePtr->featureList);
     
-    SFUShort lookupListOffset = SFReadUShort(table, 8);
+    lookupListOffset = SFReadUShort(table, 8);
     
 #ifdef LOOKUP_TEST
     printf("\n Lookup List:");

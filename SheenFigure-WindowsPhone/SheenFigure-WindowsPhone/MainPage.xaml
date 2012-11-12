@@ -1,0 +1,49 @@
+﻿<phone:PhoneApplicationPage 
+    x:Class="SheenFigure_WindowsPhone.MainPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:phone="clr-namespace:Microsoft.Phone.Controls;assembly=Microsoft.Phone"
+    xmlns:shell="clr-namespace:Microsoft.Phone.Shell;assembly=Microsoft.Phone"
+    xmlns:SheenFigure="clr-namespace:SheenFigure;assembly=SheenFigureLabel"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d" d:DesignWidth="480" d:DesignHeight="768"
+    FontFamily="{StaticResource PhoneFontFamilyNormal}"
+    FontSize="{StaticResource PhoneFontSizeNormal}"
+    Foreground="{StaticResource PhoneForegroundBrush}"
+    SupportedOrientations="Portrait" Orientation="Portrait"
+    shell:SystemTray.IsVisible="True">
+
+    <!--LayoutRoot is the root grid where all page content is placed-->
+    <Grid x:Name="LayoutRoot" Background="Transparent">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <TextBlock Grid.Row="0" Margin="10, 0, 10, 10"
+            FontSize="55"
+            FontWeight="Bold"
+            FontStyle="Italic"
+            Text="Sheen Figure"
+            Style="{StaticResource PhoneTextNormalStyle}"/>
+
+        <Grid Grid.Row="1" Margin="10, 0, 10, 10">
+            <StackPanel>
+                <ScrollViewer Margin="0, 0, 5, 10" Height="625">
+                    <SheenFigure:Label
+                        x:Name="SheenFigureLabel"
+                        Width="450"
+                        Text="محمول (جمع: محمولات / mobile) کو ہاتفِ خلوی (cell phone) بھی کہا جاتا ہے اور یہ جدید طرزیات کی مدد سے تیار کی جانے والی ایک ایسی برقی اختراع (electronic device) ہوتی ہے کہ جسکے زریعے ہاتف (telephone) کا استعمال آزادانہ اور دوران حرکت و سفر کسی بھی جگہ بلا کسی قابل دید رابطے (یعنی تار وغیرہ کے بغیر) کیا جاسکتا ہے۔ آج کل جو جدید محمولات تیار کیے جارہے ہیں ان میں ناصرف یہ کہ ہاتف اور جال محیط عالم سے روابط (برقی خط اور رزمی بدیل (packet switching) وغیرہ) کی سہولیات میسر ہیں بلکہ اسکے ساتھ ساتھ ان میں تصاویر بھیجنے اور موصول کرنے کیلئے کثیرالوسیط پیغامی خدمت (multimedia messaging service) ، عکاسہ (camera) اور منظرہ (video) بنانے کی خصوصیات بھی موجود ہوتی ہیں۔">
+                    </SheenFigure:Label>
+                </ScrollViewer>
+                <TextBlock
+                    Margin="10, 0, 10, 10"
+                    FontSize="20"
+                    FontStyle="Italic"
+                    Text="http://ur.wikipedia.org/wiki/Mobile"
+                    Style="{StaticResource PhoneTextNormalStyle}"/>
+            </StackPanel>
+        </Grid>
+    </Grid>
+</phone:PhoneApplicationPage>

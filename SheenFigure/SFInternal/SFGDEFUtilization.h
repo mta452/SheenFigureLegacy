@@ -21,7 +21,7 @@
 #include "SFGDEFData.h"
 
 void SFAddGlyphProperties(int charIndex, int glyphIndex);
-bool SFDoesGlyphExistInGlyphClassDef(ClassDefTable *cls, GlyphClassValue clsValue, SFGlyph glyph);
-bool SFIsIgnoredGlyph(int charIndex, int glyphIndex, LookupFlag lookupFlag);
+SFBool SFDoesGlyphExistInGlyphClassDef(ClassDefTable *cls, GlyphClassValue clsValue, SFGlyph glyph);
+SFBool SFIsIgnoredGlyph(int charIndex, int glyphIndex, LookupFlag lookupFlag);
 
 #endif

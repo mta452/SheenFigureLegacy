@@ -17,8 +17,7 @@
 #ifndef _SF_GPOS_DATA_H
 #define _SF_GPOS_DATA_H
 
-#include <stdbool.h>
-
+#include "SFTypes.h"
 #include "SFConfig.h"
 #include "SFCommonData.h"
 
@@ -185,8 +184,8 @@ typedef struct PairAdjustmentPosSubtable {
 #ifdef GPOS_CURSIVE
 
 typedef struct EntryExitRecord {
-    bool hasEntryAnchor;
-    bool hasExitAnchor;
+    SFBool hasEntryAnchor;
+    SFBool hasExitAnchor;
     
     AnchorTable entryAnchor;        //Offset to EntryAnchor table-from beginning of
                                     //CursivePos subtable-may be NULL

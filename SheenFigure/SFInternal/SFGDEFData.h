@@ -109,7 +109,7 @@ typedef struct SFTableGDEF {
     
 #ifdef GDEF_GLYPH_CLASS_DEF
     
-    bool hasGlyphClassDef;
+    SFBool hasGlyphClassDef;
     ClassDefTable glyphClassDef;    //Offset to class definition table for glyph type-from
                                     //beginning of GDEF header (may be NULL)
     
@@ -118,7 +118,7 @@ typedef struct SFTableGDEF {
 
 #ifdef GDEF_ATTACH_LIST
     
-    bool hasAttachList;
+    SFBool hasAttachList;
     AttachListTable attachList;     //Offset to list of glyphs with attachment points-from
                                     //beginning of GDEF header (may be NULL)
     
@@ -127,7 +127,7 @@ typedef struct SFTableGDEF {
 
 #ifdef GDEF_LIG_CARET_LIST
     
-    bool hasLigCaretList;
+    SFBool hasLigCaretList;
     LigatureCaretListTable ligCaretList;
                                     //Offset to list of positioning points for ligature carets-from
                                     //beginning of GDEF header (may be NULL)
@@ -137,7 +137,7 @@ typedef struct SFTableGDEF {
     
 #ifdef GDEF_MARK_ATTACH_CLASS_DEF
     
-    bool hasMarkAttachClassDef;
+    SFBool hasMarkAttachClassDef;
     ClassDefTable markAttachClassDef;
                                     //Offset to class definition table for mark attachment type-from
                                     //beginning of GDEF header (may be NULL)
@@ -147,7 +147,7 @@ typedef struct SFTableGDEF {
 
 #ifdef GDEF_MARK_GLYPH_SETS_DEF
     
-    bool hasMarkGlyphSetsDef;
+    SFBool hasMarkGlyphSetsDef;
     MarkGlyphSetsDefTable markGlyphSetsDef;
                                     //Offset to the table of mark set definitions - from beginning
                                     //of GDEF header (may be NULL)

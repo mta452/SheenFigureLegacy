@@ -21,9 +21,9 @@
 // Bidi include file
 
 #include <stdio.h>
-#include <stdbool.h>
 #include <ctype.h>
 
+#include "SFTypes.h"
 #include "ssunistr.h"
 
 #include "bidi.h"
@@ -341,12 +341,11 @@ int ClassFromChWS(SFUnichar ch)
 // === HELPER FUNCTIONS ================================================
 
 // reverse cch characters
-void reverse(SFUnichar *psz, int cch)
-{
+void reverse(SFUnichar *psz, int cch) {
 	SFUnichar chTemp;
+	int ich;
 
-	for (int ich = 0; ich < --cch; ich++)
-	{
+	for (ich = 0; ich < --cch; ich++) {
 		chTemp = psz[ich];
 		psz[ich] = psz[cch];
 		psz[cch] = chTemp;
@@ -354,12 +353,11 @@ void reverse(SFUnichar *psz, int cch)
 }
 
 // reverse cch levels
-void reverseLevel(int *levels, int cch)
-{
+void reverseLevel(int *levels, int cch) {
 	SFUnichar chTemp;
+	int ich;
     
-	for (int ich = 0; ich < --cch; ich++)
-	{
+	for (ich = 0; ich < --cch; ich++) {
 		chTemp = levels[ich];
 		levels[ich] = levels[cch];
 		levels[cch] = chTemp;
@@ -368,12 +366,11 @@ void reverseLevel(int *levels, int cch)
 
 // Set a run of cval values at locations all prior to, but not including
 // iStart, to the new value nval.
-void SetDeferredRun(int *pval, int cval, int iStart, int nval)
-{
-	for (int i = iStart - 1; i >= iStart - cval; i--)
-	{
+void SetDeferredRun(int *pval, int cval, int iStart, int nval) {
+	int i;
+
+	for (i = iStart - 1; i >= iStart - cval; i--)
 		pval[i] = nval;
-	}
 }
 
 // === ASSIGNING BIDI CLASSES ============================================
@@ -390,26 +387,20 @@ void SetDeferredRun(int *pval, int cval, int iStart, int nval)
  
  Output: Array of directional classes
  ------------------------------------------------------------------------*/
-int classify(const SFUnichar *pszText, int * pcls, int cch, bool fWS)
-{
+int classify(const SFUnichar *pszText, int * pcls, int cch, SFBool fWS) {
     int ich = 0;
     
-	if (fWS)
-	{
+	if (fWS) {
 		for (; ich < cch; ich++)
-		{
 			pcls[ich] = ClassFromChWS(pszText[ich]);
-		}
+
 		return ich;
 	}
-	else
-	{
-		for (; ich < cch; ich++)
-		{
-			pcls[ich] = ClassFromChN(pszText[ich]);
-		}
-		return ich;
-	}
+
+	for (; ich < cch; ich++)
+		pcls[ich] = ClassFromChN(pszText[ich]);
+
+	return ich;
 }
 
 // === THE PARAGRAPH LEVEL ===============================================
@@ -434,16 +425,17 @@ int classify(const SFUnichar *pszText, int * pcls, int cch, bool fWS)
  
  ------------------------------------------------------------------------*/
 
-int resolveParagraphs(int * types, int cch)
-{
+int resolveParagraphs(int *types, int cch) {
     int ich = 0;
     
 	// skip characters not of type B
 	for(; ich < cch && types[ich] != B; ich++)
 		;
+
 	// stop after first B, make it a BN for use in the next steps
 	if (ich < cch && types[ich] == B)
 		types[ich++] = BN;
+
 	return ich;
 }
 
@@ -459,41 +451,38 @@ int resolveParagraphs(int * types, int cch)
  
  Note: Ignores explicit embeddings
  ------------------------------------------------------------------------*/
-int baseLevel(const int * pcls, int cch)
-{
-	for (int ich = 0; ich < cch; ich++)
-	{
-		switch (pcls[ich])
-		{
-                // strong left
+int baseLevel(const int * pcls, int cch) {
+	int ich;
+
+	for (ich = 0; ich < cch; ich++) {
+		switch (pcls[ich]) {
+            // strong left
             case L:
                 return 1;
                 break;
                 
-                // strong right
+            // strong right
             case R:
             case AL:
                 return 0;
                 break;
 		}
 	}
+
 	return 1;
 }
 
 //====== RESOLVE EXPLICIT ================================================
 
-int GreaterEven(int i)
-{
+int GreaterEven(int i) {
 	return odd(i) ? i + 1 : i + 2;
 }
 
-int GreaterOdd(int i)
-{
+int GreaterOdd(int i) {
 	return odd(i) ? i + 2 : i + 1;
 }
 
-int EmbeddingDirection(int level)
-{
+int EmbeddingDirection(int level) {
 	return odd(level) ? L : R;
 }
 
@@ -521,19 +510,20 @@ int EmbeddingDirection(int level)
 
 const int MAX_LEVEL = 61; // the real value
 
-int resolveExplicit(int level, int dir, int * pcls, int * plevel, int cch,
-					int nNest)
+int resolveExplicit(int level, int dir, int * pcls, int * plevel, int cch, int nNest)
 {
 	// always called with a valid nesting level
 	// nesting levels are != embedding levels
-	int nLastValid = nNest;
+    int nLastValid;
+    int ich;
+    
+	nLastValid = nNest;
     
 	// check input values
 	ASSERT(nNest >= 0 && level >= 0 && level <= MAX_LEVEL);
     
 	// process the text
-    int ich = 0;
-	for (; ich < cch; ich++)
+	for (ich = 0; ich < cch; ich++)
 	{
 		int cls = pcls[ich];
 		switch (cls)
@@ -773,7 +763,11 @@ int GetResolvedType(int action)
 void resolveWeak(int baselevel, int *pcls, int *plevel, int cch)
 {
 	int state = odd(baselevel) ? xl : xr;
+    int action;
+    
 	int cls;
+    int clsRun;
+    int clsNew;
     
 	int level = baselevel;
     
@@ -822,10 +816,10 @@ void resolveWeak(int baselevel, int *pcls, int *plevel, int cch)
         
 		cls = pcls[ich];
         
-		int action = actionWeak[state][cls];
+		action = actionWeak[state][cls];
         
 		// resolve the directionality for deferred runs
-		int clsRun = GetDeferredType(action);
+		clsRun = GetDeferredType(action);
 		if (clsRun != XX)
 		{
 			SetDeferredRun(pcls, cchRun, ich, clsRun);
@@ -833,7 +827,7 @@ void resolveWeak(int baselevel, int *pcls, int *plevel, int cch)
 		}
         
 		// resolve the directionality class at the current location
-		int clsNew = GetResolvedType(action);
+		clsNew = GetResolvedType(action);
 		if (clsNew != XX)
 			pcls[ich] = clsNew;
         
@@ -849,7 +843,7 @@ void resolveWeak(int baselevel, int *pcls, int *plevel, int cch)
 	cls = EmbeddingDirection(level);
     
 	// resolve the directionality for deferred runs
-	int clsRun = GetDeferredType(actionWeak[state][cls]);
+	clsRun = GetDeferredType(actionWeak[state][cls]);
 	if (clsRun != XX)
 		SetDeferredRun(pcls, cchRun, ich, clsRun);
 }
@@ -959,7 +953,11 @@ void resolveNeutrals(int baselevel, int *pcls, const int *plevel, int cch)
 {
 	// the state at the start of text depends on the base level
 	int state = odd(baselevel) ? l : r;
+	int action;
+    
 	int cls;
+    int clsRun;
+    int clsNew;
     
 	int cchRun = 0;
 	int level = baselevel;
@@ -980,10 +978,10 @@ void resolveNeutrals(int baselevel, int *pcls, const int *plevel, int cch)
         
 		cls = pcls[ich];
         
-		int action = actionNeutrals[state][cls];
+		action = actionNeutrals[state][cls];
         
 		// resolve the directionality for deferred runs
-		int clsRun = GetDeferredNeutrals(action, level);
+		clsRun = GetDeferredNeutrals(action, level);
 		if (clsRun != N)
 		{
 			SetDeferredRun(pcls, cchRun, ich, clsRun);
@@ -991,7 +989,7 @@ void resolveNeutrals(int baselevel, int *pcls, const int *plevel, int cch)
 		}
         
 		// resolve the directionality class at the current location
-		int clsNew = GetResolvedNeutrals(action);
+		clsNew = GetResolvedNeutrals(action);
 		if (clsNew != N)
 			pcls[ich] = clsNew;
         
@@ -1006,7 +1004,7 @@ void resolveNeutrals(int baselevel, int *pcls, const int *plevel, int cch)
 	cls = EmbeddingDirection(level);	// eor has type of current level
     
 	// resolve the directionality for deferred runs
-	int clsRun = GetDeferredNeutrals(actionNeutrals[state][cls], level);
+	clsRun = GetDeferredNeutrals(actionNeutrals[state][cls], level);
 	if (clsRun != N)
 		SetDeferredRun(pcls, cchRun, ich, clsRun);
 }
@@ -1042,16 +1040,15 @@ int addLevel[][4] =
     /* odd	*/	//1,	0,	1,	1,	// ODD
 };
 
-void resolveImplicit(const int * pcls, int * plevel, int cch)
-{
-	for (int ich = 0; ich < cch; ich++)
-	{
+void resolveImplicit(const int * pcls, int * plevel, int cch) {
+	int ich;
+
+	for (ich = 0; ich < cch; ich++) {
 		// cannot resolve bn here, since some bn were resolved to strong
 		// types in resolveWeak. To remove these we need the original
 		// types, which are available again in resolveWhiteSpace
-		if (pcls[ich] == BN) {
+		if (pcls[ich] == BN)
 			continue;
-		}
         
 		plevel[ich] += addLevel[odd(plevel[ich])][pcls[ich] - 1];
 	}
@@ -1074,14 +1071,12 @@ void resolveImplicit(const int * pcls, int * plevel, int cch)
  occurs after the character in pszInput[n]. Breaks before the first
  character are not allowed.
  ------------------------------------------------------------------------*/
-int resolveLines(SFUnichar * pszInput, bool * pbrk, int cch)
-{
+int resolveLines(SFUnichar *pszInput, SFBool *pbrk, int cch) {
+	int ich;
+
 	// skip characters not of type LS
-    int ich = 0;
-	for(; ich < cch; ich++)
-	{
-		if (pszInput[ich] == 0x15 || (pbrk && pbrk[ich]))
-		{
+	for (ich = 0; ich < cch; ich++) {
+		if (pszInput[ich] == 0x15 || (pbrk && pbrk[ich])) {
 			ich++;
 			break;
 		}
@@ -1107,17 +1102,13 @@ int resolveLines(SFUnichar * pszInput, bool * pbrk, int cch)
  a real implementation, cch and the initial pointer values
  would have to be adjusted.
  ------------------------------------------------------------------------*/
-void resolveWhitespace(int baselevel, const int *pcls, int *plevel,
-					   int cch)
-{
+void resolveWhitespace(int baselevel, const int *pcls, int *plevel, int cch) {
 	int cchrun = 0;
 	int oldlevel = baselevel;
     
     int ich = 0;
-	for (; ich < cch; ich++)
-	{
-		switch(pcls[ich])
-		{
+	for (; ich < cch; ich++) {
+		switch(pcls[ich]) {
             default:
                 cchrun = 0; // any other character breaks the run
                 break;
@@ -1143,8 +1134,10 @@ void resolveWhitespace(int baselevel, const int *pcls, int *plevel,
                 plevel[ich] = baselevel;
                 break;
 		}
+
 		oldlevel = plevel[ich];
 	}
+
 	// reset level before eot
 	SetDeferredRun(plevel, cchrun, ich, baselevel);
 }
@@ -1174,13 +1167,14 @@ void resolveWhitespace(int baselevel, const int *pcls, int *plevel,
  -------------------------------------------------------------------------*/
 
 int reorderLevel(int level, SFUnichar *pszText, int * lOrder, int * plevel, int cch,
-				 bool fReverse)
+				 SFBool fReverse)
 {
+    int ich;
+    
 	// true as soon as first odd level encountered
 	fReverse = fReverse || odd(level);
     
-    int ich = 0;
-	for (; ich < cch; ich++)
+	for (ich = 0; ich < cch; ich++)
 	{
 		if (plevel[ich] < level)
 			break;
@@ -1190,6 +1184,7 @@ int reorderLevel(int level, SFUnichar *pszText, int * lOrder, int * plevel, int 
                                 cch - ich, fReverse) - 1;
 		}
 	}
+    
 	if (fReverse)
 	{
 		reverse(pszText, ich);
@@ -1200,15 +1195,14 @@ int reorderLevel(int level, SFUnichar *pszText, int * lOrder, int * plevel, int 
 	return ich;
 }
 
-int reorder(int baselevel, SFUnichar *pszText, int * lOrder, int * plevel, int cch)
-{
+int reorder(int baselevel, SFUnichar *pszText, int * lOrder, int * plevel, int cch) {
 	int ich = 0;
     
-	while (ich < cch)
-	{
+	while (ich < cch) {
 		ich += reorderLevel(baselevel, pszText + ich, lOrder + ich, plevel + ich,
-                            cch - ich, false);
+                            cch - ich, SFFalse);
 	}
+
 	return ich;
 }
 
@@ -1229,12 +1223,11 @@ int reorder(int baselevel, SFUnichar *pszText, int * lOrder, int * plevel, int c
  A full implementation would need to substitute mirrored glyphs even
  for characters that are not paired (e.g. integral sign).
  -----------------------------------------------------------------------*/
-void mirror(SFUnichar *pszInput, const int * plevel, int cch)
-{
+void mirror(SFUnichar *pszInput, const int * plevel, int cch) {
     SFUnichar tmp = '\0';
+	int ich = 0;
 
-	for (int ich = 0; ich < cch; ich ++)
-	{
+	for (; ich < cch; ich ++) {
 		if (odd(plevel[ich]))
 			continue;
         
@@ -1259,24 +1252,18 @@ void mirror(SFUnichar *pszInput, const int * plevel, int cch)
  pseudo alphabet used for the demo version.
  
  -----------------------------------------------------------------------*/
-int clean(SFUnichar *pszInput, int cch)
-{
+int clean(SFUnichar *pszInput, int cch) {
 	int cchMove = 0;
     int ich = 0;
-	for (; ich < cch; ich ++)
-	{
+	for (; ich < cch; ich ++) {
 		int ch = pszInput[ich];
-		switch (ch)
-		{
+		switch (ch) {
             default:
                 if (pszInput[ich] < 0x20)
-                {
                     cchMove++;
-                }
                 else
-                {
                     pszInput[ich - cchMove] = pszInput[ich];
-                }
+
                 break;
                 
             case '}':       //chRLO:
@@ -1289,6 +1276,7 @@ int clean(SFUnichar *pszInput, int cch)
                 break;
 		}
 	}
+
 	pszInput[ich - cchMove] = 0;
     
 	return ich - cchMove;
@@ -1312,8 +1300,8 @@ int clean(SFUnichar *pszInput, int cch)
  
  Note:	 See resolveLines for information how this function deals with line breaks
  ------------------------------------------------------------------------*/
-void BidiLines(int baselevel, SFUnichar * pszLine, int *lOrder, int * pclsLine,
-			   int * plevelLine, int cchPara, int fMirror, bool * pbrk)
+void BidiLines(int baselevel, SFUnichar *pszLine, int *lOrder, int *pclsLine,
+			   int *plevelLine, int cchPara, int fMirror, SFBool *pbrk)
 {
 	int cchLine = 0;
     
@@ -1324,12 +1312,9 @@ void BidiLines(int baselevel, SFUnichar * pszLine, int *lOrder, int * pclsLine,
         
 		// resolve whitespace
 		resolveWhitespace(baselevel, pclsLine, plevelLine, cchLine);
-        
-        
+
 		if (fMirror)
-		{
 			mirror(pszLine, plevelLine, cchLine);
-		}
         
 		// reorder each line in place
 		reorder(baselevel, pszLine, lOrder, plevelLine, cchLine);
@@ -1339,20 +1324,19 @@ void BidiLines(int baselevel, SFUnichar * pszLine, int *lOrder, int * pclsLine,
 		pbrk += pbrk ? cchLine : 0;
 		pclsLine += cchLine;
 		cchPara -= cchLine;
-        
 	} while (cchPara);
 }
 
-void resolveBidi(SFUnichar *pszInput, int *types, int *levels, int cch, int *lOrder)
-{
+void resolveBidi(SFUnichar *pszInput, int *types, int *levels, int cch, int *lOrder) {
     int doMirror = 1;
 	int baselevel = 0;
 
-    for (int i = 0; i < cch; i++)
+	int i = 0;
+    for (; i < cch; i++)
         lOrder[i] = i;
     
     // assign directional types
-    classify(pszInput, types, cch, false);
+    classify(pszInput, types, cch, SFFalse);
     
     //baseLevel(types, cch);
     baselevel = 0;
@@ -1370,7 +1354,7 @@ void resolveBidi(SFUnichar *pszInput, int *types, int *levels, int cch, int *lOr
     resolveImplicit(types, levels, cch);
     
     // assign directional types again, but for WS, S this time
-    classify(pszInput, types, cch, true);
+    classify(pszInput, types, cch, SFTrue);
     
     BidiLines(baselevel, pszInput, lOrder, types, levels, cch, doMirror, 0);
 }

@@ -26,7 +26,14 @@
 #ifdef GDEF_ATTACH_LIST
 
 static void SFReadAttachListTable(const SFUByte * const alTable, AttachListTable *tablePtr) {
-    SFUShort coverageOffset = SFReadUShort(alTable, 0);
+    SFUShort coverageOffset;
+    SFUShort glyphCount;
+    
+    AttachPointTable *attachPoints;
+    
+    SFUShort i;
+    
+    coverageOffset = SFReadUShort(alTable, 0);
     
 #ifdef GDEF_TEST
     printf("\n  Coverage Table:");
@@ -35,34 +42,42 @@ static void SFReadAttachListTable(const SFUByte * const alTable, AttachListTable
     
     SFReadCoverageTable(&alTable[coverageOffset], &tablePtr->coverage);
     
-    SFUShort glyphCount = SFReadUShort(alTable, 2);
+    glyphCount = SFReadUShort(alTable, 2);
     tablePtr->glyphCount = glyphCount;
     
 #ifdef GDEF_TEST
     printf("\n   Total Glyphs: %d", glyphCount);
 #endif
     
-    AttachPointTable *attachPoints = malloc(sizeof(AttachPointTable) * glyphCount);
+    attachPoints = malloc(sizeof(AttachPointTable) * glyphCount);
     
-    for (SFUShort i = 0; i < glyphCount; i++) {
-        SFUShort attachPointOffset = SFReadUShort(alTable, 4 + (i * 2));
-        const SFUByte * const apTable = &alTable[attachPointOffset];
+    for (i = 0; i < glyphCount; i++) {
+        SFUShort attachPointOffset;
+        const SFUByte *apTable;
+        
+        SFUShort pointCount;
+        SFUShort *pointIndexes;
+        
+        SFUShort j;
+        
+        attachPointOffset = SFReadUShort(alTable, 4 + (i * 2));
+        apTable = &alTable[attachPointOffset];
         
 #ifdef GDEF_TEST
         printf("\n   Attach Point At Index %d:", i);
         printf("\n    Offset: %d", attachPointOffset);
 #endif
         
-        SFUShort pointCount = SFReadUShort(apTable, 0);
+        pointCount = SFReadUShort(apTable, 0);
         attachPoints[i].pointCount = pointCount;
         
 #ifdef GDEF_TEST
         printf("\n    Total Points: %d", pointCount);
 #endif
         
-        SFUShort *pointIndexes = malloc(sizeof(SFUShort) * pointCount);
+        pointIndexes = malloc(sizeof(SFUShort) * pointCount);
         
-        for (SFUShort j = 0; j < glyphCount; j++) {
+        for (j = 0; j < glyphCount; j++) {
             pointIndexes[j] = SFReadUShort(apTable, 2 + (j * 2));
             
 #ifdef GDEF_TEST
@@ -77,9 +92,11 @@ static void SFReadAttachListTable(const SFUByte * const alTable, AttachListTable
 }
 
 static void SFFreeAttachListTable(AttachListTable *tablePtr) {
+	SFUShort i;
+
     SFFreeCoverageTable(&tablePtr->coverage);
     
-    for (SFUShort i = 0; i < tablePtr->glyphCount; i++)
+    for (i = 0; i < tablePtr->glyphCount; i++)
         free(tablePtr->attachPoint[i].pointIndex);
     
     free(tablePtr->attachPoint);
@@ -91,25 +108,35 @@ static void SFFreeAttachListTable(AttachListTable *tablePtr) {
 #ifdef GDEF_LIG_CARET_LIST
 
 static void SFReadLigatureGlyphTable(const SFUByte * const lgTable, LigatureGlyphTable *tablePtr) {
-    SFUShort caretCount = SFReadUShort(lgTable, 0);
+    SFUShort caretCount;
+    CaretValuesTable *caretValues;
+    
+    SFUShort i;
+    
+    caretCount = SFReadUShort(lgTable, 0);
     tablePtr->caretCount = caretCount;
     
 #ifdef GDEF_TEST
     printf("\n   Caret Count: %d", caretCount);
 #endif
     
-    CaretValuesTable *caretValues = malloc(sizeof(CaretValuesTable) * caretCount);
+    caretValues = malloc(sizeof(CaretValuesTable) * caretCount);
     
-    for (SFUShort i = 0; i < caretCount; i++) {
-        SFUShort caretValueOffset = SFReadUShort(lgTable, 2 + (i * 2));
-        const SFUByte * const cvTable = &lgTable[caretValueOffset];
+    for (i = 0; i < caretCount; i++) {
+        SFUShort caretValueOffset;
+        const SFUByte *cvTable;
+        
+        SFUShort caretValueFormat;
+        
+        caretValueOffset = SFReadUShort(lgTable, 2 + (i * 2));
+        cvTable = &lgTable[caretValueOffset];
         
 #ifdef GDEF_TEST
         printf("\n   Caret Value At Index %d:", i);
         printf("\n    Offset: %d", caretValueOffset);
 #endif
         
-        SFUShort caretValueFormat = SFReadUShort(cvTable, 0);
+        caretValueFormat = SFReadUShort(cvTable, 0);
         caretValues[i].caretValueFormat = caretValueFormat;
         
 #ifdef GDEF_TEST
@@ -118,29 +145,36 @@ static void SFReadLigatureGlyphTable(const SFUByte * const lgTable, LigatureGlyp
         
         switch (caretValueFormat) {
             case 1:
+            {
                 caretValues[i].format.format1.coordinate = SFReadUShort(cvTable, 2);
                 
 #ifdef GDEF_TEST
                 printf("\n    Coordinate: %d", caretValues[i].format.format1.coordinate);
 #endif
+            }
                 break;
                 
             case 2:
+            {
                 caretValues[i].format.format2.caretValuePoint = SFReadUShort(cvTable, 2);
                 
 #ifdef GDEF_TEST
                 printf("\n    Caret Value Point: %d", caretValues[i].format.format2.caretValuePoint);
 #endif
+            }
                 break;
                 
             case 3:
+            {
+                SFUShort deviceTableOffset;
+                
                 caretValues[i].format.format3.coordinate = SFReadUShort(cvTable, 2);
                 
 #ifdef GDEF_TEST
                 printf("\n    Coordinate: %d", caretValues[i].format.format3.coordinate);
 #endif
                 
-                SFUShort deviceTableOffset = SFReadUShort(cvTable, 4);
+                deviceTableOffset = SFReadUShort(cvTable, 4);
                 
 #ifdef GDEF_TEST
                 printf("\n    Device Table:");
@@ -148,7 +182,7 @@ static void SFReadLigatureGlyphTable(const SFUByte * const lgTable, LigatureGlyp
 #endif
                 
                 SFReadDeviceTable(&cvTable[deviceTableOffset], &caretValues[i].format.format3.deviceTable);
-                
+            }
                 break;
         }
     }
@@ -162,7 +196,13 @@ static void SFFreeLigatureGlyphTable(LigatureGlyphTable *tablePtr) {
 
 
 static void SFReadLigatureCaretListTable(const SFUByte * const lclTable, LigatureCaretListTable *tablePtr) {
-    SFUShort coverageOffset = SFReadUShort(lclTable, 0);
+    SFUShort coverageOffset;
+    SFUShort ligatureGlyphCount;
+    LigatureGlyphTable *ligatureGlyphTables;
+    
+    SFUShort i;
+    
+    coverageOffset = SFReadUShort(lclTable, 0);
     
 #ifdef GDEF_TEST
     printf("\n  Coverage Table:");
@@ -171,16 +211,16 @@ static void SFReadLigatureCaretListTable(const SFUByte * const lclTable, Ligatur
     
     SFReadCoverageTable(&lclTable[coverageOffset], &tablePtr->coverage);
     
-    SFUShort ligatureGlyphCount = SFReadUShort(lclTable, 2);
+    ligatureGlyphCount = SFReadUShort(lclTable, 2);
     tablePtr->ligGlyphCount = ligatureGlyphCount;
     
 #ifdef GDEF_TEST
     printf("\n  Total Ligature Glyph Tables: %d", ligatureGlyphCount);
 #endif
     
-    LigatureGlyphTable *ligatureGlyphTables = malloc(sizeof(LigatureGlyphTable) * ligatureGlyphCount);
+    ligatureGlyphTables = malloc(sizeof(LigatureGlyphTable) * ligatureGlyphCount);
     
-    for (SFUShort i = 0; i < ligatureGlyphCount; i++) {
+    for (i = 0; i < ligatureGlyphCount; i++) {
         SFUShort ligatureGlyphOffset = SFReadUShort(lclTable, 4 + (i * 2));
         
 #ifdef GDEF_TEST
@@ -195,11 +235,13 @@ static void SFReadLigatureCaretListTable(const SFUByte * const lclTable, Ligatur
 }
 
 static void SFFreeLigatureCaretListTable(LigatureCaretListTable *tablePtr) {
+	SFUShort i;
+
     SFFreeCoverageTable(&tablePtr->coverage);
     
-    for (SFUShort i = 0; i < tablePtr->ligGlyphCount; i++)
+    for (i = 0; i < tablePtr->ligGlyphCount; i++)
         SFFreeLigatureGlyphTable(&tablePtr->LigGlyph[i]);
-
+    
     free(tablePtr->LigGlyph);
 }
 
@@ -209,29 +251,34 @@ static void SFFreeLigatureCaretListTable(LigatureCaretListTable *tablePtr) {
 #ifdef GDEF_MARK_GLYPH_SETS_DEF
 
 static void SFReadMarkGlyphSetsDefTable(const SFUByte * const mgsTable, MarkGlyphSetsDefTable *tablePtr) {
+    SFUShort markSetCount;
+    CoverageTable *coverages;
+
+	SFUShort i;
+    
     tablePtr->markSetTableFormat = SFReadUShort(mgsTable, 0);
     
 #ifdef GDEF_TEST
     printf("\n  Format: %d", tablePtr->markSetTableFormat);
 #endif
     
-    SFUShort markSetCount = SFReadUShort(mgsTable, 2);
+    markSetCount = SFReadUShort(mgsTable, 2);
     tablePtr->markSetCount = markSetCount;
     
 #ifdef GDEF_TEST
     printf("\n  Mark Set Count: %d", markSetCount);
 #endif
     
-    CoverageTable *coverages = malloc(sizeof(CoverageTable) * markSetCount);
+    coverages = malloc(sizeof(CoverageTable) * markSetCount);
     
-    for (SFUShort i = 0; i < markSetCount; i++) {
+    for (i = 0; i < markSetCount; i++) {
         SFUShort coverageOffset = SFReadUShort(mgsTable, 4 + (i * 2));
         
 #ifdef GDEF_TEST
         printf("\n  Mark Set Coverage At Index %d:", i);
         printf("\n   Offset: %d", coverageOffset);
 #endif
-
+        
         SFReadCoverageTable(&mgsTable[coverageOffset], &coverages[i]);
     }
     
@@ -239,9 +286,10 @@ static void SFReadMarkGlyphSetsDefTable(const SFUByte * const mgsTable, MarkGlyp
 }
 
 static void SFFreeMarkGlyphSetsDefTable(MarkGlyphSetsDefTable *tablePtr) {
-    for (SFUShort i = 0; i < tablePtr->markSetCount; i++)
+	SFUShort i;
+    for (i = 0; i < tablePtr->markSetCount; i++)
         SFFreeCoverageTable(&tablePtr->coverage[i]);
-
+    
     free(tablePtr->coverage);
 }
 
@@ -249,32 +297,37 @@ static void SFFreeMarkGlyphSetsDefTable(MarkGlyphSetsDefTable *tablePtr) {
 
 
 void SFReadGDEF(const SFUByte * const table, SFTableGDEF *tablePtr) {
+    SFUShort glyphClassDefOffset;
+    SFUShort attachListOffset;
+    SFUShort ligCaretListOffset;
+    SFUShort markAttachClassDefOffset;
+    
     tablePtr->version = SFReadUInt(table, 0);
     
 #ifdef GDEF_TEST
     printf("\nGDEF Header:");
     printf("\n Version: %u", tablePtr->version);
 #endif
-
+    
 #ifdef GDEF_GLYPH_CLASS_DEF
     
-    SFUShort glyphClassDefOffset = SFReadUShort(table, 4);
+    glyphClassDefOffset = SFReadUShort(table, 4);
     
 #ifdef GDEF_TEST
     printf("\n Glyph Class Definition:");
     printf("\n  Offset: %d", glyphClassDefOffset);
 #endif
-
+    
     tablePtr->hasGlyphClassDef = (glyphClassDefOffset > 0);
     if (tablePtr->hasGlyphClassDef)
         SFReadClassDefTable(&table[glyphClassDefOffset], &tablePtr->glyphClassDef);
     
 #endif
-
-
+    
+    
 #ifdef GDEF_ATTACH_LIST
     
-    SFUShort attachListOffset = SFReadUShort(table, 6);
+    attachListOffset = SFReadUShort(table, 6);
     
 #ifdef GDEF_TEST
     printf("\n Attach List:");
@@ -290,7 +343,7 @@ void SFReadGDEF(const SFUByte * const table, SFTableGDEF *tablePtr) {
     
 #ifdef GDEF_LIG_CARET_LIST
     
-    SFUShort ligCaretListOffset = SFReadUShort(table, 8);
+    ligCaretListOffset = SFReadUShort(table, 8);
     
 #ifdef GDEF_TEST
     printf("\n Ligature Caret List:");
@@ -305,7 +358,7 @@ void SFReadGDEF(const SFUByte * const table, SFTableGDEF *tablePtr) {
     
     
 #ifdef GDEF_MARK_ATTACH_CLASS_DEF
-    SFUShort markAttachClassDefOffset = SFReadUShort(table, 10);
+    markAttachClassDefOffset = SFReadUShort(table, 10);
     
 #ifdef GDEF_TEST
     printf("\n Mark Attach Class Definition:");
@@ -320,7 +373,7 @@ void SFReadGDEF(const SFUByte * const table, SFTableGDEF *tablePtr) {
     
     
 #ifdef GDEF_MARK_GLYPH_SETS_DEF
-
+    
     tablePtr->hasMarkGlyphSetsDef = (tablePtr->version == 0x00010002);
     if (tablePtr->hasMarkGlyphSetsDef) {
         SFUShort markGlyphSetsDefOffset = SFReadUShort(table, 12);
@@ -339,7 +392,7 @@ void SFReadGDEF(const SFUByte * const table, SFTableGDEF *tablePtr) {
 }
 
 void SFFreeGDEF(SFTableGDEF *tablePtr) {
-
+    
 #ifdef GDEF_GLYPH_CLASS_DEF
     
     if (tablePtr->hasGlyphClassDef)
@@ -362,21 +415,21 @@ void SFFreeGDEF(SFTableGDEF *tablePtr) {
         SFFreeLigatureCaretListTable(&tablePtr->ligCaretList);
     
 #endif
-
-
+    
+    
 #ifdef GDEF_MARK_ATTACH_CLASS_DEF
     
     if (tablePtr->hasMarkAttachClassDef)
         SFFreeClassDefTable(&tablePtr->markAttachClassDef);
     
 #endif
-
-
+    
+    
 #ifdef GDEF_MARK_GLYPH_SETS_DEF
     
     if (tablePtr->hasMarkGlyphSetsDef)
         SFFreeMarkGlyphSetsDefTable(&tablePtr->markGlyphSetsDef);
     
 #endif
-
+    
 }

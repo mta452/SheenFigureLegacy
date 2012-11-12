@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		6E00D21F16513AAC008E2980 /* libsheenfigure.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 6E00D21B16513AA0008E2980 /* libsheenfigure.a */; };
 		6E2A9450163B14CF000B9FA1 /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6E2A944F163B14CF000B9FA1 /* UIKit.framework */; };
 		6E2A9452163B14CF000B9FA1 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6E2A9451163B14CF000B9FA1 /* Foundation.framework */; };
 		6E2A9454163B14CF000B9FA1 /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6E2A9453163B14CF000B9FA1 /* CoreGraphics.framework */; };
@@ -21,21 +22,20 @@
 		6E2A946F163B14CF000B9FA1 /* SSViewController_iPad.xib in Resources */ = {isa = PBXBuildFile; fileRef = 6E2A946D163B14CF000B9FA1 /* SSViewController_iPad.xib */; };
 		6E2A9483163B171D000B9FA1 /* SFLabel.m in Sources */ = {isa = PBXBuildFile; fileRef = 6E2A9480163B171D000B9FA1 /* SFLabel.m */; };
 		6E2A9484163B171D000B9FA1 /* SFLabelSegment.m in Sources */ = {isa = PBXBuildFile; fileRef = 6E2A9482163B171D000B9FA1 /* SFLabelSegment.m */; };
-		6E2A9498163B2EAA000B9FA1 /* libsheenfigure.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 6E2A9496163B2CAF000B9FA1 /* libsheenfigure.a */; };
 		6E7D7673163C45B000DF0E8A /* NafeesWeb.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 6E7D7672163C45B000DF0E8A /* NafeesWeb.ttf */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
-		6E2A9495163B2CAF000B9FA1 /* PBXContainerItemProxy */ = {
+		6E00D21A16513AA0008E2980 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
-			containerPortal = 6E2A948A163B2CAE000B9FA1 /* SheenFigureFT.xcodeproj */;
+			containerPortal = 6E00D20F16513AA0008E2980 /* SheenFigureFT.xcodeproj */;
 			proxyType = 2;
 			remoteGlobalIDString = 6EC20319157AD40B002666E9;
 			remoteInfo = sheenfigure;
 		};
-		6E2A9499163B2EAF000B9FA1 /* PBXContainerItemProxy */ = {
+		6E00D21D16513AA7008E2980 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
-			containerPortal = 6E2A948A163B2CAE000B9FA1 /* SheenFigureFT.xcodeproj */;
+			containerPortal = 6E00D20F16513AA0008E2980 /* SheenFigureFT.xcodeproj */;
 			proxyType = 1;
 			remoteGlobalIDString = 6EC20318157AD40B002666E9;
 			remoteInfo = sheenfigure;
@@ -43,6 +43,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		6E00D20F16513AA0008E2980 /* SheenFigureFT.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = SheenFigureFT.xcodeproj; path = ../SheenFigure/SheenFigureFT.xcodeproj; sourceTree = "<group>"; };
 		6E2A944B163B14CF000B9FA1 /* SheenFigure-iOS.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "SheenFigure-iOS.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		6E2A944F163B14CF000B9FA1 /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = System/Library/Frameworks/UIKit.framework; sourceTree = SDKROOT; };
 		6E2A9451163B14CF000B9FA1 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
@@ -64,7 +65,6 @@
 		6E2A9480163B171D000B9FA1 /* SFLabel.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SFLabel.m; sourceTree = "<group>"; };
 		6E2A9481163B171D000B9FA1 /* SFLabelSegment.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SFLabelSegment.h; sourceTree = "<group>"; };
 		6E2A9482163B171D000B9FA1 /* SFLabelSegment.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SFLabelSegment.m; sourceTree = "<group>"; };
-		6E2A948A163B2CAE000B9FA1 /* SheenFigureFT.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = SheenFigureFT.xcodeproj; path = ../SheenFigure/SheenFigureFT.xcodeproj; sourceTree = "<group>"; };
 		6E7D7672163C45B000DF0E8A /* NafeesWeb.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = NafeesWeb.ttf; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -73,7 +73,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				6E2A9498163B2EAA000B9FA1 /* libsheenfigure.a in Frameworks */,
+				6E00D21F16513AAC008E2980 /* libsheenfigure.a in Frameworks */,
 				6E2A9450163B14CF000B9FA1 /* UIKit.framework in Frameworks */,
 				6E2A9452163B14CF000B9FA1 /* Foundation.framework in Frameworks */,
 				6E2A9454163B14CF000B9FA1 /* CoreGraphics.framework in Frameworks */,
@@ -83,6 +83,14 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		6E00D21016513AA0008E2980 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				6E00D21B16513AA0008E2980 /* libsheenfigure.a */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
 		6E2A9440163B14CE000B9FA1 = {
 			isa = PBXGroup;
 			children = (
@@ -103,7 +111,7 @@
 		6E2A944E163B14CF000B9FA1 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
-				6E2A948A163B2CAE000B9FA1 /* SheenFigureFT.xcodeproj */,
+				6E00D20F16513AA0008E2980 /* SheenFigureFT.xcodeproj */,
 				6E2A944F163B14CF000B9FA1 /* UIKit.framework */,
 				6E2A9451163B14CF000B9FA1 /* Foundation.framework */,
 				6E2A9453163B14CF000B9FA1 /* CoreGraphics.framework */,
@@ -152,14 +160,6 @@
 			path = SFLabel;
 			sourceTree = "<group>";
 		};
-		6E2A948B163B2CAE000B9FA1 /* Products */ = {
-			isa = PBXGroup;
-			children = (
-				6E2A9496163B2CAF000B9FA1 /* libsheenfigure.a */,
-			);
-			name = Products;
-			sourceTree = "<group>";
-		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -174,7 +174,7 @@
 			buildRules = (
 			);
 			dependencies = (
-				6E2A949A163B2EAF000B9FA1 /* PBXTargetDependency */,
+				6E00D21E16513AA7008E2980 /* PBXTargetDependency */,
 			);
 			name = "SheenFigure-iOS";
 			productName = "SheenFigure-iOS";
@@ -203,8 +203,8 @@
 			projectDirPath = "";
 			projectReferences = (
 				{
-					ProductGroup = 6E2A948B163B2CAE000B9FA1 /* Products */;
-					ProjectRef = 6E2A948A163B2CAE000B9FA1 /* SheenFigureFT.xcodeproj */;
+					ProductGroup = 6E00D21016513AA0008E2980 /* Products */;
+					ProjectRef = 6E00D20F16513AA0008E2980 /* SheenFigureFT.xcodeproj */;
 				},
 			);
 			projectRoot = "";
@@ -215,11 +215,11 @@
 /* End PBXProject section */
 
 /* Begin PBXReferenceProxy section */
-		6E2A9496163B2CAF000B9FA1 /* libsheenfigure.a */ = {
+		6E00D21B16513AA0008E2980 /* libsheenfigure.a */ = {
 			isa = PBXReferenceProxy;
 			fileType = archive.ar;
 			path = libsheenfigure.a;
-			remoteRef = 6E2A9495163B2CAF000B9FA1 /* PBXContainerItemProxy */;
+			remoteRef = 6E00D21A16513AA0008E2980 /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
 /* End PBXReferenceProxy section */
@@ -257,10 +257,10 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
-		6E2A949A163B2EAF000B9FA1 /* PBXTargetDependency */ = {
+		6E00D21E16513AA7008E2980 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			name = sheenfigure;
-			targetProxy = 6E2A9499163B2EAF000B9FA1 /* PBXContainerItemProxy */;
+			targetProxy = 6E00D21D16513AA7008E2980 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 

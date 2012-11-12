@@ -38,9 +38,8 @@ public class SheenFigureActivity extends Activity {
 	private void copyFile(InputStream in, OutputStream out) throws IOException {
 	    byte[] buffer = new byte[1024];
 	    int read;
-	    while((read = in.read(buffer)) != -1){
-	      out.write(buffer, 0, read);
-	    }
+	    while ((read = in.read(buffer)) != -1)
+	    	out.write(buffer, 0, read);
 	}
 	
 	private String copyFile(String fileName) {
@@ -86,11 +85,11 @@ public class SheenFigureActivity extends Activity {
         setContentView(R.layout.main);
         
         String fontPath = copyFile("NafeesWeb.ttf");
-        Font fnt = new Font(fontPath, dpToPixels(19));
+        Font fnt = new Font(fontPath, dpToPixels(19.5f));
         
         textView = (Label)findViewById(R.id.sf_label);
         textView.setFont(fnt);
-        textView.setTextColor(0xFFFFFF);
+        textView.setTextColor(0x000000);
         textView.setText("محمول (جمع: محمولات / mobile) کو ہاتفِ خلوی (cell phone) بھی کہا جاتا ہے اور یہ جدید طرزیات کی مدد سے تیار کی جانے والی ایک ایسی برقی اختراع (electronic device) ہوتی ہے کہ جسکے زریعے ہاتف (telephone) کا استعمال آزادانہ اور دوران حرکت و سفر کسی بھی جگہ بلا کسی قابل دید رابطے (یعنی تار وغیرہ کے بغیر) کیا جاسکتا ہے۔ آج کل جو جدید محمولات تیار کیے جارہے ہیں ان میں ناصرف یہ کہ ہاتف اور جال محیط عالم سے روابط (برقی خط اور رزمی بدیل (packet switching) وغیرہ) کی سہولیات میسر ہیں بلکہ اسکے ساتھ ساتھ ان میں تصاویر بھیجنے اور موصول کرنے کیلئے کثیرالوسیط پیغامی خدمت (multimedia messaging service) ، عکاسہ (camera) اور منظرہ (video) بنانے کی خصوصیات بھی موجود ہوتی ہیں۔");
     }
     

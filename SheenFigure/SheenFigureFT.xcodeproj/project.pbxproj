@@ -351,7 +351,7 @@
 				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
 				CLANG_ENABLE_OBJC_ARC = NO;
 				COPY_PHASE_STRIP = NO;
-				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_C_LANGUAGE_STANDARD = c89;
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_ENABLE_OBJC_EXCEPTIONS = YES;
 				GCC_OPTIMIZATION_LEVEL = 0;
@@ -372,6 +372,7 @@
 					"-DFT2_BUILD_LIBRARY",
 					"-DDARWIN_NO_CARBON",
 					"-DSF_IOS",
+					"-Werror=declaration-after-statement",
 				);
 				SDKROOT = iphoneos;
 			};
@@ -385,7 +386,7 @@
 				CLANG_ENABLE_OBJC_ARC = NO;
 				COPY_PHASE_STRIP = YES;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
-				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_C_LANGUAGE_STANDARD = c89;
 				GCC_ENABLE_OBJC_EXCEPTIONS = YES;
 				GCC_VERSION = "";
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
@@ -398,6 +399,7 @@
 					"-DFT2_BUILD_LIBRARY",
 					"-DDARWIN_NO_CARBON",
 					"-DSF_IOS",
+					"-Werror=declaration-after-statement",
 				);
 				SDKROOT = iphoneos;
 			};
@@ -412,6 +414,7 @@
 					"-DFT2_BUILD_LIBRARY",
 					"-DDARWIN_NO_CARBON",
 					"-DSF_IOS",
+					"-Werror=declaration-after-statement",
 				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
@@ -427,6 +430,7 @@
 					"-DFT2_BUILD_LIBRARY",
 					"-DDARWIN_NO_CARBON",
 					"-DSF_IOS",
+					"-Werror=declaration-after-statement",
 				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;

@@ -19,7 +19,7 @@
 
 #include "bidi_class.h"
 
-bool getMirrorChar(SFUnichar ch, SFUnichar *mirror);
+SFBool getMirrorChar(SFUnichar ch, SFUnichar *mirror);
 int getTypeOfChar(SFUnichar uch);
 
 #endif

@@ -15,7 +15,6 @@
  */
 
 #include <stdlib.h>
-#include <stdbool.h>
 #include <stdint.h>
 #include <ctype.h>
 #include <math.h>
@@ -74,16 +73,20 @@ typedef struct SFText {
 #define ZERO_RANGE(range) range.start = 0; range.end = 0;
 
 static int SFGetAdvance(SFStringRecord *record, SFFontRef sfFont, int recordIndex, int glyphIndex) {
+#ifdef SF_IOS_CG
+    int adv;
+#else
+    FT_Fixed adv;
+#endif
+    
     SFGlyph glyph = record->charRecord[recordIndex].gRec[glyphIndex].glyph;
     
     if (record->charRecord[recordIndex].gRec[glyphIndex].glyphProp & gpAdvance)
     	return record->charRecord[recordIndex].gRec[glyphIndex].advance;
     
 #ifdef SF_IOS_CG
-    int adv;
     CGFontGetGlyphAdvances(SFFontGetCGFont(sfFont), &glyph, 1, &adv);
 #else
-    FT_Fixed adv;
     FT_Get_Advance(SFFontGetFTFace(sfFont), glyph, FT_LOAD_NO_SCALE, &adv);
 #endif
     
@@ -137,7 +140,16 @@ static SFMeasuredLine getLine(SFTextRef sfText, SFStringRecord *record, int star
     SFGlyph glyph;
     SFPositionRecord crntPosRecord;
     SFMeasuredLine line;
+    SFMeasuredLine tmpLine;
     
+    SFRange crntSeg;
+    
+    SFUnichar ch;
+    int chIndex;
+    int level;
+    
+	int i;
+
     if (startIndex >= record->charCount) {
         line.ranges = -1;
         line.nextIndex = -1;
@@ -146,22 +158,18 @@ static SFMeasuredLine getLine(SFTextRef sfText, SFStringRecord *record, int star
         return line;
     }
     
-    SFMeasuredLine tmpLine;
     tmpLine.ranges = -1;
     tmpLine.nextIndex = startIndex + 1;
-    
     ZERO_RANGE(tmpLine.range1);
     ZERO_RANGE(tmpLine.range2);
     ZERO_RANGE(tmpLine.range3);
     
-    SFRange crntSeg;
     crntSeg.start = crntSeg.end = record->lOrder[startIndex];
+    level = record->levels[startIndex];
     
-    SFUnichar ch;
-    int chIndex;
-    int level = record->levels[startIndex];
-    
-    for (int i = startIndex; i < record->charCount; i++) {
+    for (i = startIndex; i < record->charCount; i++) {
+        int j, count;
+        
         chIndex = record->lOrder[i];
         ch = record->chars[chIndex];
         
@@ -189,15 +197,17 @@ static SFMeasuredLine getLine(SFTextRef sfText, SFStringRecord *record, int star
                 crntSeg.end = chIndex;
         }
         
-        int count = record->charRecord[chIndex].glyphCount;
+        count = record->charRecord[chIndex].glyphCount;
         
-        for (int j = 0; j < count; j++) {
+        for (j = 0; j < count; j++) {
+            SFAnchorType aType;
+            
             glyph = record->charRecord[chIndex].gRec[j].glyph;
             if (!glyph)
                 continue;
             
             crntPosRecord = record->charRecord[chIndex].gRec[j].posRec;
-            SFAnchorType aType = crntPosRecord.anchorType;
+            aType = crntPosRecord.anchorType;
             if (glyph && !(aType & atMark)) {
                 if (aType & atEntry)
                     width -= crntPosRecord.anchor.x * SFFontGetSizeByEm(sfFont);
@@ -225,6 +235,11 @@ static SFMeasuredLine getLine(SFTextRef sfText, SFStringRecord *record, int star
 SFTextRef SFTextCreate(SFFontRef sfFont, CFStringRef str, SFFloat pageWidth) {
     SFTextRef sfText = malloc(sizeof(SFText));
     
+    SFFloat colorComponents[4] = {0, 0, 0, 1};
+    CGColorSpaceRef devRGB = CGColorSpaceCreateDeviceRGB();
+    sfText->_txtColor = CGColorCreate(devRGB, colorComponents);
+    CGColorSpaceRelease(devRGB);
+    
     sfText->_context = NULL;
     sfText->_sfFont = SFFontRetain(sfFont);
     sfText->_initialPosition = CGPointMake(0, 0);
@@ -244,26 +259,23 @@ SFTextRef SFTextCreate(SFFontRef sfFont, CFStringRef str, SFFloat pageWidth) {
     sfText->_txtAlign = SFTextAlignmentRight;
     sfText->_pageWidth = pageWidth;
     sfText->_retainCount = 1;
-    
-    SFFloat colorComponents[4] = {0, 0, 0, 1};
-    CGColorSpaceRef devRGB = CGColorSpaceCreateDeviceRGB();
-    sfText->_txtColor = CGColorCreate(devRGB, colorComponents);
-    CGColorSpaceRelease(devRGB);
-    
+
     return sfText;
 }
 
 void SFTextChangeString(SFTextRef sfText, CFStringRef str) {
-    SFFontDeallocateStringRecord(sfText->_sfFont, sfText->_record);
+    UniChar *characters;
+    CFIndex length;
     
-    CFIndex length = CFStringGetLength(str);
-    
+    length = CFStringGetLength(str);
     if (length == 0)
         return;
     
-    UniChar *characters = malloc(sizeof(UniChar) * length);
+    SFFontDeallocateStringRecord(sfText->_sfFont, sfText->_record);
+    
+    characters = malloc(sizeof(UniChar) * length);
     CFStringGetCharacters(str, CFRangeMake(0, length), characters);
-
+    
     sfText->_record = SFFontAllocateStringRecordForString(sfText->_sfFont, characters, length);
 }
 
@@ -378,30 +390,43 @@ static void callGlyphDrawingFunction(SFGlyphRenderFunction func, SFText *sfText,
 #ifdef SF_IOS_CG
 	CGContextShowGlyphsAtPoint(sfText->_context, x, y, &glyph, 1);
 #else
-	FT_Face face = SFFontGetFTFace(sfText->_sfFont);
-	FT_Set_Char_Size(face, 0, SFFontGetSize(sfText->_sfFont) * 64, 72, 72);
-	//FT_Set_Pixel_Sizes(sfFont->_ftFace, 0, size);
-	FT_GlyphSlot slot = face->glyph;
+	FT_Face face;
+    FT_GlyphSlot slot;
+    FT_Bitmap *bmp;
     
-	int error = FT_Load_Glyph(face, glyph, FT_LOAD_DEFAULT);
-	int error1 = FT_Render_Glyph(face->glyph, FT_RENDER_MODE_NORMAL);
+    unsigned char *buffer;
+    int length;
+    
+    SFColor *pixels;
+    
+    int i;
+    
+    FT_Error error, error1;
+    
+	face = SFFontGetFTFace(sfText->_sfFont);
+	//FT_Set_Char_Size(face, 0, SFFontGetSize(sfText->_sfFont) * 64, 72, 72);
+	FT_Set_Pixel_Sizes(face, 0, SFFontGetSize(sfText->_sfFont));
+	slot = face->glyph;
+    
+	error = FT_Load_Glyph(face, glyph, FT_LOAD_DEFAULT);
+	error1 = FT_Render_Glyph(face->glyph, FT_RENDER_MODE_NORMAL);
 	if (error || error1)
 		return;
     
-	FT_Bitmap *bmp = &slot->bitmap;
+	bmp = &slot->bitmap;
     
-	unsigned char *buffer = (unsigned char *)bmp->buffer;
-	int length = bmp->width * bmp->rows;
+	buffer = (unsigned char *)bmp->buffer;
+	length = bmp->width * bmp->rows;
     
     if (!length)
         return;
     
-	SFColor pixels[length];
+	pixels = malloc(sizeof(SFColor) * length);
     
     //Here we will treat grayscale pixels as alpha
-	for (int i = 0; i < length; i++) {
+	for (i = 0; i < length; i++) {
 #ifdef SF_IOS
-        //For iOS, in one uint, bytes are stored in reversed order
+		//For iOS, in one uint, bytes are stored in reversed order
         //as BGRA, i.e. blue at first place and alpha at last place.
 		pixels[i] = (sfText->_txtColor << 8) | buffer[i];
 #else
@@ -411,6 +436,8 @@ static void callGlyphDrawingFunction(SFGlyphRenderFunction func, SFText *sfText,
     }
     
 	(*func)(pixels, bmp->width, bmp->rows, x + slot->bitmap_left, y - slot->bitmap_top, sfText->_resObj);
+    
+    free(pixels);
 #endif
 }
 
@@ -433,10 +460,13 @@ static void saveVaryingYGlyph(VaryingYGlyph **head, SFGlyph glyph, CGPoint posit
 static void drawVaryingYGlyphs(VaryingYGlyph **head, SFGlyphRenderFunction func, SFTextRef sfText, SFFloat varyingY) {
     VaryingYGlyph *current = *head;
     while (current) {
+        VaryingYGlyph *previous;
+        
     	callGlyphDrawingFunction(func, sfText, current->glyph, current->position.x, current->position.y - varyingY);
         
-        VaryingYGlyph *previous = current;
+        previous = current;
         current = current->next;
+        
         free(previous);
     }
     
@@ -444,75 +474,84 @@ static void drawVaryingYGlyphs(VaryingYGlyph **head, SFGlyphRenderFunction func,
 }
 
 static void drawLine(SFGlyphRenderFunction func, SFText *sfText, SFRange range, CGPoint *position) {
-    if (range.end - range.start < 0)
-        return;
-    
-    SFGlyph crntGlyph;
-    
-    bool hasExitAnchor = false;
-    VaryingYGlyph *varyingYGlyphs = NULL;
-    
-    SFFloat sizeByEm = SFFontGetSizeByEm(sfText->_sfFont);
-    SFFloat leading = position->y;
-    
-    SFStringRecord *record = sfText->_record;
-    
-    for (int i = range.start; i <= range.end; i++) {
-        int count = record->charRecord[i].glyphCount;
-        for (int j = 0; j < count; j++) {
-            crntGlyph = record->charRecord[i].gRec[j].glyph;
-            if (!crntGlyph)
-                continue;
-            
-            SFPositionRecord pos = record->charRecord[i].gRec[j].posRec;
-            SFAnchorType aType = pos.anchorType;
-            
-            bool isMark = (aType & atMark);
-            bool isCursive = (aType & atEntry);
-            
-            if (isMark || (aType & atCursiveIgnored)) {
-                SFFloat markX = position->x - ((pos.anchor.x - pos.placement.x) * sizeByEm);
-                SFFloat markY = position->y + ((pos.anchor.y - pos.placement.y) * sizeByEm);
+    if (range.end - range.start > 0) {
+        SFGlyph crntGlyph;
+        
+        SFBool hasExitAnchor = SFFalse;
+        VaryingYGlyph *varyingYGlyphs = NULL;
+        
+		int i;
+
+        SFFloat sizeByEm = SFFontGetSizeByEm(sfText->_sfFont);
+        SFFloat leading = position->y;
+        
+        SFStringRecord *record = sfText->_record;
+        
+        for (i = range.start; i <= range.end; i++) {
+            int count = record->charRecord[i].glyphCount;
+			int j;
+			
+            for (j = 0; j < count; j++) {
+                SFPositionRecord pos;
+                SFAnchorType aType;
                 
-                if (hasExitAnchor) {
-                	CGPoint p;
-                	p.x = markX;
-                	p.y = markY;
+                SFBool isMark;
+                SFBool isCursive;
+                
+                crntGlyph = record->charRecord[i].gRec[j].glyph;
+                if (!crntGlyph)
+                    continue;
+                
+                pos = record->charRecord[i].gRec[j].posRec;
+                aType = pos.anchorType;
+                
+                isMark = (aType & atMark);
+                isCursive = (aType & atEntry);
+                
+                if (isMark || (aType & atCursiveIgnored)) {
+                    SFFloat markX = position->x - ((pos.anchor.x - pos.placement.x) * sizeByEm);
+                    SFFloat markY = position->y + ((pos.anchor.y - pos.placement.y) * sizeByEm);
                     
-                    saveVaryingYGlyph(&varyingYGlyphs, crntGlyph, p);
-                } else
-                	callGlyphDrawingFunction(func, sfText, crntGlyph, markX, markY);
-            } else {
-                if (isCursive) {
-                    position->x += pos.anchor.x * sizeByEm;
-                    position->y -= pos.anchor.y * sizeByEm;
-                    
-                    hasExitAnchor = (aType & atExit);
                     if (hasExitAnchor) {
-                        saveVaryingYGlyph(&varyingYGlyphs, crntGlyph, *position);
-                    } else {
-                        drawVaryingYGlyphs(&varyingYGlyphs, func, sfText, position->y - leading);
-                        position->y = leading;
+                        CGPoint p;
+                        p.x = markX;
+                        p.y = markY;
                         
-                        callGlyphDrawingFunction(func, sfText, crntGlyph, position->x, position->y);
-                    }
+                        saveVaryingYGlyph(&varyingYGlyphs, crntGlyph, p);
+                    } else
+                        callGlyphDrawingFunction(func, sfText, crntGlyph, markX, markY);
                 } else {
-                    int adv = SFGetAdvance(record, sfText->_sfFont, i, j);
-                    
-                    position->x -= (pos.advance.x + adv - pos.placement.x) * sizeByEm;
-                    position->y -= pos.placement.y * sizeByEm;
-                    
-                    if (aType & atExit) {
-                        saveVaryingYGlyph(&varyingYGlyphs, crntGlyph, *position);
-                        hasExitAnchor = true;
-                    } else {
+                    if (isCursive) {
+                        position->x += pos.anchor.x * sizeByEm;
+                        position->y -= pos.anchor.y * sizeByEm;
+                        
+                        hasExitAnchor = (aType & atExit);
                         if (hasExitAnchor) {
+                            saveVaryingYGlyph(&varyingYGlyphs, crntGlyph, *position);
+                        } else {
                             drawVaryingYGlyphs(&varyingYGlyphs, func, sfText, position->y - leading);
                             position->y = leading;
+                            
+                            callGlyphDrawingFunction(func, sfText, crntGlyph, position->x, position->y);
                         }
+                    } else {
+                        int adv = SFGetAdvance(record, sfText->_sfFont, i, j);
                         
-                        hasExitAnchor = false;
-                        callGlyphDrawingFunction(func, sfText, crntGlyph, position->x, position->y);
+                        position->x -= (pos.advance.x + adv - pos.placement.x) * sizeByEm;
+                        position->y -= pos.placement.y * sizeByEm;
+                        
+                        if (aType & atExit) {
+                            saveVaryingYGlyph(&varyingYGlyphs, crntGlyph, *position);
+                            hasExitAnchor = SFTrue;
+                        } else {
+                            if (hasExitAnchor) {
+                                drawVaryingYGlyphs(&varyingYGlyphs, func, sfText, position->y - leading);
+                                position->y = leading;
+                            }
+                            
+                            hasExitAnchor = SFFalse;
+                            callGlyphDrawingFunction(func, sfText, crntGlyph, position->x, position->y);
+                        }
                     }
                 }
             }
@@ -521,81 +560,82 @@ static void drawLine(SFGlyphRenderFunction func, SFText *sfText, SFRange range, 
 }
 
 static int drawText(SFGlyphRenderFunction func, SFText *sfText, CGPoint *position, int *lines, int startIndex) {
-	if (!sfText->_record) {
-	    *lines = 0;
-	    return -1;
-	}
-    
-	SFFloat initialX = position->x;
-    
-    SFMeasuredLine line;
-    line.range1.start = 0;
-    line.range1.end = 0;
-    
-    int i = 0;
-    
-    while (startIndex > -1 && i < *lines) {
-        line = getLine(sfText, sfText->_record, startIndex);
+	if (sfText->_record) {
+        SFFloat initialX = position->x;
+        int i = 0;
         
-        if (sfText->_txtAlign == SFTextAlignmentRight)
-            position->x += sfText->_pageWidth;
-        else if (sfText->_txtAlign == SFTextAlignmentCenter)
-            position->x += line.width + (sfText->_pageWidth - line.width) / 2;
-        else if (sfText->_txtAlign == SFTextAlignmentLeft)
-            position->x += line.width;
+        SFMeasuredLine line;
+        line.range1.start = 0;
+        line.range1.end = 0;
         
-        drawLine(func, sfText, line.range1, position);
+        while (startIndex > -1 && i < *lines) {
+            line = getLine(sfText, sfText->_record, startIndex);
+            
+            if (sfText->_txtAlign == SFTextAlignmentRight)
+                position->x += sfText->_pageWidth;
+            else if (sfText->_txtAlign == SFTextAlignmentCenter)
+                position->x += line.width + (sfText->_pageWidth - line.width) / 2;
+            else if (sfText->_txtAlign == SFTextAlignmentLeft)
+                position->x += line.width;
+            
+            drawLine(func, sfText, line.range1, position);
+            
+            if (line.ranges > 0)
+                drawLine(func, sfText, line.range2, position);
+            
+            if (line.ranges > 1)
+                drawLine(func, sfText, line.range3, position);
+            
+            position->x = initialX;
+            position->y += SFFontGetLeading(sfText->_sfFont);
+            
+            startIndex = line.nextIndex;
+            
+            i++;
+        }
         
-        if (line.ranges > 0)
-            drawLine(func, sfText, line.range2, position);
+        *lines = i;
         
-        if (line.ranges > 1)
-            drawLine(func, sfText, line.range3, position);
-        
-        position->x = initialX;
-        position->y += SFFontGetLeading(sfText->_sfFont);
-        
-        startIndex = line.nextIndex;
-        
-        i++;
+        return startIndex;
     }
     
-    *lines = i;
+    *lines = 0;
     
-    return startIndex;
+    return -1;
 }
 
 int SFTextGetNextLineCharIndex(SFTextRef sfText, int maxLines, int startIndex, int *createdLines) {
-    if (!sfText->_record) {
-    	*createdLines = 0;
-    	return -1;
+    if (sfText->_record) {
+        int i = 0;
+        
+    	SFMeasuredLine line;
+        line.nextIndex = -1;
+        
+        while (startIndex > -1 && i < maxLines) {
+            line = getLine(sfText, sfText->_record, startIndex);
+            startIndex = line.nextIndex;
+            i++;
+        }
+        
+        *createdLines = i;
+        
+        return line.nextIndex;
     }
     
-	SFMeasuredLine line;
-	line.nextIndex = -1;
+    *createdLines = 0;
     
-    int i = 0;
-    while (startIndex > -1 && i < maxLines) {
-        line = getLine(sfText, sfText->_record, startIndex);
-        startIndex = line.nextIndex;
-        i++;
-    }
-    
-    *createdLines = i;
-    
-    return line.nextIndex;
+    return -1;
 }
 
 #ifdef SF_IOS_CG
 
 void CGContextDrawText(CGContextRef context, SFTextRef sfText, int startIndex, int *lines) {
     CGPoint position = sfText->_initialPosition;
+    CGAffineTransform flip = CGAffineTransformMake(1.0f, 0.0f, 0.0f, -1.0f, 0.0f, 0.0f);
     
     CGContextSaveGState(context);
-    
-    CGAffineTransform flip = CGAffineTransformMake(1.0f, 0.0f, 0.0f, -1.0f, 0.0f, 0.0f);
+
 	CGContextSetTextMatrix(context, flip);
-    
     CGContextSetTextDrawingMode(context, kCGTextFill);
     
     CGContextSetFont(context, SFFontGetCGFont(sfText->_sfFont));

@@ -16,30 +16,26 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <stdbool.h>
 
+#include "SFTypes.h"
 #include "ssunistr.h"
 
 int unislen(const SFUnichar value[]) {
-    if (value == NULL)
-        return 0;
-    
     int x = 0;
-    
     while (value[x] != '\0')
         x++;
     
     return(x);
 }
 
-bool hasmaxlen(const SFUnichar *value, int maxLength) {
+SFBool hasmaxlen(const SFUnichar *value, int maxLength) {
     int length = -1;
     while (++length < maxLength) {
         if (value[length] == 0)
-            return false;
+            return SFFalse;
     }
     
-    return true;
+    return SFTrue;
 }
 
 int idxunichar(const SFUnichar value[], SFUnichar word, int startIndex, int count) {
@@ -56,17 +52,21 @@ int idxunichar(const SFUnichar value[], SFUnichar word, int startIndex, int coun
 }
 
 SFUnichar *subustrl(const SFUnichar *value, int startIndex, int length) {
-    if (length <= 0)
-        return NULL;
+    if (length > 0) {
+        SFUnichar *dest;
+        int i;
+        
+        dest = (SFUnichar *)malloc(sizeof(SFUnichar) * (length + 1));
+        
+        i = 0;
+        while (i < length && (dest[i++] = value[startIndex++]) != 0);
+        
+        dest[i] = 0;
+        
+        return dest;
+    }
     
-    SFUnichar *dest = (SFUnichar *)malloc(sizeof(SFUnichar) * (length + 1));
-    
-    int i = 0;
-    while (i < length && (dest[i++] = value[startIndex++]) != 0);
-    
-    dest[i] = 0;
-    
-    return dest;
+    return NULL;
 }
 
 SFUnichar *subustrs(const SFUnichar *value, int startIndex) {
@@ -74,24 +74,25 @@ SFUnichar *subustrs(const SFUnichar *value, int startIndex) {
 }
 
 SFUnichar *catustr(const SFUnichar *value1, const SFUnichar *value2) {
-    SFUnichar *dest = (SFUnichar *)malloc(sizeof(SFUnichar) * ((unislen(value1) + unislen(value2)) + 1));
+    int i = -1, j = -1;
+    SFUnichar *dest;
     
-    int i = -1;
+    dest = (SFUnichar *)malloc(sizeof(SFUnichar) * ((unislen(value1) + unislen(value2)) + 1));
+    
     while ((dest[++i] = value1[i]) != 0);
-    
-    int j = -1;
     while ((dest[i++] = value2[++j]) != 0);
     
     return dest;
 }
 
 SFUnichar *catustrch(const SFUnichar value1, SFUnichar *value2) {
-    SFUnichar *dest = (SFUnichar *)malloc(sizeof(SFUnichar) * (unislen(value2) + 2));
+    int i = 0, j = -1;
+    SFUnichar *dest;
+    
+    dest = (SFUnichar *)malloc(sizeof(SFUnichar) * (unislen(value2) + 2));
     dest[0] = value1;
     
-    int i = 0, j = -1;
     while ((dest[++i] = value2[++j]) != 0);
     
     return dest;
 }
-

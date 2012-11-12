@@ -25,10 +25,15 @@
 #ifdef GSUB_SINGLE
 
 static void SFReadSingleSubst(const SFUByte * const ssTable, SingleSubstSubtable *tablePtr) {
-    SFUShort substFormat = SFReadUShort(ssTable, 0);
+    SFUShort substFormat;
+    SFUShort coverageOffset;
+    
+    SFUShort glyphCount;
+    
+    substFormat = SFReadUShort(ssTable, 0);
     tablePtr->substFormat = substFormat;
     
-    SFUShort coverageOffset = SFReadUShort(ssTable, 2);
+    coverageOffset = SFReadUShort(ssTable, 2);
     
 #ifdef LOOKUP_TEST
     printf("\n      Single Substitution Table:");
@@ -38,8 +43,6 @@ static void SFReadSingleSubst(const SFUByte * const ssTable, SingleSubstSubtable
 #endif
     
     SFReadCoverageTable(&ssTable[coverageOffset], &tablePtr->coverage);
-    
-    SFUShort glyphCount;
     
     switch (substFormat) {
             
@@ -59,6 +62,9 @@ static void SFReadSingleSubst(const SFUByte * const ssTable, SingleSubstSubtable
 #ifdef GSUB_SINGLE_FORMAT2
         case 2:
         {
+            SFGlyph *substitutes;
+            SFUShort i;
+            
             glyphCount = SFReadUShort(ssTable, 4);
             tablePtr->format.format2.glyphCount = glyphCount;
             
@@ -66,8 +72,8 @@ static void SFReadSingleSubst(const SFUByte * const ssTable, SingleSubstSubtable
             printf("\n       Total Substitutes: %d", glyphCount);
 #endif
             
-            SFGlyph *substitutes = malloc(sizeof(SFGlyph) * glyphCount);
-            for (SFUShort i = 0; i < glyphCount; i++) {
+            substitutes = malloc(sizeof(SFGlyph) * glyphCount);
+            for (i = 0; i < glyphCount; i++) {
                 substitutes[i] = SFReadUShort(ssTable, 6 + (i * 2));
                 
 #ifdef LOOKUP_TEST
@@ -97,10 +103,17 @@ static void SFFreeSingleSubst(SingleSubstSubtable *tablePtr) {
 #ifdef GSUB_MULTIPLE
 
 static void SFReadMultipleSubst(const SFUByte * const msTable, MultipleSubstSubtable *tablePtr) {
-    SFUShort substFormat = SFReadUShort(msTable, 0);
+    SFUShort substFormat;
+    SFUShort coverageOffset;
+    SFUShort sequenceCount;
+    SequenceTable *sequenceTables;
+    
+    SFUShort i;
+    
+    substFormat = SFReadUShort(msTable, 0);
     tablePtr->substFormat = substFormat;
     
-    SFUShort coverageOffset = SFReadUShort(msTable, 2);
+    coverageOffset = SFReadUShort(msTable, 2);
     
 #ifdef LOOKUP_TEST
     printf("\n      Multiple Substitution Table:");
@@ -111,20 +124,28 @@ static void SFReadMultipleSubst(const SFUByte * const msTable, MultipleSubstSubt
     
     SFReadCoverageTable(&msTable[coverageOffset], &tablePtr->coverage);
     
-    SFUShort sequenceCount = SFReadUShort(msTable, 4);
+    sequenceCount = SFReadUShort(msTable, 4);
     tablePtr->sequenceCount = sequenceCount;
     
 #ifdef LOOKUP_TEST
     printf("\n       Total Sequences: %d", sequenceCount);
 #endif
     
-    SequenceTable *sequenceTables = malloc(sizeof(SequenceTable) * sequenceCount);
+    sequenceTables = malloc(sizeof(SequenceTable) * sequenceCount);
     
-    for (SFUShort i = 0, offset; i < sequenceCount; i++) {
+    for (i = 0; i < sequenceCount; i++) {
+        SFUShort offset;
+        const SFUByte *sqTable;
+        
+        SFUShort glyphCount;
+        SFGlyph *substitutes;
+        
+		SFUShort j;
+
         offset = SFReadUShort(msTable, 6 + (i * 2));
         
-        const SFUByte * const sqTable = &msTable[offset];
-        SFUShort glyphCount = SFReadUShort(sqTable, 0);
+        sqTable = &msTable[offset];
+        glyphCount = SFReadUShort(sqTable, 0);
         
 #ifdef LOOKUP_TEST
         printf("\n       Sequence %d:", i + 1);
@@ -133,13 +154,13 @@ static void SFReadMultipleSubst(const SFUByte * const msTable, MultipleSubstSubt
         
         sequenceTables[i].glyphCount = glyphCount;
         
-        SFGlyph *substitutes = malloc(sizeof(SFGlyph) * glyphCount);
+        substitutes = malloc(sizeof(SFGlyph) * glyphCount);
         
 #ifdef LOOKUP_TEST
         printf("\n        Total Substitutes: %d", glyphCount);
 #endif
         
-        for (SFUShort j = 0; j < glyphCount; j++) {
+        for (j = 0; j < glyphCount; j++) {
             substitutes[j] = SFReadUShort(sqTable, 2 + (j * 2));
             
 #ifdef LOOKUP_TEST
@@ -154,9 +175,11 @@ static void SFReadMultipleSubst(const SFUByte * const msTable, MultipleSubstSubt
 }
 
 static void SFFreeMultipleSubst(MultipleSubstSubtable *tablePtr) {
+	int i;
+
     SFFreeCoverageTable(&tablePtr->coverage);
     
-    for (int i = 0; i < tablePtr->sequenceCount; i++)
+    for (i = 0; i < tablePtr->sequenceCount; i++)
         free(tablePtr->sequence[i].substitute);
     
     free(tablePtr->sequence);
@@ -168,10 +191,17 @@ static void SFFreeMultipleSubst(MultipleSubstSubtable *tablePtr) {
 #ifdef GSUB_ALTERNATE
 
 static void SFReadAlternateSubst(const SFUByte * const asTable, AlternateSubstSubtable *tablePtr) {
-    SFUShort substFormat = SFReadUShort(asTable, 0);
+    SFUShort substFormat;
+    SFUShort coverageOffset;
+    
+    AlternateSetTable *alternateSetTables;
+    
+    SFUShort i;
+    
+    substFormat = SFReadUShort(asTable, 0);
     tablePtr->substFormat = substFormat;
     
-    SFUShort coverageOffset = SFReadUShort(asTable, 2);
+    coverageOffset = SFReadUShort(asTable, 2);
     
 #ifdef LOOKUP_TEST
     printf("\n      Alternate Substitution Table:");
@@ -182,16 +212,23 @@ static void SFReadAlternateSubst(const SFUByte * const asTable, AlternateSubstSu
     
     SFReadCoverageTable(&asTable[coverageOffset], &tablePtr->coverage);
     
-    SFUShort count = SFReadUShort(asTable, 4);
-    tablePtr->alternateSetCount = count;
+    tablePtr->alternateSetCount = SFReadUShort(asTable, 4);
     
 #ifdef LOOKUP_TEST
-    printf("\n       Total Alternate Sets: %d", count);
+    printf("\n       Total Alternate Sets: %d", tablePtr->alternateSetCount);
 #endif
     
-    AlternateSetTable *alternateSetTables = malloc(sizeof(AlternateSetTable) * count);
+    alternateSetTables = malloc(sizeof(AlternateSetTable) * tablePtr->alternateSetCount);
     
-    for (SFUShort i = 0, offset; i < count; i++) {
+    for (i = 0; i < tablePtr->alternateSetCount; i++) {
+        SFUShort offset;
+        const SFUByte *aTable;
+        
+        SFUShort glyphCount;
+        SFGlyph *substitutes;
+        
+        SFUShort j;
+        
         offset = SFReadUShort(asTable, 6 + (i * 2));
         
 #ifdef LOOKUP_TEST
@@ -199,16 +236,16 @@ static void SFReadAlternateSubst(const SFUByte * const asTable, AlternateSubstSu
         printf("\n        Offset: %d", offset);
 #endif
         
-        const SFUByte * const aTable = &asTable[offset];
-        SFUShort glyphCount = SFReadUShort(aTable, 0);
+        aTable = &asTable[offset];
+        glyphCount = SFReadUShort(aTable, 0);
         
 #ifdef LOOKUP_TEST
         printf("\n        Total Alternates: %d", glyphCount);
 #endif
         
-        SFGlyph *substitutes = malloc(sizeof(SFGlyph) * glyphCount);
+        substitutes = malloc(sizeof(SFGlyph) * glyphCount);
         
-        for (SFUShort j = 0; j < glyphCount; j++) {
+        for (j = 0; j < glyphCount; j++) {
             substitutes[j] = SFReadUShort(aTable, 2 + (j * 2));
             
 #ifdef LOOKUP_TEST
@@ -223,9 +260,11 @@ static void SFReadAlternateSubst(const SFUByte * const asTable, AlternateSubstSu
 }
 
 static void SFFreeAlternateSubst(AlternateSubstSubtable *tablePtr) {
+	int i;
+
     SFFreeCoverageTable(&tablePtr->coverage);
     
-    for (int i = 0; i < tablePtr->alternateSetCount; i++)
+    for (i = 0; i < tablePtr->alternateSetCount; i++)
         free(tablePtr->alternateSet[i].substitute);
     
     free(tablePtr->alternateSet);
@@ -237,10 +276,18 @@ static void SFFreeAlternateSubst(AlternateSubstSubtable *tablePtr) {
 #ifdef GSUB_LIGATURE
 
 static void SFReadLigatureSubst(const SFUByte * const lsTable, LigatureSubstSubtable *tablePtr) {
-    SFUShort substFormat = SFReadUShort(lsTable, 0);
+    SFUShort substFormat;
+    SFUShort coverageOffset;
+    
+    SFUShort ligSetCount;
+    LigatureSetTable *ligSetTables;
+    
+    SFUShort i;
+    
+    substFormat = SFReadUShort(lsTable, 0);
     tablePtr->substFormat = substFormat;
     
-    SFUShort coverageOffset = SFReadUShort(lsTable, 2);
+    coverageOffset = SFReadUShort(lsTable, 2);
     
 #ifdef LOOKUP_TEST
     printf("\n      Ligature Substitution Table:");
@@ -251,20 +298,28 @@ static void SFReadLigatureSubst(const SFUByte * const lsTable, LigatureSubstSubt
     
     SFReadCoverageTable(&lsTable[coverageOffset], &tablePtr->coverage);
     
-    SFUShort ligSetCount = SFReadUShort(lsTable, 4);
+    ligSetCount = SFReadUShort(lsTable, 4);
     tablePtr->ligSetCount = ligSetCount;
     
 #ifdef LOOKUP_TEST
     printf("\n       Total Ligature Sets: %d", ligSetCount);
 #endif
     
-    LigatureSetTable *ligSetTables = malloc(sizeof(LigatureSetTable) * ligSetCount);
+    ligSetTables = malloc(sizeof(LigatureSetTable) * ligSetCount);
     
-    for (SFUShort i = 0, offset; i < ligSetCount; i++) {
+    for (i = 0; i < ligSetCount; i++) {
+        SFUShort offset;
+        const SFUByte *ligsTable;
+        
+        SFUShort ligCount;
+        LigatureTable *ligatureTables;
+        
+        SFUShort j;
+        
         offset = SFReadUShort(lsTable, 6 + (i * 2));
         
-        const SFUByte * const ligsTable = &lsTable[offset];
-        SFUShort ligCount = SFReadUShort(ligsTable, 0);
+        ligsTable = &lsTable[offset];
+        ligCount = SFReadUShort(ligsTable, 0);
         ligSetTables[i].ligatureCount = ligCount;
         
 #ifdef LOOKUP_TEST
@@ -273,15 +328,23 @@ static void SFReadLigatureSubst(const SFUByte * const lsTable, LigatureSubstSubt
         printf("\n        Total Ligature Tables: %d", ligCount);
 #endif
         
-        LigatureTable *ligatureTables = malloc(sizeof(LigatureTable) * ligCount);
+        ligatureTables = malloc(sizeof(LigatureTable) * ligCount);
         
-        for (SFUShort j = 0; j < ligCount; j++) {
-            SFUShort ligOffset = SFReadUShort(ligsTable, 2 + (j * 2));
+        for (j = 0; j < ligCount; j++) {
+            SFUShort ligOffset;
+            const SFUByte *lTable;
             
-            const SFUByte * const lTable = &ligsTable[ligOffset];
+            SFUShort compCount;
+            SFGlyph *components;
+            
+			SFUShort k;
+
+            ligOffset = SFReadUShort(ligsTable, 2 + (j * 2));
+            
+            lTable = &ligsTable[ligOffset];
             ligatureTables[j].ligGlyph = SFReadUShort(lTable, 0);
             
-            SFUShort compCount = SFReadUShort(lTable, 2);
+            compCount = SFReadUShort(lTable, 2);
             ligatureTables[j].compCount = compCount;
             
 #ifdef LOOKUP_TEST
@@ -291,10 +354,10 @@ static void SFReadLigatureSubst(const SFUByte * const lsTable, LigatureSubstSubt
             printf("\n         Total Components: %d", compCount);
 #endif
             
-            SFGlyph *components = malloc(sizeof(SFGlyph) * compCount);
+            components = malloc(sizeof(SFGlyph) * compCount);
             components[0] = 0;
             
-            for (SFUShort k = 0; k < compCount - 1; k++) {
+            for (k = 0; k < compCount - 1; k++) {
                 components[k + 1] = SFReadUShort(lTable, 4 + (k * 2));
                 
 #ifdef LOOKUP_TEST
@@ -312,10 +375,12 @@ static void SFReadLigatureSubst(const SFUByte * const lsTable, LigatureSubstSubt
 }
 
 static void SFFreeLigatureSubst(LigatureSubstSubtable *tablePtr) {
+	int i, j;
+
     SFFreeCoverageTable(&tablePtr->coverage);
     
-    for (int i = 0; i < tablePtr->ligSetCount; i++) {
-        for (int j = 0; j < tablePtr->ligatureSet[i].ligatureCount; j++)
+    for (i = 0; i < tablePtr->ligSetCount; i++) {
+        for (j = 0; j < tablePtr->ligatureSet[i].ligatureCount; j++)
             free(tablePtr->ligatureSet[i].ligature[j].component);
         
         free(tablePtr->ligatureSet[i].ligature);
@@ -339,11 +404,17 @@ static void SFReadContextSubst(const SFUByte * const csTable, ContextSubstSubtab
 #endif
     
     switch (substFormat) {
-
+            
 #ifdef GSUB_CONTEXT_FORMAT1
         case 1:
         {
-            SFUShort coverageOffset = SFReadUShort(csTable, 2);
+            SFUShort coverageOffset;
+            SFUShort subRuleSetCount;
+            SubRuleSetTable *subRuleSetTables;
+            
+            SFUShort i;
+            
+            coverageOffset = SFReadUShort(csTable, 2);
             
 #ifdef LOOKUP_TEST
             printf("\n       Coverage Table:");
@@ -352,46 +423,64 @@ static void SFReadContextSubst(const SFUByte * const csTable, ContextSubstSubtab
             
             SFReadCoverageTable(&csTable[coverageOffset], &tablePtr->format.format1.coverage);
             
-            SFUShort subRuleSetCount = SFReadUShort(csTable, 4);
+            subRuleSetCount = SFReadUShort(csTable, 4);
             tablePtr->format.format1.subRuleSetCount = subRuleSetCount;
             
 #ifdef LOOKUP_TEST
             printf("\n       Total Substitution Rule Sets: %d", subRuleSetCount);
 #endif
             
-            SubRuleSetTable *subRuleSetTables = malloc(sizeof(SubRuleSetTable) * subRuleSetCount);
+            subRuleSetTables = malloc(sizeof(SubRuleSetTable) * subRuleSetCount);
             
-            for (SFUShort i = 0; i < subRuleSetCount; i++) {
-                SFUShort subRuleSetOffset = SFReadUShort(csTable, 6 + (i * 2));
-                const SFUByte * const srsTable = &csTable[subRuleSetOffset];
+            for (i = 0; i < subRuleSetCount; i++) {
+                SFUShort subRuleSetOffset;
+                const SFUByte *srsTable;
+                
+                SFUShort subRuleCount;
+                SubRuleTable *subRuleTables;
+                SFUShort j;
+                
+                subRuleSetOffset = SFReadUShort(csTable, 6 + (i * 2));
+                srsTable = &csTable[subRuleSetOffset];
                 
 #ifdef LOOKUP_TEST
                 printf("\n       Substitution Rule Set %d:", i + 1);
                 printf("\n        Offset: %d", subRuleSetOffset);
 #endif
                 
-                SFUShort subRuleCount = SFReadUShort(srsTable, 0);
+                subRuleCount = SFReadUShort(srsTable, 0);
                 subRuleSetTables[i].subRuleCount = subRuleCount;
                 
 #ifdef LOOKUP_TEST
                 printf("\n        Total Substitution Rules: %d", subRuleCount);
 #endif
                 
-                SubRuleTable *subRuleTables = malloc(sizeof(SubRuleTable) * subRuleCount);
+                subRuleTables = malloc(sizeof(SubRuleTable) * subRuleCount);
                 
-                for (SFUShort j = 0; j < subRuleCount; j++) {
-                    SFUShort subRuleOffset = SFReadUShort(srsTable, 2 + (j * 2));
-                    const SFUByte * const srTable = &srsTable[subRuleOffset];
+                for (j = 0; j < subRuleCount; j++) {
+                    SFUShort subRuleOffset;
+                    const SFUByte *srTable;
+                    
+                    SFUShort glyphCount;
+                    SFUShort substCount;
+                    
+                    SFGlyph *glyphs;
+                    SFUShort k, l;
+                    
+                    SubstLookupRecord *substLookupRecords;
+                    
+                    subRuleOffset = SFReadUShort(srsTable, 2 + (j * 2));
+                    srTable = &srsTable[subRuleOffset];
                     
 #ifdef LOOKUP_TEST
                     printf("\n        Substitution Rule %d:", j + 1);
                     printf("\n         Offset: %d", subRuleOffset);
 #endif
                     
-                    SFUShort glyphCount = SFReadUShort(srTable, 0);
+                    glyphCount = SFReadUShort(srTable, 0);
                     subRuleTables[j].glyphCount = glyphCount;
                     
-                    SFUShort substCount = SFReadUShort(srTable, 2);
+                    substCount = SFReadUShort(srTable, 2);
                     subRuleTables[j].substCount = substCount;
                     
 #ifdef LOOKUP_TEST
@@ -399,11 +488,10 @@ static void SFReadContextSubst(const SFUByte * const csTable, ContextSubstSubtab
                     printf("\n         Total Lookup Records: %d", substCount);
 #endif
                     
-                    SFGlyph *glyphs = malloc(sizeof(SFGlyph) * glyphCount);
+                    glyphs = malloc(sizeof(SFGlyph) * glyphCount);
                     glyphs[0] = 0;
                     
-                    SFUShort k = 0;
-                    for (; k < glyphCount; k++) {
+                    for (k = 0; k < glyphCount; k++) {
                         glyphs[k + 1] = SFReadUShort(srTable, 4 + (k * 2));
                         
 #ifdef LOOKUP_TEST
@@ -415,8 +503,8 @@ static void SFReadContextSubst(const SFUByte * const csTable, ContextSubstSubtab
                     
                     k += 4;
                     
-                    SubstLookupRecord *substLookupRecords = malloc(sizeof(SubstLookupRecord) * substCount);
-                    for (SFUShort l = 0; l < substCount; l++) {
+                    substLookupRecords = malloc(sizeof(SubstLookupRecord) * substCount);
+                    for (l = 0; l < substCount; l++) {
                         SFUShort beginOffset = k + (l * 4);
                         
                         substLookupRecords[l].sequenceIndex = SFReadUShort(srTable, beginOffset);
@@ -443,7 +531,14 @@ static void SFReadContextSubst(const SFUByte * const csTable, ContextSubstSubtab
 #ifdef GSUB_CONTEXT_FORMAT2
         case 2:
         {
-            SFUShort coverageOffset = SFReadUShort(csTable, 2);
+            SFUShort coverageOffset;
+            SFUShort classDefOffset;
+            SFUShort subClassSetCount;
+            SubClassSetSubtable *subRuleSetTables;
+            
+            SFUShort i;
+            
+            coverageOffset = SFReadUShort(csTable, 2);
             
 #ifdef LOOKUP_TEST
             printf("\n       Coverage Table:");
@@ -452,7 +547,7 @@ static void SFReadContextSubst(const SFUByte * const csTable, ContextSubstSubtab
             
             SFReadCoverageTable(&csTable[coverageOffset], &tablePtr->format.format2.coverage);
             
-            SFUShort classDefOffset = SFReadUShort(csTable, 4);
+            classDefOffset = SFReadUShort(csTable, 4);
             
 #ifdef LOOKUP_TEST
             printf("\n       Class Definition Table:");
@@ -461,45 +556,64 @@ static void SFReadContextSubst(const SFUByte * const csTable, ContextSubstSubtab
             
             SFReadClassDefTable(&csTable[classDefOffset], &tablePtr->format.format2.classDef);
             
-            SFUShort subClassSetCount = SFReadUShort(csTable, 6);
+            subClassSetCount = SFReadUShort(csTable, 6);
             
 #ifdef LOOKUP_TEST
             printf("\n       Total Sub Class Sets: %d", subClassSetCount);
 #endif
             
-            SubClassSetSubtable *subRuleSetTables = malloc(sizeof(SubClassSetSubtable) * subClassSetCount);
+            subRuleSetTables = malloc(sizeof(SubClassSetSubtable) * subClassSetCount);
             
-            for (SFUShort i = 0; i < subClassSetCount; i++) {
-                SFUShort subClassSetOffset = SFReadUShort(csTable, 8 + (i * 2));
-                const SFUByte * const scsTable = &csTable[subClassSetOffset];
+            for (i = 0; i < subClassSetCount; i++) {
+                SFUShort subClassSetOffset;
+                const SFUByte *scsTable;
+                
+                SFUShort subClassRuleCount;
+                SubClassRuleTable *subRuleTables;
+                
+                SubstLookupRecord *substLookupRecords;
+                
+                SFUShort j, l;
+                
+                subClassSetOffset = SFReadUShort(csTable, 8 + (i * 2));
+                scsTable = &csTable[subClassSetOffset];
                 
 #ifdef LOOKUP_TEST
                 printf("\n       Sub Class Set %d:", i + 1);
                 printf("\n        Offset: %d", subClassSetOffset);
 #endif
                 
-                SFUShort subClassRuleCount = SFReadUShort(scsTable, 0);
+                subClassRuleCount = SFReadUShort(scsTable, 0);
                 subRuleSetTables[i].subClassRuleCnt = subClassRuleCount;
                 
 #ifdef LOOKUP_TEST
                 printf("\n        Total Sub Class Rules: %d", subClassRuleCount);
 #endif
                 
-                SubClassRuleTable *subRuleTables = malloc(sizeof(SubClassRuleTable) * subClassRuleCount);
+                subRuleTables = malloc(sizeof(SubClassRuleTable) * subClassRuleCount);
                 
-                for (SFUShort j = 0; j < subClassRuleCount; j++) {
-                    SFUShort subClassRuleOffset = SFReadUShort(scsTable, 2 + (j * 2));
-                    const SFUByte * const scrTable = &scsTable[subClassRuleOffset];
+                for (j = 0; j < subClassRuleCount; j++) {
+                    SFUShort subClassRuleOffset;
+                    const SFUByte *scrTable;
+                    
+                    SFUShort glyphCount;
+                    SFUShort substCount;
+                    
+                    SFUShort *classes;
+                    SFUShort k;
+                    
+                    subClassRuleOffset = SFReadUShort(scsTable, 2 + (j * 2));
+                    scrTable = &scsTable[subClassRuleOffset];
                     
 #ifdef LOOKUP_TEST
                     printf("\n        Sub Class Rule %d:", j + 1);
                     printf("\n         Offset: %d", subClassRuleOffset);
 #endif
                     
-                    SFUShort glyphCount = SFReadUShort(scrTable, 0);
+                    glyphCount = SFReadUShort(scrTable, 0);
                     subRuleTables[j].glyphCount = glyphCount;
                     
-                    SFUShort substCount = SFReadUShort(scrTable, 2);
+                    substCount = SFReadUShort(scrTable, 2);
                     subRuleTables[j].substCount = substCount;
                     
 #ifdef LOOKUP_TEST
@@ -507,11 +621,10 @@ static void SFReadContextSubst(const SFUByte * const csTable, ContextSubstSubtab
                     printf("\n         Total Lookup Records: %d", substCount);
 #endif
                     
-                    SFUShort *classes = malloc(sizeof(SFUShort) * glyphCount);
+                    classes = malloc(sizeof(SFUShort) * glyphCount);
                     classes[0] = 0;
                     
-                    SFUShort k = 0;
-                    for (; k < glyphCount; k++) {
+                    for (k = 0; k < glyphCount; k++) {
                         classes[k + 1] = SFReadUShort(scrTable, 4 + (k * 2));
                         
 #ifdef LOOKUP_TEST
@@ -523,8 +636,8 @@ static void SFReadContextSubst(const SFUByte * const csTable, ContextSubstSubtab
                     
                     k += 4;
                     
-                    SubstLookupRecord *substLookupRecords = malloc(sizeof(SubstLookupRecord) * substCount);
-                    for (SFUShort l = 0; l < substCount; l++) {
+                    substLookupRecords = malloc(sizeof(SubstLookupRecord) * substCount);
+                    for (l = 0; l < substCount; l++) {
                         SFUShort beginOffset = k + (l * 4);
                         
                         substLookupRecords[l].sequenceIndex = SFReadUShort(scrTable, beginOffset);
@@ -551,8 +664,16 @@ static void SFReadContextSubst(const SFUByte * const csTable, ContextSubstSubtab
 #ifdef GSUB_CONTEXT_FORMAT3
         case 3:
         {
-            SFUShort glyphCount = SFReadUShort(csTable, 2);
-            SFUShort substCount = SFReadUShort(csTable, 4);
+            SFUShort glyphCount;
+            SFUShort substCount;
+            
+            SubstLookupRecord *substLookupRecords;
+            
+            CoverageTable *coverageTables;
+            SFUShort i, j;
+            
+            glyphCount = SFReadUShort(csTable, 2);
+            substCount = SFReadUShort(csTable, 4);
             
 #ifdef LOOKUP_TEST
             printf("\n       Total Coverage Tables: %d", glyphCount);
@@ -562,9 +683,9 @@ static void SFReadContextSubst(const SFUByte * const csTable, ContextSubstSubtab
             tablePtr->format.format3.glyphCount = glyphCount;
             tablePtr->format.format3.substCount = substCount;
             
-            CoverageTable *coverageTables = malloc(sizeof(CoverageTable) * glyphCount);
+            coverageTables = malloc(sizeof(CoverageTable) * glyphCount);
             
-            for (SFUShort i = 0; i < glyphCount; i++) {
+            for (i = 0; i < glyphCount; i++) {
                 SFUShort coverageOffset = SFReadUShort(csTable, 6 + (i * 2));
                 
 #ifdef LOOKUP_TEST
@@ -577,8 +698,8 @@ static void SFReadContextSubst(const SFUByte * const csTable, ContextSubstSubtab
             
             tablePtr->format.format3.coverage = coverageTables;
             
-            SubstLookupRecord *substLookupRecords = malloc(sizeof(SubstLookupRecord) * substCount);
-            for (SFUShort j = 0; j < substCount; j++) {
+            substLookupRecords = malloc(sizeof(SubstLookupRecord) * substCount);
+            for (j = 0; j < substCount; j++) {
                 SFUShort beginOffset = 8 + (j * 4);
                 
                 substLookupRecords[j].sequenceIndex = SFReadUShort(csTable, beginOffset);
@@ -599,13 +720,16 @@ static void SFReadContextSubst(const SFUByte * const csTable, ContextSubstSubtab
 }
 
 static void SFFreeContextSubst(ContextSubstSubtable *tablePtr) {
+	int i, j;
+
     switch (tablePtr->substFormat) {
 #ifdef GSUB_CONTEXT_FORMAT1
         case 1:
+        {
             SFFreeCoverageTable(&tablePtr->format.format1.coverage);
             
-            for (int i = 0; i < tablePtr->format.format1.subRuleSetCount; i++) {
-                for (int j = 0; j < tablePtr->format.format1.subRuleSet[i].subRuleCount; j++) {
+            for (i = 0; i < tablePtr->format.format1.subRuleSetCount; i++) {
+                for (j = 0; j < tablePtr->format.format1.subRuleSet[i].subRuleCount; j++) {
                     free(tablePtr->format.format1.subRuleSet[i].subRule[j].input);
                     free(tablePtr->format.format1.subRuleSet[i].subRule[j].substLookupRecord);
                 }
@@ -614,16 +738,17 @@ static void SFFreeContextSubst(ContextSubstSubtable *tablePtr) {
             }
             
             free(tablePtr->format.format1.subRuleSet);
-            
+        }
             break;
 #endif
             
 #ifdef GSUB_CONTEXT_FORMAT2
         case 2:
+        {
             SFFreeCoverageTable(&tablePtr->format.format2.coverage);
             
-            for (int i = 0; i < tablePtr->format.format2.subClassSetCnt; i++) {
-                for (int j = 0; j < tablePtr->format.format2.subClassSet[i].subClassRuleCnt; j++) {
+            for (i = 0; i < tablePtr->format.format2.subClassSetCnt; i++) {
+                for (j = 0; j < tablePtr->format.format2.subClassSet[i].subClassRuleCnt; j++) {
                     free(tablePtr->format.format2.subClassSet[i].subClassRule[j].cls);
                     free(tablePtr->format.format2.subClassSet[i].subClassRule[j].substLookupRecord);
                 }
@@ -633,18 +758,19 @@ static void SFFreeContextSubst(ContextSubstSubtable *tablePtr) {
             
             SFFreeClassDefTable(&tablePtr->format.format2.classDef);
             free(tablePtr->format.format2.subClassSet);
-            
+        }
             break;
 #endif
             
 #ifdef GSUB_CONTEXT_FORMAT3
         case 3:
-            for (int i = 0; i < tablePtr->format.format3.glyphCount; i++)
+        {
+            for (i = 0; i < tablePtr->format.format3.glyphCount; i++)
                 SFFreeCoverageTable(&tablePtr->format.format3.coverage[i]);
             
             free(tablePtr->format.format3.coverage);
             free(tablePtr->format.format3.substLookupRecord);
-            
+        }
             break;
 #endif
     }
@@ -665,11 +791,18 @@ static void SFReadChainingContextSubst(const SFUByte * const ccsTable, ChainingC
 #endif
     
     switch (substFormat) {
-
+            
 #ifdef GSUB_CHAINING_CONTEXT_FORMAT1
         case 1:
         {
-            SFUShort coverageOffset = SFReadUShort(ccsTable, 2);
+            SFUShort coverageOffset;
+            SFUShort chainSubRuleSetCount;
+            
+            ChainSubRuleSetTable *chainSubRuleSetTables;
+            
+            SFUShort i;
+            
+            coverageOffset = SFReadUShort(ccsTable, 2);
             
 #ifdef LOOKUP_TEST
             printf("\n       Coverage Table:");
@@ -677,53 +810,77 @@ static void SFReadChainingContextSubst(const SFUByte * const ccsTable, ChainingC
 #endif
             SFReadCoverageTable(&ccsTable[coverageOffset], &tablePtr->format.format1.coverage);
             
-            SFUShort chainSubRuleSetCount = SFReadUShort(ccsTable, 4);
+            chainSubRuleSetCount = SFReadUShort(ccsTable, 4);
             
 #ifdef LOOKUP_TEST
             printf("\n       Total Chain Sub Rule Sets: %d", chainSubRuleSetCount);
 #endif
             tablePtr->format.format1.chainSubRuleSetCount = chainSubRuleSetCount;
             
-            ChainSubRuleSetTable *chainSubRuleSetTables = malloc(sizeof(ChainSubRuleSetTable) * chainSubRuleSetCount);
+            chainSubRuleSetTables = malloc(sizeof(ChainSubRuleSetTable) * chainSubRuleSetCount);
             
-            for (SFUShort i = 0; i < chainSubRuleSetCount; i++) {
-                SFUShort chainSubRuleSetOffset = SFReadUShort(ccsTable, 6 + (i * 2));
-                const SFUByte * const csrsTable = &ccsTable[chainSubRuleSetOffset];
+            for (i = 0; i < chainSubRuleSetCount; i++) {
+                SFUShort chainSubRuleSetOffset;
+                const SFUByte *csrsTable;
+                
+                SFUShort chainSubRuleCount;
+                ChainSubRuleSubtable *chainSubRuleTables;
+                
+                SFUShort j;
+                
+                chainSubRuleSetOffset = SFReadUShort(ccsTable, 6 + (i * 2));
+                csrsTable = &ccsTable[chainSubRuleSetOffset];
                 
 #ifdef LOOKUP_TEST
                 printf("\n       Chain Sub Rule Set %d:", i + 1);
                 printf("\n        Offset: %d", chainSubRuleSetOffset);
 #endif
                 
-                SFUShort chainSubRuleCount = SFReadUShort(csrsTable, 0);
+                chainSubRuleCount = SFReadUShort(csrsTable, 0);
                 chainSubRuleSetTables[i].chainSubRuleCount = chainSubRuleCount;
                 
 #ifdef LOOKUP_TEST
                 printf("\n        Total Chain Sub Rule Tables: %d", chainSubRuleCount);
 #endif
                 
-                ChainSubRuleSubtable *chainSubRuleTables = malloc(sizeof(ChainSubRuleSubtable) * chainSubRuleCount);
+                chainSubRuleTables = malloc(sizeof(ChainSubRuleSubtable) * chainSubRuleCount);
                 
-                for (SFUShort j = 0; j < chainSubRuleCount; j++) {
-                    SFUShort chainSubRuleOffset = SFReadUShort(csrsTable, 2 + (j * 2));
-                    const SFUByte * const csrTable = &csrsTable[chainSubRuleOffset];
+                for (j = 0; j < chainSubRuleCount; j++) {
+                    SFUShort chainSubRuleOffset;
+                    const SFUByte *csrTable;
+                    
+                    SFUShort backtrackGlyphCount;
+                    SFGlyph *backtrackGlyphs;
+                    
+                    SFUShort inputGlyphCount;
+                    SFGlyph *inputGlyphs;
+                    
+                    SFUShort lookaheadGlyphCount;
+                    SFGlyph *lookaheadGlyphs;
+                    
+                    SFUShort substCount;
+                    SubstLookupRecord *substLookupRecords;
+                    
+                    SFUShort k, l, m, n;
+                    
+                    chainSubRuleOffset = SFReadUShort(csrsTable, 2 + (j * 2));
+                    csrTable = &csrsTable[chainSubRuleOffset];
                     
 #ifdef LOOKUP_TEST
                     printf("\n        Chain Sub Rule Table %d:", j + 1);
                     printf("\n         Offset: %d", chainSubRuleOffset);
 #endif
                     
-                    SFUShort backtrackGlyphCount = SFReadUShort(csrTable, 0);
+                    backtrackGlyphCount = SFReadUShort(csrTable, 0);
                     chainSubRuleTables[j].backtrackGlyphCount = backtrackGlyphCount;
                     
 #ifdef LOOKUP_TEST
                     printf("\n         Total Backtrack Glyphs: %d", backtrackGlyphCount);
 #endif
                     
-                    SFGlyph *backtrackGlyphs = malloc(sizeof(SFGlyph) * backtrackGlyphCount);
+                    backtrackGlyphs = malloc(sizeof(SFGlyph) * backtrackGlyphCount);
                     
-                    SFUShort k = 0;
-                    for (; k < backtrackGlyphCount; k++) {
+                    for (k = 0; k < backtrackGlyphCount; k++) {
                         backtrackGlyphs[k] = SFReadUShort(csrTable, 2 + (k * 2));
                         
 #ifdef LOOKUP_TEST
@@ -734,19 +891,18 @@ static void SFReadChainingContextSubst(const SFUByte * const ccsTable, ChainingC
                     
                     chainSubRuleTables[j].backtrack = backtrackGlyphs;
                     
-                    SFUShort inputGlyphCount = SFReadUShort(csrTable, k);
+                    inputGlyphCount = SFReadUShort(csrTable, k);
                     chainSubRuleTables[j].inputGlyphCount = inputGlyphCount;
                     
 #ifdef LOOKUP_TEST
                     printf("\n         Total Input Glyphs: %d", inputGlyphCount);
 #endif
                     
-                    SFGlyph *inputGlyphs = malloc(sizeof(SFGlyph) * inputGlyphCount);
+                    inputGlyphs = malloc(sizeof(SFGlyph) * inputGlyphCount);
                     inputGlyphs[0] = 0;
                     
                     k += 2;
-                    SFUShort l = 0;
-                    for (; l < inputGlyphCount - 1; l++) {
+                    for (l = 0; l < inputGlyphCount - 1; l++) {
                         inputGlyphs[l + 1] = SFReadUShort(csrTable, k + (l * 2));
                         
 #ifdef LOOKUP_TEST
@@ -757,18 +913,17 @@ static void SFReadChainingContextSubst(const SFUByte * const ccsTable, ChainingC
                     
                     chainSubRuleTables[j].input = inputGlyphs;
                     
-                    SFUShort lookaheadGlyphCount = SFReadUShort(csrTable, k);
+                    lookaheadGlyphCount = SFReadUShort(csrTable, k);
                     chainSubRuleTables[j].lookaheadGlyphCount = lookaheadGlyphCount;
                     
 #ifdef LOOKUP_TEST
                     printf("\n         Total Lookahead Glyphs: %d", lookaheadGlyphCount);
 #endif
                     
-                    SFGlyph *lookaheadGlyphs = malloc(sizeof(SFGlyph) * lookaheadGlyphCount);
+                    lookaheadGlyphs = malloc(sizeof(SFGlyph) * lookaheadGlyphCount);
                     
                     k += 2;
-                    SFUShort m = 0;
-                    for (; m < lookaheadGlyphCount; m++) {
+                    for (m = 0; m < lookaheadGlyphCount; m++) {
                         lookaheadGlyphs[m] = SFReadUShort(csrTable, k + (m * 2));
                         
 #ifdef LOOKUP_TEST
@@ -779,15 +934,15 @@ static void SFReadChainingContextSubst(const SFUByte * const ccsTable, ChainingC
                     
                     chainSubRuleTables[j].lookAhead = lookaheadGlyphs;
                     
-                    SFUShort substCount = SFReadUShort(csrTable, k);
+                    substCount = SFReadUShort(csrTable, k);
                     
 #ifdef LOOKUP_TEST
                     printf("\n         Total Substitute Lookup Records: %d", substCount);
 #endif
                     
-                    SubstLookupRecord *substLookupRecords = malloc(sizeof(SubstLookupRecord) * substCount);
+                    substLookupRecords = malloc(sizeof(SubstLookupRecord) * substCount);
                     
-                    for (SFUShort n = 0; n < substCount; l++) {
+                    for (n = 0; n < substCount; l++) {
                         SFUShort beginOffset = k + (n * 4);
                         
                         substLookupRecords[n].sequenceIndex = SFReadUShort(csrTable, beginOffset);
@@ -814,7 +969,17 @@ static void SFReadChainingContextSubst(const SFUByte * const ccsTable, ChainingC
 #ifdef GSUB_CHAINING_CONTEXT_FORMAT2
         case 2:
         {
-            SFUShort coverageOffset = SFReadUShort(ccsTable, 2);
+            SFUShort coverageOffset;
+            SFUShort backtrackClassDefOffset;
+            SFUShort inputClassDefOffset;
+            SFUShort lookaheadClassDefOffset;
+            
+            SFUShort chainSubClassSetCount;
+            ChainSubClassSetSubtable *chainSubClassSets;
+            
+            SFUShort i;
+            
+            coverageOffset = SFReadUShort(ccsTable, 2);
             
 #ifdef LOOKUP_TEST
             printf("\n       Coverage Table:");
@@ -823,7 +988,7 @@ static void SFReadChainingContextSubst(const SFUByte * const ccsTable, ChainingC
             
             SFReadCoverageTable(&ccsTable[coverageOffset], &tablePtr->format.format2.coverage);
             
-            SFUShort backtrackClassDefOffset = SFReadUShort(ccsTable, 4);
+            backtrackClassDefOffset = SFReadUShort(ccsTable, 4);
             
 #ifdef LOOKUP_TEST
             printf("\n       Backtrack Class Definition:");
@@ -832,7 +997,7 @@ static void SFReadChainingContextSubst(const SFUByte * const ccsTable, ChainingC
             
             SFReadClassDefTable(&ccsTable[backtrackClassDefOffset], &tablePtr->format.format2.backtrackClassDef);
             
-            SFUShort inputClassDefOffset = SFReadUShort(ccsTable, 6);
+            inputClassDefOffset = SFReadUShort(ccsTable, 6);
             
 #ifdef LOOKUP_TEST
             printf("\n       Input Class Definition:");
@@ -841,7 +1006,7 @@ static void SFReadChainingContextSubst(const SFUByte * const ccsTable, ChainingC
             
             SFReadClassDefTable(&ccsTable[inputClassDefOffset], &tablePtr->format.format2.inputClassDef);
             
-            SFUShort lookaheadClassDefOffset = SFReadUShort(ccsTable, 8);
+            lookaheadClassDefOffset = SFReadUShort(ccsTable, 8);
             
 #ifdef LOOKUP_TEST
             printf("\n       Lookahead Class Definition:");
@@ -850,52 +1015,76 @@ static void SFReadChainingContextSubst(const SFUByte * const ccsTable, ChainingC
             
             SFReadClassDefTable(&ccsTable[lookaheadClassDefOffset], &tablePtr->format.format2.lookaheadClassDef);
             
-            SFUShort chainSubClassSetCount = SFReadUShort(ccsTable, 10);
+            chainSubClassSetCount = SFReadUShort(ccsTable, 10);
             
 #ifdef LOOKUP_TEST
             printf("\n       Total Chain Sub Class Sets: %d", chainSubClassSetCount);
 #endif
             
-            ChainSubClassSetSubtable *chainSubClassSets = malloc(sizeof(ChainSubClassSetSubtable) * chainSubClassSetCount);
+            chainSubClassSets = malloc(sizeof(ChainSubClassSetSubtable) * chainSubClassSetCount);
             
-            for (SFUShort i = 0; i < chainSubClassSetCount; i++) {
-                SFUShort chainSubClassSetOffset = SFReadUShort(ccsTable, 12 + (i * 2));
-                const SFUByte * const cscsTable = &ccsTable[chainSubClassSetOffset];
+            for (i = 0; i < chainSubClassSetCount; i++) {
+                SFUShort chainSubClassSetOffset;
+                const SFUByte *cscsTable;
+                
+                SFUShort chainSubClassRuleCount;
+                ChainSubClassRuleTable *chainSubClassRuleTables;
+                
+                SFUShort j;
+                
+                chainSubClassSetOffset = SFReadUShort(ccsTable, 12 + (i * 2));
+                cscsTable = &ccsTable[chainSubClassSetOffset];
                 
 #ifdef LOOKUP_TEST
                 printf("\n       Chain Sub Class Set %d:", i + 1);
                 printf("\n        Offset: %d", chainSubClassSetOffset);
 #endif
                 
-                SFUShort chainSubClassRuleCount = SFReadUShort(cscsTable, 0);
+                chainSubClassRuleCount = SFReadUShort(cscsTable, 0);
                 chainSubClassSets[i].chainSubClassRuleCnt = chainSubClassRuleCount;
                 
 #ifdef LOOKUP_TEST
                 printf("\n        Total Chain Sub Class Rules: %d", chainSubClassRuleCount);
 #endif
                 
-                ChainSubClassRuleTable *chainSubClassRuleTables = malloc(sizeof(ChainSubClassRuleTable) * chainSubClassRuleCount);
+                chainSubClassRuleTables = malloc(sizeof(ChainSubClassRuleTable) * chainSubClassRuleCount);
                 
-                for (SFUShort j = 0; j < chainSubClassRuleCount; j++) {
-                    SFUShort chainSubClassRuleOffset = SFReadUShort(cscsTable, 2 + (j * 2));
-                    const SFUByte * const cscrTable = &cscsTable[chainSubClassRuleOffset];
+                for (j = 0; j < chainSubClassRuleCount; j++) {
+                    SFUShort chainSubClassRuleOffset;
+                    const SFUByte *cscrTable;
+                    
+                    SFUShort backtrackGlyphCount;
+                    SFGlyph *backtrackGlyphs;
+                    
+                    SFUShort inputGlyphCount;
+                    SFGlyph *inputGlyphs;
+                    
+                    SFUShort lookaheadGlyphCount;
+                    SFGlyph *lookaheadGlyphs;
+                    
+                    SFUShort substCount;
+                    SubstLookupRecord *substLookupRecords;
+                    
+                    SFUShort k, l, m, n;
+                    
+                    chainSubClassRuleOffset = SFReadUShort(cscsTable, 2 + (j * 2));
+                    cscrTable = &cscsTable[chainSubClassRuleOffset];
                     
 #ifdef LOOKUP_TEST
                     printf("\n        Chain Sub Class Rule %d:", j + 1);
                     printf("\n         Offset: %d", chainSubClassRuleOffset);
 #endif
                     
-                    SFUShort backtrackGlyphCount = SFReadUShort(cscrTable, 0);
+                    backtrackGlyphCount = SFReadUShort(cscrTable, 0);
                     chainSubClassRuleTables[j].backtrackGlyphCount = backtrackGlyphCount;
                     
 #ifdef LOOKUP_TEST
                     printf("\n         Total Backtrack Glyphs: %d", backtrackGlyphCount);
 #endif
                     
-                    SFGlyph *backtrackGlyphs = malloc(sizeof(SFGlyph) * backtrackGlyphCount);
+                    backtrackGlyphs = malloc(sizeof(SFGlyph) * backtrackGlyphCount);
                     
-                    SFUShort k = 0;
-                    for (; k < backtrackGlyphCount; k++) {
+                    for (k = 0; k < backtrackGlyphCount; k++) {
                         backtrackGlyphs[k] = SFReadUShort(cscrTable, 2 + (k * 2));
                         
 #ifdef LOOKUP_TEST
@@ -906,19 +1095,18 @@ static void SFReadChainingContextSubst(const SFUByte * const ccsTable, ChainingC
                     
                     chainSubClassRuleTables[j].backtrack = backtrackGlyphs;
                     
-                    SFUShort inputGlyphCount = SFReadUShort(cscrTable, k);
+                    inputGlyphCount = SFReadUShort(cscrTable, k);
                     chainSubClassRuleTables[j].inputGlyphCount = inputGlyphCount;
                     
 #ifdef LOOKUP_TEST
                     printf("\n         Total Input Glyphs: %d", inputGlyphCount);
 #endif
                     
-                    SFGlyph *inputGlyphs = malloc(sizeof(SFGlyph) * inputGlyphCount);
+                    inputGlyphs = malloc(sizeof(SFGlyph) * inputGlyphCount);
                     inputGlyphs[0] = 0;
                     
                     k += 2;
-                    SFUShort l = 0;
-                    for (; l < inputGlyphCount - 1; l++) {
+                    for (l = 0; l < inputGlyphCount - 1; l++) {
                         inputGlyphs[l + 1] = SFReadUShort(cscrTable, k + (l * 2));
                         
 #ifdef LOOKUP_TEST
@@ -929,18 +1117,17 @@ static void SFReadChainingContextSubst(const SFUByte * const ccsTable, ChainingC
                     
                     chainSubClassRuleTables[j].input = inputGlyphs;
                     
-                    SFUShort lookaheadGlyphCount = SFReadUShort(cscrTable, k);
+                    lookaheadGlyphCount = SFReadUShort(cscrTable, k);
                     chainSubClassRuleTables[j].lookaheadGlyphCount = lookaheadGlyphCount;
                     
 #ifdef LOOKUP_TEST
                     printf("\n         Total Lookahead Glyphs: %d", lookaheadGlyphCount);
 #endif
                     
-                    SFGlyph *lookaheadGlyphs = malloc(sizeof(SFGlyph) * lookaheadGlyphCount);
+                    lookaheadGlyphs = malloc(sizeof(SFGlyph) * lookaheadGlyphCount);
                     
                     k += 2;
-                    SFUShort m = 0;
-                    for (; m < lookaheadGlyphCount; m++) {
+                    for (m = 0; m < lookaheadGlyphCount; m++) {
                         lookaheadGlyphs[m] = SFReadUShort(cscrTable, k + (m * 2));
                         
 #ifdef LOOKUP_TEST
@@ -951,15 +1138,15 @@ static void SFReadChainingContextSubst(const SFUByte * const ccsTable, ChainingC
                     
                     chainSubClassRuleTables[j].lookAhead = lookaheadGlyphs;
                     
-                    SFUShort substCount = SFReadUShort(cscrTable, k);
+                    substCount = SFReadUShort(cscrTable, k);
                     
 #ifdef LOOKUP_TEST
                     printf("\n         Total Substitute Lookup Records: %d", substCount);
 #endif
                     
-                    SubstLookupRecord substLookupRecords[substCount];
+                    substLookupRecords = malloc(sizeof(SubstLookupRecord) * substCount);
                     
-                    for (SFUShort n = 0; n < substCount; l++) {
+                    for (n = 0; n < substCount; l++) {
                         SFUShort beginOffset = k + (n * 4);
                         
                         substLookupRecords[n].sequenceIndex = SFReadUShort(cscrTable, beginOffset);
@@ -986,17 +1173,30 @@ static void SFReadChainingContextSubst(const SFUByte * const ccsTable, ChainingC
 #ifdef GSUB_CHAINING_CONTEXT_FORMAT3
         case 3:
         {
-            SFUShort backtrackGlyphCount = SFReadUShort(ccsTable, 2);
+            SFUShort backtrackGlyphCount;
+            CoverageTable *backtrackCoverageTables;
+            
+            SFUShort inputGlyphCount;
+            CoverageTable *inputCoverageTables;
+            
+            SFUShort lookaheadGlyphCount;
+            CoverageTable *lookaheadCoverageTables;
+            
+            SFUShort substCount;
+            SubstLookupRecord *substLookupRecords;
+            
+            SFUShort i, j, k, l;
+            
+            backtrackGlyphCount = SFReadUShort(ccsTable, 2);
             tablePtr->format.format3.backtrackGlyphCount = backtrackGlyphCount;
             
 #ifdef LOOKUP_TEST
             printf("\n       Total Backtrack Glyphs: %d", backtrackGlyphCount);
 #endif
             
-            CoverageTable *backtrackCoverageTables = malloc(sizeof(CoverageTable) * backtrackGlyphCount);
+            backtrackCoverageTables = malloc(sizeof(CoverageTable) * backtrackGlyphCount);
             
-            SFUShort i = 0;
-            for (; i < backtrackGlyphCount; i++) {
+            for (i = 0; i < backtrackGlyphCount; i++) {
                 SFUShort coverageOffset = SFReadUShort(ccsTable, 4 + (i * 2));
                 
 #ifdef LOOKUP_TEST
@@ -1010,19 +1210,18 @@ static void SFReadChainingContextSubst(const SFUByte * const ccsTable, ChainingC
             
             tablePtr->format.format3.backtrackGlyphCoverage = backtrackCoverageTables;
             
-            SFUShort inputGlyphCount = SFReadUShort(ccsTable, i);
+            inputGlyphCount = SFReadUShort(ccsTable, i);
             tablePtr->format.format3.inputGlyphCount = inputGlyphCount;
             
 #ifdef LOOKUP_TEST
             printf("\n       Total Input Glyphs: %d", inputGlyphCount);
 #endif
             
-            CoverageTable *inputCoverageTables = malloc(sizeof(CoverageTable) * inputGlyphCount);
+            inputCoverageTables = malloc(sizeof(CoverageTable) * inputGlyphCount);
             
             i += 2;
             
-            SFUShort j = 0;
-            for (; j < inputGlyphCount; j++) {
+            for (j = 0; j < inputGlyphCount; j++) {
                 SFUShort coverageOffset = SFReadUShort(ccsTable, i + (j * 2));
                 
 #ifdef LOOKUP_TEST
@@ -1036,19 +1235,18 @@ static void SFReadChainingContextSubst(const SFUByte * const ccsTable, ChainingC
             
             tablePtr->format.format3.inputGlyphCoverage = inputCoverageTables;
             
-            SFUShort lookaheadGlyphCount = SFReadUShort(ccsTable, i);
+            lookaheadGlyphCount = SFReadUShort(ccsTable, i);
             tablePtr->format.format3.lookaheadGlyphCount = lookaheadGlyphCount;
             
 #ifdef LOOKUP_TEST
             printf("\n       Total Lookahead Glyphs: %d", lookaheadGlyphCount);
 #endif
             
-            CoverageTable *lookaheadCoverageTables = malloc(sizeof(CoverageTable) * lookaheadGlyphCount);
+            lookaheadCoverageTables = malloc(sizeof(CoverageTable) * lookaheadGlyphCount);
             
             i += 2;
             
-            SFUShort k = 0;
-            for (; k < lookaheadGlyphCount; k++) {
+            for (k = 0; k < lookaheadGlyphCount; k++) {
                 SFUShort coverageOffset = SFReadUShort(ccsTable, i + (k * 2));
                 
 #ifdef LOOKUP_TEST
@@ -1062,17 +1260,17 @@ static void SFReadChainingContextSubst(const SFUByte * const ccsTable, ChainingC
             
             tablePtr->format.format3.lookaheadGlyphCoverage = lookaheadCoverageTables;
             
-            SFUShort substCount = SFReadUShort(ccsTable, i);
+            substCount = SFReadUShort(ccsTable, i);
             tablePtr->format.format3.substCount = substCount;
             
-            SubstLookupRecord *substLookupRecords = malloc(sizeof(SubstLookupRecord) * substCount);
+            substLookupRecords = malloc(sizeof(SubstLookupRecord) * substCount);
             
 #ifdef LOOKUP_TEST
             printf("\n         Total Substitute Lookup Records: %d", substCount);
 #endif
             
             i += 2;
-            for (SFUShort l = 0; l < substCount; l++) {
+            for (l = 0; l < substCount; l++) {
                 SFUShort beginOffset = i + (l * 4);
                 
                 substLookupRecords[l].sequenceIndex = SFReadUShort(ccsTable, beginOffset);
@@ -1093,14 +1291,17 @@ static void SFReadChainingContextSubst(const SFUByte * const ccsTable, ChainingC
 }
 
 static void SFFreeChainingContextualSubst(ChainingContextualSubstSubtable *tablePtr) {
-    switch (tablePtr->substFormat) {
+	int i, j;
 
+    switch (tablePtr->substFormat) {
+            
 #ifdef GSUB_CHAINING_CONTEXT_FORMAT1
         case 1:
+        {
             SFFreeCoverageTable(&tablePtr->format.format1.coverage);
             
-            for (int i = 0; i < tablePtr->format.format1.chainSubRuleSetCount; i++) {
-                for (int j = 0; j < tablePtr->format.format1.chainSubRuleSet[i].chainSubRuleCount; j++) {
+            for (i = 0; i < tablePtr->format.format1.chainSubRuleSetCount; i++) {
+                for (j = 0; j < tablePtr->format.format1.chainSubRuleSet[i].chainSubRuleCount; j++) {
                     free(tablePtr->format.format1.chainSubRuleSet[i].chainSubRule[j].backtrack);
                     free(tablePtr->format.format1.chainSubRuleSet[i].chainSubRule[j].input);
                     free(tablePtr->format.format1.chainSubRuleSet[i].chainSubRule[j].lookAhead);
@@ -1111,20 +1312,21 @@ static void SFFreeChainingContextualSubst(ChainingContextualSubstSubtable *table
             }
             
             free(tablePtr->format.format1.chainSubRuleSet);
-            
+        }
             break;
 #endif
             
 #ifdef GSUB_CHAINING_CONTEXT_FORMAT2
         case 2:
+        {
             SFFreeCoverageTable(&tablePtr->format.format2.coverage);
             
             SFFreeClassDefTable(&tablePtr->format.format2.backtrackClassDef);
             SFFreeClassDefTable(&tablePtr->format.format2.inputClassDef);
             SFFreeClassDefTable(&tablePtr->format.format2.lookaheadClassDef);
             
-            for (int i = 0; i < tablePtr->format.format2.chainSubClassSetCnt; i++) {
-                for (int j = 0; j < tablePtr->format.format2.chainSubClassSet[i].chainSubClassRuleCnt; j++) {
+            for (i = 0; i < tablePtr->format.format2.chainSubClassSetCnt; i++) {
+                for (j = 0; j < tablePtr->format.format2.chainSubClassSet[i].chainSubClassRuleCnt; j++) {
                     free(tablePtr->format.format2.chainSubClassSet[i].chainSubClassRule[j].backtrack);
                     free(tablePtr->format.format2.chainSubClassSet[i].chainSubClassRule[j].input);
                     free(tablePtr->format.format2.chainSubClassSet[i].chainSubClassRule[j].lookAhead);
@@ -1135,28 +1337,29 @@ static void SFFreeChainingContextualSubst(ChainingContextualSubstSubtable *table
             }
             
             free(tablePtr->format.format2.chainSubClassSet);
-            
+        }
             break;
 #endif
             
 #ifdef GSUB_CHAINING_CONTEXT_FORMAT3
         case 3:
-            for (int i = 0; i < tablePtr->format.format3.backtrackGlyphCount; i++)
+        {
+            for (i = 0; i < tablePtr->format.format3.backtrackGlyphCount; i++)
                 SFFreeCoverageTable(&tablePtr->format.format3.backtrackGlyphCoverage[i]);
             
             free(tablePtr->format.format3.backtrackGlyphCoverage);
             
-            for (int i = 0; i < tablePtr->format.format3.inputGlyphCount; i++)
+            for (i = 0; i < tablePtr->format.format3.inputGlyphCount; i++)
                 SFFreeCoverageTable(&tablePtr->format.format3.inputGlyphCoverage[i]);
             
             free(tablePtr->format.format3.inputGlyphCoverage);
             
-            for (int i = 0; i < tablePtr->format.format3.lookaheadGlyphCount; i++)
+            for (i = 0; i < tablePtr->format.format3.lookaheadGlyphCount; i++)
                 SFFreeCoverageTable(&tablePtr->format.format3.lookaheadGlyphCoverage[i]);
             
             free(tablePtr->format.format3.lookaheadGlyphCoverage);
             free(tablePtr->format.format3.SubstLookupRecord);
-            
+        }
             break;
 #endif
     }
@@ -1168,7 +1371,19 @@ static void SFFreeChainingContextualSubst(ChainingContextualSubstSubtable *table
 #ifdef GSUB_REVERSE_CHAINING_CONTEXT
 
 static void SFReadReverseChainingContextSubst(const SFUByte * const rccssTable, ReverseChainingContextSubstSubtable *tablePtr) {
-    SFUShort coverageOffset = SFReadUShort(rccssTable, 2);
+    SFUShort coverageOffset;
+    SFUShort backtrackGlyphCount;
+    CoverageTable *backtrackCoverageTables;
+    
+    SFUShort lookaheadGlyphCount;
+    CoverageTable *lookaheadCoverageTables;
+    
+    SFUShort glyphCount;
+    SFGlyph *substitutes;
+    
+    SFUShort i, j, k;
+    
+    coverageOffset = SFReadUShort(rccssTable, 2);
     
 #ifdef LOOKUP_TEST
     printf("\n       Coverage Table:");
@@ -1177,17 +1392,16 @@ static void SFReadReverseChainingContextSubst(const SFUByte * const rccssTable, 
     
     SFReadCoverageTable(&rccssTable[coverageOffset], &tablePtr->Coverage);
     
-    SFUShort backtrackGlyphCount = SFReadUShort(rccssTable, 4);
+    backtrackGlyphCount = SFReadUShort(rccssTable, 4);
     tablePtr->backtrackGlyphCount = backtrackGlyphCount;
     
 #ifdef LOOKUP_TEST
     printf("\n       Total Backtrack Glyphs: %d", backtrackGlyphCount);
 #endif
     
-    CoverageTable *backtrackCoverageTables = malloc(sizeof(CoverageTable) * backtrackGlyphCount);
+    backtrackCoverageTables = malloc(sizeof(CoverageTable) * backtrackGlyphCount);
     
-    SFUShort i = 0;
-    for (; i < backtrackGlyphCount; i++) {
+    for (i = 0; i < backtrackGlyphCount; i++) {
         SFUShort coverageOffset = SFReadUShort(rccssTable, 6 + (i * 2));
         
 #ifdef LOOKUP_TEST
@@ -1201,18 +1415,17 @@ static void SFReadReverseChainingContextSubst(const SFUByte * const rccssTable, 
     
     tablePtr->backtrackGlyphCoverage = backtrackCoverageTables;
     
-    SFUShort lookaheadGlyphCount = SFReadUShort(rccssTable, i);
+    lookaheadGlyphCount = SFReadUShort(rccssTable, i);
     tablePtr->lookaheadGlyphCount = lookaheadGlyphCount;
     
 #ifdef LOOKUP_TEST
     printf("\n       Total Lookahead Glyphs: %d", backtrackGlyphCount);
 #endif
     
-    CoverageTable *lookaheadCoverageTables = malloc(sizeof(CoverageTable) * lookaheadGlyphCount);
+    lookaheadCoverageTables = malloc(sizeof(CoverageTable) * lookaheadGlyphCount);
     
     i += 2;
-    SFUShort j = 0;
-    for (; j < lookaheadGlyphCount; j++) {
+    for (j = 0; j < lookaheadGlyphCount; j++) {
         SFUShort coverageOffset = SFReadUShort(rccssTable, i + (j * 2));
         
 #ifdef LOOKUP_TEST
@@ -1226,17 +1439,17 @@ static void SFReadReverseChainingContextSubst(const SFUByte * const rccssTable, 
     
     tablePtr->lookaheadGlyphCoverage = lookaheadCoverageTables;
     
-    SFUShort glyphCount = SFReadUShort(rccssTable, i);
+    glyphCount = SFReadUShort(rccssTable, i);
     tablePtr->glyphCount = glyphCount;
     
 #ifdef LOOKUP_TEST
     printf("\n       Total Substitute Glyphs: %d", glyphCount);
 #endif
     
-    SFGlyph *substitutes = malloc(sizeof(SFGlyph) * glyphCount);
+    substitutes = malloc(sizeof(SFGlyph) * glyphCount);
     
     i += 2;
-    for (SFUShort k = 0; k < glyphCount; k++) {
+    for (k = 0; k < glyphCount; k++) {
         substitutes[k] = SFReadUShort(rccssTable, i + (k * 2));
         
 #ifdef LOOKUP_TEST
@@ -1248,14 +1461,16 @@ static void SFReadReverseChainingContextSubst(const SFUByte * const rccssTable, 
 }
 
 static void SFFreeReverseChainingContextSubst(ReverseChainingContextSubstSubtable *tablePtr) {
+    int i;
+    
     SFFreeCoverageTable(&tablePtr->Coverage);
     
-    for (int i = 0; i < tablePtr->backtrackGlyphCount; i++)
+    for (i = 0; i < tablePtr->backtrackGlyphCount; i++)
         SFFreeCoverageTable(&tablePtr->backtrackGlyphCoverage[i]);
     
     free(tablePtr->backtrackGlyphCoverage);
     
-    for (int i = 0; i < tablePtr->lookaheadGlyphCount; i++)
+    for (i = 0; i < tablePtr->lookaheadGlyphCount; i++)
         SFFreeCoverageTable(&tablePtr->lookaheadGlyphCoverage[i]);
     
     free(tablePtr->lookaheadGlyphCoverage);
@@ -1266,18 +1481,19 @@ static void SFFreeReverseChainingContextSubst(ReverseChainingContextSubstSubtabl
 
 
 static void *SFReadSubstitution(const SFUByte * const sTable, LookupType *type) {
+    void *subtablePtr = NULL;
     
     if (*type == ltsExtensionSubstitution) {
+        SFUInt extensionOffset;
+        
         *type = SFReadUShort(sTable, 2);
-        SFUInt extensionOffset = SFReadUInt(sTable, 4);
+        extensionOffset = SFReadUInt(sTable, 4);
         
         return SFReadSubstitution(&sTable[extensionOffset], type);
     }
-
-    void *subtablePtr = NULL;
     
     switch (*type) {
-
+            
 #ifdef GSUB_SINGLE
         case ltsSingle:
         {
@@ -1358,7 +1574,7 @@ static void *SFReadSubstitution(const SFUByte * const sTable, LookupType *type) 
 
 static void SFFreeSubstitution(void *tablePtr, LookupType type) {
     switch (type) {
-
+            
 #ifdef GSUB_SINGLE
         case ltsSingle:
             SFFreeSingleSubst(tablePtr);
@@ -1407,9 +1623,13 @@ static void SFFreeSubstitution(void *tablePtr, LookupType type) {
 
 
 void SFReadGSUB(const SFUByte * const table, SFTableGSUB *tablePtr) {
+    SFUShort scriptListOffset;
+    SFUShort featureListOffset;
+    SFUShort lookupListOffset;
+    
     tablePtr->version = SFReadUInt(table, 0);
     
-    SFUShort scriptListOffset = SFReadUShort(table, 4);
+    scriptListOffset = SFReadUShort(table, 4);
     
 #ifdef SCRIPT_TEST
     printf("\nGSUB Header:");
@@ -1420,7 +1640,7 @@ void SFReadGSUB(const SFUByte * const table, SFTableGSUB *tablePtr) {
     
     SFReadScriptListTable(&table[scriptListOffset], &tablePtr->scriptList);
     
-    SFUShort featureListOffset = SFReadUShort(table, 6);
+    featureListOffset = SFReadUShort(table, 6);
     
 #ifdef FEATURE_TEST
     printf("\n Feature List:");
@@ -1429,7 +1649,7 @@ void SFReadGSUB(const SFUByte * const table, SFTableGSUB *tablePtr) {
     
     SFReadFeatureListTable(&table[featureListOffset], &tablePtr->featureList);
     
-    SFUShort lookupListOffset = SFReadUShort(table, 8);
+    lookupListOffset = SFReadUShort(table, 8);
     
 #ifdef LOOKUP_TEST
     printf("\n Lookup List:");

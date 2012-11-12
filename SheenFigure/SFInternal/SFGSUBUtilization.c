@@ -17,7 +17,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <stdbool.h>
 #include <stdint.h>
 
 #include "ssunistr.h"
@@ -127,18 +126,6 @@ static void applyArabicSubstitution(void *stable, LookupFlag lookupFlag, LookupT
     MultipleSubstSubtable *multipleSubst;
     AlternateSubstSubtable *alternateSubst;
     
-    if (type == ltsSingle) {
-        singleSubst = (SingleSubstSubtable *)stable;
-        coverage = singleSubst->coverage;
-    } else if (type == ltsMultiple) {
-        multipleSubst = (MultipleSubstSubtable *)stable;
-        coverage = multipleSubst->coverage;
-    } else if (type == ltsAlternate) {
-        alternateSubst = (AlternateSubstSubtable *)stable;
-        coverage = alternateSubst->coverage;
-    } else
-        return;
-
     //Index of next letter in twoPartUrduLetters.
     int inlt;
     
@@ -153,27 +140,39 @@ static void applyArabicSubstitution(void *stable, LookupFlag lookupFlag, LookupT
     
     int i = 0;
     int ni = 0;
-
+    
+    if (type == ltsSingle) {
+        singleSubst = (SingleSubstSubtable *)stable;
+        coverage = singleSubst->coverage;
+    } else if (type == ltsMultiple) {
+        multipleSubst = (MultipleSubstSubtable *)stable;
+        coverage = multipleSubst->coverage;
+    } else if (type == ltsAlternate) {
+        alternateSubst = (AlternateSubstSubtable *)stable;
+        coverage = alternateSubst->coverage;
+    } else
+        return;
+    
 #define SET_NULL_VALUES()           \
-    inlt = -1;                      \
-    inlf = -1;                      \
-    nextIndex = UNDEFINED_INDEX;
+inlt = -1;                      \
+inlf = -1;                      \
+nextIndex = UNDEFINED_INDEX;
     
 #define GET_NEXT_VALUES()                                                                       \
-    for (; ni < record->charCount; ni++) {                                                      \
-        if (!SFIsIgnoredGlyph(ni, 0, lookupFlag)) {        \
-            break;                                                                              \
-        }                                                                                       \
-    }                                                                                           \
-                                                                                                \
-    if (ni >= record->charCount) {                                                              \
-        SET_NULL_VALUES();                                                                      \
-    } else {                                                                                    \
-        inlt = idxunichar(twoPartUrduLetters, record->chars[ni], 0, TWO_PART_URDU_LETTERS);     \
-        inlf = idxunichar(fourPartUrduLetters, record->chars[ni], 0, FOUR_PART_URDU_LETTERS);   \
-        nextIndex = SFGetIndexOfGlyphInCoverage(&coverage, record->charRecord[ni].gRec[0].glyph);\
-    }
-
+for (; ni < record->charCount; ni++) {                                                      \
+if (!SFIsIgnoredGlyph(ni, 0, lookupFlag)) {        \
+break;                                                                              \
+}                                                                                       \
+}                                                                                           \
+\
+if (ni >= record->charCount) {                                                              \
+SET_NULL_VALUES();                                                                      \
+} else {                                                                                    \
+inlt = idxunichar(twoPartUrduLetters, record->chars[ni], 0, TWO_PART_URDU_LETTERS);     \
+inlf = idxunichar(fourPartUrduLetters, record->chars[ni], 0, FOUR_PART_URDU_LETTERS);   \
+nextIndex = SFGetIndexOfGlyphInCoverage(&coverage, record->charRecord[ni].gRec[0].glyph);\
+}
+    
     GET_NEXT_VALUES();
     i = ni;
     
@@ -208,7 +207,7 @@ static void applyArabicSubstitution(void *stable, LookupFlag lookupFlag, LookupT
                     record->charRecord[i].gRec[0].glyphProp = gpNotReceived;
                 } else {
                     int length;
-
+                    
                     SFInsertGlyphs(&record->charRecord[i].gRec, multipleSubst->sequence[currentIndex].substitute, 1, multipleSubst->sequence[currentIndex].glyphCount, 0, &length);
                     
                     record->glyphCount += length - record->charRecord[i].glyphCount;
@@ -220,12 +219,12 @@ static void applyArabicSubstitution(void *stable, LookupFlag lookupFlag, LookupT
                 record->charRecord[i].gRec[0].glyphProp = gpNotReceived;
             }
         }
-    
+        
     continue_loop:
         iplf = iclf;
         i = ni;
     }
-
+    
 #undef SET_NULL_VALUES
 #undef GET_NEXT_VALUES
 }
@@ -234,21 +233,22 @@ static void SFApplySingleSubstitution(SingleSubstSubtable *stable, LookupFlag lo
     ShortTag stag = getShortTag(tag);
     if (stag == stOther) {
         int currentIndex;
-        
-        int endRecordIndex = eindex.recordIndex + 1;
-        int j = sindex.glyphIndex;
-        
         int endGlyphIndex;
-        
-        for (int i = sindex.recordIndex; i < endRecordIndex; i++) {
+
+        int endRecordIndex = eindex.recordIndex + 1;
+
+		int i = sindex.recordIndex;
+        int j = sindex.glyphIndex;
+
+        for (; i < endRecordIndex; i++) {
             if (odd(record->levels[i]))
                 goto continue_loop;
-
+            
             if (i == (endRecordIndex - 1))
                 endGlyphIndex = eindex.glyphIndex + 1;
             else
                 endGlyphIndex = record->charRecord[i].glyphCount;
-                
+            
             for (; j < endGlyphIndex; j++) {
                 if (SFIsIgnoredGlyph(i, j, lookupFlag))
                     continue;
@@ -273,17 +273,21 @@ static void SFApplySingleSubstitution(SingleSubstSubtable *stable, LookupFlag lo
 }
 
 static void SFApplyMultipleSubstitution(MultipleSubstSubtable *stable, LookupFlag lookupFlag, unsigned char tag[5], SFGlyphIndex sindex, SFGlyphIndex eindex) {
+    ShortTag stag;
+    
     if (record->charCount == 0)
         return;
     
-    ShortTag stag = getShortTag(tag);
+    stag = getShortTag(tag);
     if (stag == stOther) {
         int endRecordIndex = eindex.recordIndex + 1;
+
+		int i = sindex.recordIndex;
         int j = sindex.glyphIndex;
         
         int endGlyphIndex;
         
-        for (int i = sindex.recordIndex; i < endRecordIndex; i++) {
+        for (; i < endRecordIndex; i++) {
             if (odd(record->levels[i]))
                 goto continue_loop;
             
@@ -293,11 +297,12 @@ static void SFApplyMultipleSubstitution(MultipleSubstSubtable *stable, LookupFla
                 endGlyphIndex = record->charRecord[i].glyphCount;
             
             for (; j < endGlyphIndex; j++) {
+                int currentIndex;
+                
                 if (SFIsIgnoredGlyph(i, j, lookupFlag))
                     continue;
                 
-                int currentIndex = SFGetIndexOfGlyphInCoverage(&stable->coverage, record->charRecord[i].gRec[j].glyph);
-                
+                currentIndex = SFGetIndexOfGlyphInCoverage(&stable->coverage, record->charRecord[i].gRec[j].glyph);
                 if (currentIndex != UNDEFINED_INDEX) {
                     if (stable->sequence[currentIndex].glyphCount == 1) {
                         record->charRecord[i].gRec[j].glyph = stable->sequence[currentIndex].substitute[0];
@@ -324,13 +329,14 @@ static void SFApplyAlternateSubstitution(AlternateSubstSubtable *stable, LookupF
     ShortTag stag = getShortTag(tag);
     if (stag == stOther) {
         int currentIndex;
+		int endGlyphIndex;
         
         int endRecordIndex = eindex.recordIndex + 1;
+
+		int i = sindex.recordIndex;
         int j = sindex.glyphIndex;
-        
-        int endGlyphIndex;
-        
-        for (int i = sindex.recordIndex; i < endRecordIndex; i++) {
+
+        for (; i < endRecordIndex; i++) {
             if (odd(record->levels[i]))
                 goto continue_loop;
             
@@ -364,49 +370,61 @@ static void SFApplyLigatureSubstitution(LigatureSubstSubtable *stable, LookupFla
     }
     
     do {
-        int coverageIndex = SFGetIndexOfGlyphInCoverage(&stable->coverage, record->charRecord[index.recordIndex].gRec[index.glyphIndex].glyph);
+        int coverageIndex;
+        LigatureSetTable currentLigSet;
+        
+        int i;
+        
+        coverageIndex = SFGetIndexOfGlyphInCoverage(&stable->coverage, record->charRecord[index.recordIndex].gRec[index.glyphIndex].glyph);
         
         if (coverageIndex == UNDEFINED_INDEX)
             continue;
-
-        LigatureSetTable currentLigSet = stable->ligatureSet[coverageIndex];
+        
+        currentLigSet = stable->ligatureSet[coverageIndex];
         
         //Loop to match any of the ligature table with current glyphs.
-        for (int i = 0; i < currentLigSet.ligatureCount; i++) {
-            int inputIndexesCount = currentLigSet.ligature[i].compCount;
-            SFGlyphIndex inputIndexes[inputIndexesCount];
-            inputIndexes[0] = index;
+        for (i = 0; i < currentLigSet.ligatureCount; i++) {
+			SFGlyphIndex *inputIndexes = malloc(sizeof(SFGlyphIndex) * currentLigSet.ligature[i].compCount);
 
+            int inputIndexesCount;
+            int j = 1, k = 0, l = 1;
+            
+            inputIndexesCount = currentLigSet.ligature[i].compCount;
+            inputIndexes[0] = index;
+            
             //Loop to match next required glyphs.
-            int j = 1;
-            for (int k = 0; j < currentLigSet.ligature[i].compCount; j++) {
-                SFGlyphIndex tmpIndex = inputIndexes[k];
+            for (; j < currentLigSet.ligature[i].compCount; j++) {
+                SFGlyphIndex tmpIndex;
+                SFGlyph nextGlyph;
+                
+                tmpIndex = inputIndexes[k];
                 if (!SFGetNextValidGlyphIndex(&tmpIndex, lookupFlag))
                     goto continue_parent_loop;
                 
-                SFGlyph nextGlyph = record->charRecord[tmpIndex.recordIndex].gRec[tmpIndex.glyphIndex].glyph;
+                nextGlyph = record->charRecord[tmpIndex.recordIndex].gRec[tmpIndex.glyphIndex].glyph;
                 if (nextGlyph != currentLigSet.ligature[i].component[j])
                     goto continue_parent_loop;
-
+                
                 inputIndexes[++k] = tmpIndex;
             }
-
+            
             //Now apply substitution
             record->charRecord[index.recordIndex].gRec[index.glyphIndex].glyph = currentLigSet.ligature[i].ligGlyph;
             record->charRecord[index.recordIndex].gRec[index.glyphIndex].glyphProp = gpNotReceived;
-
-            int l = 1;
+            
             for (; l < inputIndexesCount; l++) {
                 record->charRecord[inputIndexes[l].recordIndex].gRec[inputIndexes[l].glyphIndex].glyph = 0;
                 record->glyphCount -= 1;
             }
             
             index = inputIndexes[l - 1];
+
+			free(inputIndexes);
             break;
             
         continue_parent_loop:
             {
-                //continue;
+				free(inputIndexes);
             }
         }
     } while (SFGetNextValidGlyphIndex(&index, lookupFlag)
@@ -415,110 +433,127 @@ static void SFApplyLigatureSubstitution(LigatureSubstSubtable *stable, LookupFla
 
 
 static void SFApplyChainingContextualSubstitution(ChainingContextualSubstSubtable *stable, LookupFlag lookupFlag) {
+    SFGlyphIndex index;
+	SFGlyphIndex *inputIndexes = malloc(sizeof(SFGlyphIndex) * stable->format.format3.inputGlyphCount);
+    
     if (stable->substFormat != 3)
         return;
-
-    SFGlyphIndex index = SFMakeGlyphIndex(0, 0);
+    
+    index = SFMakeGlyphIndex(0, 0);
     if (SFIsIgnoredGlyph(0, 0, lookupFlag)) {
         if (!SFGetNextValidGlyphIndex(&index, lookupFlag))
             return;
     }
     
     do {
-        int coverageIndex = SFGetIndexOfGlyphInCoverage(&stable->format.format3.inputGlyphCoverage[0], record->charRecord[index.recordIndex].gRec[index.glyphIndex].glyph);
+        int coverageIndex;
+        
+        SFGlyphIndex tmpNextIndex;
+        SFGlyphIndex tmpPreviousIndex;
+        
+		int j = 1, k = 0, l = 0, m = 0, n = 0;
+
+        coverageIndex = SFGetIndexOfGlyphInCoverage(&stable->format.format3.inputGlyphCoverage[0], record->charRecord[index.recordIndex].gRec[index.glyphIndex].glyph);
         
         if (coverageIndex == UNDEFINED_INDEX)
             continue;
-
-        SFGlyphIndex inputIndexes[stable->format.format3.inputGlyphCount];
+        
         inputIndexes[0] = index;
         
-        //Loop to check input glyphs.
-        for (int j = 1, k = 0; j < stable->format.format3.inputGlyphCount; j++) {
-            SFGlyphIndex tmpIndex = inputIndexes[k];
+        // Loop to check input glyphs.
+        for (; j < stable->format.format3.inputGlyphCount; j++) {
+            SFGlyphIndex tmpIndex;
+            SFGlyph currentGlyph;
             
-            //Checking if we have another glyph (except ignored glyphs) to match
+            tmpIndex = inputIndexes[k];
+            
+            // Checking if we have another glyph (except ignored glyphs) to match
             if (!SFGetNextValidGlyphIndex(&tmpIndex, lookupFlag))
                 return;
             
-            SFGlyph currentGlyph = record->charRecord[tmpIndex.recordIndex].gRec[tmpIndex.glyphIndex].glyph;
-            
+            currentGlyph = record->charRecord[tmpIndex.recordIndex].gRec[tmpIndex.glyphIndex].glyph;
             coverageIndex = SFGetIndexOfGlyphInCoverage(&stable->format.format3.inputGlyphCoverage[j], currentGlyph);
             
             inputIndexes[++k] = tmpIndex;
             
-            //Current glyph does not match the input glyph,
-            //so try checking from next glyph.
+            // Current glyph does not match the input glyph,
+            // so try checking from next glyph.
             if (coverageIndex == UNDEFINED_INDEX)
                 goto continue_parent_loop;
         }
         
-        SFGlyphIndex tmpNextIndex = index;
+        tmpNextIndex = index;
         
-        //Loop to check lookahead glyphs.
-        for (int m = 0; m < stable->format.format3.lookaheadGlyphCount; m++) {
+        // Loop to check lookahead glyphs.
+        for (; m < stable->format.format3.lookaheadGlyphCount; m++) {
+            SFGlyph currentGlyph;
+            
             if (!SFGetNextValidGlyphIndex(&tmpNextIndex, lookupFlag))
                 return;
             
-            SFGlyph currentGlyph = record->charRecord[tmpNextIndex.recordIndex].gRec[tmpNextIndex.glyphIndex].glyph;
-            
+            currentGlyph = record->charRecord[tmpNextIndex.recordIndex].gRec[tmpNextIndex.glyphIndex].glyph;
             coverageIndex = SFGetIndexOfGlyphInCoverage(&stable->format.format3.lookaheadGlyphCoverage[m], currentGlyph);
             
-            //Current glyph does not match the lookahead glyph,
-            //so try checking from next glyph.
+            // Current glyph does not match the lookahead glyph,
+            // so try checking from next glyph.
             if (coverageIndex == UNDEFINED_INDEX)
                 goto continue_parent_loop;
         }
         
-        SFGlyphIndex tmpPreviousIndex = index;
+        tmpPreviousIndex = index;
         
-        //Loop to check backtrack glyphs.
-        for (int l = 0; l < stable->format.format3.backtrackGlyphCount; l++) {
+        // Loop to check backtrack glyphs.
+        for (; l < stable->format.format3.backtrackGlyphCount; l++) {
+            SFGlyph currentGlyph;
+            
             if (!SFGetPreviousValidGlyphIndex(&tmpPreviousIndex, lookupFlag))
                 goto continue_parent_loop;
             
-            SFGlyph currentGlyph = record->charRecord[tmpPreviousIndex.recordIndex].gRec[tmpPreviousIndex.glyphIndex].glyph;
-            
+            currentGlyph = record->charRecord[tmpPreviousIndex.recordIndex].gRec[tmpPreviousIndex.glyphIndex].glyph;
             coverageIndex = SFGetIndexOfGlyphInCoverage(&stable->format.format3.backtrackGlyphCoverage[l], currentGlyph);
             
-            //Current glyph does not match the backtrack glyph,
-            //so try checking from next glyph.
+            // Current glyph does not match the backtrack glyph,
+            // so try checking from next glyph.
             if (coverageIndex == UNDEFINED_INDEX)
                 goto continue_parent_loop;
         }
         
-        //Finally all conditions are satisfied, so we apply substitution here.
-        for (int n = 0; n < stable->format.format3.substCount; n++) {
+        // Finally all conditions are satisfied, so we apply substitution here.
+        for (; n < stable->format.format3.substCount; n++) {
             SubstLookupRecord currentRecord = stable->format.format3.SubstLookupRecord[n];
             
             SFApplyGSUBLookup(gsub->lookupList.lookupTables[currentRecord.lookupListIndex], NULL, inputIndexes[currentRecord.sequenceIndex], inputIndexes[stable->format.format3.inputGlyphCount - 1]);
         }
-
+        
         index = inputIndexes[stable->format.format3.inputGlyphCount - 1];
-
+        
     continue_parent_loop:
         {
             //continue;
         }
-
+        
     } while (SFGetNextValidGlyphIndex(&index, lookupFlag));
+
+	free(inputIndexes);
 }
 
 static void SFApplyGSUBLookup(LookupTable lookup, unsigned char featureTag[5], SFGlyphIndex sindex, SFGlyphIndex eindex) {
+	int i = 0;
+
     if (lookup.lookupType == ltsSingle) {
-        for (int i = 0; i < lookup.subTableCount; i++)
+        for (; i < lookup.subTableCount; i++)
             SFApplySingleSubstitution(lookup.subtables[i], lookup.lookupFlag, featureTag, sindex, eindex);
     } else if (lookup.lookupType == ltsAlternate) {
-        for (int i = 0; i < lookup.subTableCount; i++)
+        for (; i < lookup.subTableCount; i++)
             SFApplyAlternateSubstitution(lookup.subtables[i], lookup.lookupFlag, featureTag, sindex, eindex);
     } else if (lookup.lookupType == ltsMultiple) {
-        for (int i = 0; i < lookup.subTableCount; i++)
+        for (; i < lookup.subTableCount; i++)
             SFApplyMultipleSubstitution(lookup.subtables[i], lookup.lookupFlag, featureTag, sindex, eindex);
     } else if (lookup.lookupType == ltsLigature) {
-        for (int i = 0; i < lookup.subTableCount; i++)
+        for (; i < lookup.subTableCount; i++)
             SFApplyLigatureSubstitution(lookup.subtables[i], lookup.lookupFlag, sindex, eindex);
     } else if (lookup.lookupType == ltsChainingContext) {
-        for (int i = 0; i < lookup.subTableCount; i++)
+        for (; i < lookup.subTableCount; i++)
             SFApplyChainingContextualSubstitution(lookup.subtables[i], lookup.lookupFlag);
     }
 }
@@ -527,22 +562,26 @@ static void SFApplyGSUBFeatureList(int featureIndex) {
     FeatureTable feature = gsub->featureList.featureRecord[featureIndex].feature;
     
     SFGlyphIndex sindex;
+    SFGlyphIndex eindex;
+    
+	int i;
+
     sindex.recordIndex = 0;
     sindex.glyphIndex = 0;
     
-    SFGlyphIndex eindex;
     eindex.recordIndex = record->charCount - 1;
     eindex.glyphIndex = record->charRecord[eindex.recordIndex].glyphCount - 1;
-
-    for (int i = 0; i < feature.lookupCount; i++) {
+    
+    for (i = 0; i < feature.lookupCount; i++) {
         LookupTable currentLookup = gsub->lookupList.lookupTables[feature.lookupListIndex[i]];
-
+        
         SFApplyGSUBLookup(currentLookup, gsub->featureList.featureRecord[featureIndex].featureTag, sindex, eindex);
     }
 }
 
 static int getIndexOfGSUBFeatureTag(char tag[5]) {
-    for (int i = 0; i < GSUB_FEATURE_TAGS; i++) {
+	int i;
+    for (i = 0; i < GSUB_FEATURE_TAGS; i++) {
         if (strcmp((const char *)gsubFeaturesTagOrder[i], tag) == 0)
             return i;
     }
@@ -551,17 +590,19 @@ static int getIndexOfGSUBFeatureTag(char tag[5]) {
 }
 
 void SFApplyGSUB(SFTableGSUB *gsubTable, SFTableGDEF *gdefTable, SFStringRecord *strRecord) {
+    SFBool arabScriptFound = SFFalse;
+    int arabScriptIndex;
+    
+	int i;
+
     gsub = gsubTable;
     gdef = gdefTable;
     record = strRecord;
     record->glyphCount = record->charCount;
-
-    bool arabScriptFound = false;
-    int arabScriptIndex;
     
-    for (int i = 0; i < gsub->scriptList.scriptCount; i++) {
+    for (i = 0; i < gsub->scriptList.scriptCount; i++) {
         if (strcmp((const char *)gsub->scriptList.scriptRecord[i].scriptTag, "arab") == 0) {
-            arabScriptFound = true;
+            arabScriptFound = SFTrue;
             arabScriptIndex = i;
         }
     }
@@ -570,13 +611,14 @@ void SFApplyGSUB(SFTableGSUB *gsubTable, SFTableGDEF *gdefTable, SFStringRecord 
         int totalFeatures = gsub->scriptList.scriptRecord[arabScriptIndex].script.defaultLangSys.featureCount;
         
         int order1[GSUB_FEATURE_TAGS];
-        for (int i = 0; i < GSUB_FEATURE_TAGS; i++)
-            order1[i] = -1;
         
         int order2Len = 0;
-        int order2[totalFeatures];
+		int *order2 = malloc(sizeof(int) * totalFeatures);
+
+        for (i = 0; i < GSUB_FEATURE_TAGS; i++)
+            order1[i] = -1;
         
-        for (int i = 0; i < totalFeatures; i++) {
+        for (i = 0; i < totalFeatures; i++) {
             int featureIndex = gsub->scriptList.scriptRecord[arabScriptIndex].script.defaultLangSys.featureIndex[i];
             
             int val = getIndexOfGSUBFeatureTag((char *)gsub->featureList.featureRecord[featureIndex].featureTag);
@@ -586,31 +628,20 @@ void SFApplyGSUB(SFTableGSUB *gsubTable, SFTableGDEF *gdefTable, SFStringRecord 
                 order2[order2Len++] = featureIndex;
         }
         
-        for (int i = 0; i < GSUB_FEATURE_TAGS; i++) {
+        for (i = 0; i < GSUB_FEATURE_TAGS; i++) {
             if (order1[i] > -1)
                 SFApplyGSUBFeatureList(order1[i]);
         }
         
+		free(order2);
+
         /*for (int i = 0; i < record->charCount; i++) {
-            for (int j = 0; j < record->charRecord[i].glyphCount; j++)
-                memset(&record->charRecord[i].gRec[j].posRec, 0, sizeof(SFPositionRecord));
-        }*/
+         for (int j = 0; j < record->charRecord[i].glyphCount; j++)
+         memset(&record->charRecord[i].gRec[j].posRec, 0, sizeof(SFPositionRecord));
+         }*/
         
         //for (int i = 0; i < order2Len; i++)
         //    applyGSUBFeatureList(order2[i]);
-
-        /*SSFGlyph tmpGlyphs[*length];
-        
-        for (int j = 0; j < *length; j++)
-            tmpgRec[j].glyph = gRec[j].glyph;
-        
-        for (int j = 0; j < *length; j++)
-            gRec[j].glyph = tmpGlyphs[*length - j - 1];*/
-        
-        //NSLog(@"%d", glyphs[0]);
-        //NSLog(@"%d", glyphs[1]);
-        
-        //applyRTLDirectionOnGlyphs(glyphs, characters, length);
     }
 }
 

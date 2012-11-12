@@ -14,18 +14,18 @@
  * limitations under the License.
  */
 
-#include <stdbool.h>
 #include <stdlib.h>
 
+#include "SFTypes.h"
 #include "ssunistr.h"
 #include "fribidi_tab_char_type_9.i"
 #include "fribidi_tab_mirroring.i"
 
 #include "interaction.h"
 
-bool getMirrorChar(SFUnichar ch, SFUnichar *mirror) {
+SFBool getMirrorChar(SFUnichar ch, SFUnichar *mirror) {
     int pos, step;
-    bool found;
+    SFBool found;
     
     pos = step = (nFriBidiMirroredChars / 2) + 1;
     

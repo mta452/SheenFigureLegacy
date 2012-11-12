@@ -30,7 +30,7 @@ void SFAddGlyphProperties(int charIndex, int glyphIndex) {
     if (gdef->glyphClassDef.classFormat == 1) {
         SFGlyph startGlyph = gdef->glyphClassDef.format.format1.startGlyph;
         SFGlyph endGlyph = startGlyph + gdef->glyphClassDef.format.format1.glyphCount;
-
+        
         if (glyph >= startGlyph && glyph <= endGlyph) {
             int cls = gdef->glyphClassDef.format.format1.classValueArray[glyph - startGlyph];
             
@@ -51,11 +51,12 @@ void SFAddGlyphProperties(int charIndex, int glyphIndex) {
         }
     } else if (gdef->glyphClassDef.classFormat == 2) {
         SFUShort classRangeCount = gdef->glyphClassDef.format.format2.classRangeCount;
-        
-        for (SFUShort i = 0; i < classRangeCount; i++) {
+        SFUShort i;
+
+        for (i = 0; i < classRangeCount; i++) {
             SFGlyph startGlyph = gdef->glyphClassDef.format.format2.classRangeRecord[i].start;
             SFGlyph endGlyph = gdef->glyphClassDef.format.format2.classRangeRecord[i].end;
-                
+            
             if (glyph >= startGlyph && glyph <= endGlyph) {
                 int cls = gdef->glyphClassDef.format.format2.classRangeRecord[i].cls;
                 
@@ -78,61 +79,66 @@ void SFAddGlyphProperties(int charIndex, int glyphIndex) {
     }
 }
 
-bool SFDoesGlyphExistInGlyphClassDef(ClassDefTable *cls, GlyphClassValue clsValue, SFGlyph glyph) {
+SFBool SFDoesGlyphExistInGlyphClassDef(ClassDefTable *cls, GlyphClassValue clsValue, SFGlyph glyph) {
     if (cls->classFormat == 1) {
         SFGlyph startGlyph = cls->format.format1.startGlyph;
         SFUShort endGlyph = startGlyph + cls->format.format1.glyphCount;
+        
+        if (glyph >= startGlyph && glyph <= endGlyph && cls->format.format1.classValueArray[glyph - startGlyph] == clsValue)
+            return SFTrue;
 
-        if (glyph >= startGlyph && glyph <= endGlyph && cls->format.format1.classValueArray[glyph - startGlyph] == clsValue) {
-                return true;
-        }
     } else if (cls->classFormat == 2) {
         SFUShort classRangeCount = cls->format.format2.classRangeCount;
-        
-        for (SFUShort i = 0; i < classRangeCount; i++) {
+        SFUShort i;
+
+        for (i = 0; i < classRangeCount; i++) {
             if (cls->format.format2.classRangeRecord[i].cls == clsValue) {
                 SFGlyph startGlyph = cls->format.format2.classRangeRecord[i].start;
                 SFGlyph endGlyph = cls->format.format2.classRangeRecord[i].end;
-
+                
                 if (glyph >= startGlyph && glyph <= endGlyph)
-                    return true;
+                    return SFTrue;
             }
         }
     }
-
-    return false;
+    
+    return SFFalse;
 }
 
-bool SFIsIgnoredGlyph(int charIndex, int glyphIndex, LookupFlag lookupFlag) {
-    SFGlyph glyph = record->charRecord[charIndex].gRec[glyphIndex].glyph;
+SFBool SFIsIgnoredGlyph(int charIndex, int glyphIndex, LookupFlag lookupFlag) {
+    SFGlyph glyph;
+    SFGlyphProperty glyphProp;
     
+    SFBool hasMarkProperty;
+    
+    glyph = record->charRecord[charIndex].gRec[glyphIndex].glyph;
     if (glyph == 0)
-        return true;
+        return SFTrue;
     
-    SFGlyphProperty glyphProp = record->charRecord[charIndex].gRec[glyphIndex].glyphProp;
-
+    glyphProp = record->charRecord[charIndex].gRec[glyphIndex].glyphProp;
+    
     if (glyphProp == gpNotReceived) {
         SFAddGlyphProperties(charIndex, glyphIndex);
         glyphProp = record->charRecord[charIndex].gRec[glyphIndex].glyphProp;
     }
-
-    bool isMark = (glyphProp & gpMark);
-    if ((lookupFlag & lfIgnoreMarks) && isMark)
-        return true;
+    
+    hasMarkProperty = (glyphProp & gpMark);
+    if ((lookupFlag & lfIgnoreMarks) && hasMarkProperty)
+        return SFTrue;
     
     if ((lookupFlag & lfIgnoreLigatures) && (glyphProp & gpLigature))
-        return true;
+        return SFTrue;
     
     if ((lookupFlag & lfIgnoreBaseGlyphs) && (glyphProp & gpBase))
-        return true;
+        return SFTrue;
     
     if (lookupFlag & lfMarkAttachmentType) {
         if (gdef->hasMarkAttachClassDef
-            && isMark
+            && hasMarkProperty
             && !SFDoesGlyphExistInGlyphClassDef(&gdef->markAttachClassDef, lookupFlag >> 8, glyph))
-            return true;
+            return SFTrue;
     }
     
-    return false;
+    return SFFalse;
 }
 

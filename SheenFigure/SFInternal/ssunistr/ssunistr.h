@@ -17,15 +17,10 @@
 #ifndef _SSUNISTR_H
 #define _SSUNISTR_H
 
-#include <stdbool.h>
-
-#ifndef _SF_UNICHAR
-#define _SF_UNICHAR
-typedef unsigned short SFUnichar;
-#endif
+#include "SFTypes.h"
 
 int unislen(const SFUnichar value[]);
-bool hasmaxlen(const SFUnichar *value, int maxLength);
+SFBool hasmaxlen(const SFUnichar *value, int maxLength);
 int idxunichar(const SFUnichar value[], SFUnichar word, int startIndex, int count);
 
 SFUnichar *subustrl(const SFUnichar *value, int startIndex, int length);

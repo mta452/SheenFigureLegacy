@@ -14,18 +14,18 @@
  * limitations under the License.
  */
 
-#include <stdbool.h>
 #include <stdint.h>
 
 #include "SFTypes.h"
 #include "SFCMAPUtilization.h"
 
 void SFApplyCMAP(SFTableCMAP *tablePtr, SFStringRecord *strRecord) {
-    for (int i = 0; i < strRecord->charCount; i++) {
+	int i;
+    for (i = 0; i < strRecord->charCount; i++) {
         SFUnichar ch = strRecord->chars[i];
-
-        SFUShort j;
         SFUShort segCount = tablePtr->encodingSubtable.encodingFormat.format.format4.segCountX2 / 2;
+
+		SFUShort j;
         for (j = 0; j < segCount; j++) {
             if (tablePtr->encodingSubtable.encodingFormat.format.format4.endCount[j] >= ch)
                 break;
@@ -54,5 +54,3 @@ void SFApplyCMAP(SFTableCMAP *tablePtr, SFStringRecord *strRecord) {
             strRecord->charRecord[i].gRec[0].glyph = 0;
     }
 }
-
-

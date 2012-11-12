@@ -21,9 +21,12 @@
 #include "SFConfig.h"
 
 #ifdef SF_IOS_CG
+
 #include <CoreGraphics/CoreGraphics.h>
 typedef CGFloat							SFFloat;
+
 #else
+
 typedef float							SFFloat;
 
 #ifndef COREGRAPHICS_H_
@@ -35,14 +38,15 @@ typedef struct CGPoint {
 
 #endif
 
+typedef char							SFBool;
+#define SFFalse							0
+#define SFTrue							1
+
 typedef uint8_t                         SFUByte;
 typedef uint16_t                        SFUShort;
 typedef uint32_t                        SFUInt;
 
-#ifndef _SF_UNICHAR
-#define _SF_UNICHAR
 typedef SFUShort 						SFUnichar;
-#endif
 
 typedef SFUShort                        SFGlyph;
 typedef SFUInt                          SFColor;

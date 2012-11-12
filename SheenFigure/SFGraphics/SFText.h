@@ -56,7 +56,6 @@ void SFTextSetInitialPosition(SFTextRef sfText, CGPoint pos);
 
 SFFontRef SFTextGetFont(SFTextRef sfText);
 
-SFFontRef SFFontMakeClone(SFFontRef sfFont, SFFloat size);
 SFTextRef SFTextRetain(SFTextRef sfText);
 void SFTextRelease(SFTextRef sfText);
 
