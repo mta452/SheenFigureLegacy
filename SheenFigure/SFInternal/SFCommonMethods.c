@@ -67,6 +67,25 @@ void SFInsertGlyphs(SFGlyphRecord **src, const SFGlyph *val, int srcsize, int va
     }
 }
 
+SFBool SFGetPreviousGlyphIndex(SFGlyphIndex *index, const LookupFlag lookupFlag) {
+	int i = index->recordIndex;
+    int j = index->glyphIndex - 1;
+    
+    for (; i >= 0;) {
+        for (; j >= 0; j--) {
+            index->recordIndex = i;
+            index->glyphIndex = j;
+                
+			return SFTrue;
+        }
+        
+        --i;
+        j = record->charRecord[i].glyphCount - 1;
+    }
+    
+    return SFFalse;
+}
+
 SFBool SFGetPreviousValidGlyphIndex(SFGlyphIndex *index, LookupFlag lookupFlag) {
 	int i = index->recordIndex;
     int j = index->glyphIndex - 1;

@@ -26,9 +26,10 @@
 #include "SFGDEFUtilization.h"
 #include "SFGSUBUtilization.h"
 
-#define FOUR_PART_URDU_LETTERS 32
+#define FOUR_PART_URDU_LETTERS 34
 static SFUnichar fourPartUrduLetters[FOUR_PART_URDU_LETTERS] =
 {
+	0x0640,				//ـ
     0x0628,             //ب
     0x067E,             //پ
     0x062A,             //ت
@@ -60,6 +61,7 @@ static SFUnichar fourPartUrduLetters[FOUR_PART_URDU_LETTERS] =
     0x06C2,             //ۂ
     0x0626,             //ئ
     0x06CC,             //ی
+	0x0649,				//ى
     0x064A,             //ي
 };
 

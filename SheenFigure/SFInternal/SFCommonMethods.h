@@ -27,6 +27,7 @@ int SFCompareGlyphIndex(const SFGlyphIndex index1, const SFGlyphIndex index2);
 
 void SFInsertGlyphs(SFGlyphRecord **src, const SFGlyph *val, int srcsize, int valsize, int sidx, int *length);
 
+SFBool SFGetPreviousGlyphIndex(SFGlyphIndex *index, const LookupFlag lookupFlag);
 SFBool SFGetPreviousValidGlyphIndex(SFGlyphIndex *index, const LookupFlag lookupFlag);
 SFBool SFGetNextValidGlyphIndex(SFGlyphIndex *index, LookupFlag lookupFlag);
 

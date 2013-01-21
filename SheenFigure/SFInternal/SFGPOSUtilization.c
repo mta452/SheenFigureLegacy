@@ -416,12 +416,14 @@ static void SFApplyMarkToMarkAttachment(MarkToMarkAttachmentPosSubtable *stable,
                 
                 // Class Index to be applied on base glyph.
                 classValue = stable->mark1Array.markRecord[mark1Index].cls;
-                
-                if (!SFGetPreviousValidGlyphIndex(&tmpIndex, lookupFlag))
+
+                if (!SFGetPreviousGlyphIndex(&tmpIndex, lookupFlag))
                     continue;
                 
                 previousGlyph = record->charRecord[tmpIndex.recordIndex].gRec[tmpIndex.glyphIndex].glyph;
-                
+                if (previousGlyph == 0)
+					continue;
+
                 mark2Index = SFGetIndexOfGlyphInCoverage(&stable->mark2Coverage, previousGlyph);
                 if (mark2Index == UNDEFINED_INDEX)
                     continue;   // Previous glyph did not match any of the base glyphs
@@ -432,10 +434,10 @@ static void SFApplyMarkToMarkAttachment(MarkToMarkAttachmentPosSubtable *stable,
                 
                 x = stable->mark1Array.markRecord[mark1Index].markAnchor.xCoordinate - stable->mark2Array.mark2Record[mark2Index].mark2Anchor[classValue].xCoordinate;
                 if (x)
-                    record->charRecord[i].gRec[j].posRec.anchor.x = x;
+                    record->charRecord[i].gRec[j].posRec.anchor.x = x - record->charRecord[tmpIndex.recordIndex].gRec[tmpIndex.glyphIndex].posRec.anchor.x;
                 
                 y = stable->mark1Array.markRecord[mark1Index].markAnchor.yCoordinate - stable->mark2Array.mark2Record[mark2Index].mark2Anchor[classValue].yCoordinate;
-                record->charRecord[i].gRec[j].posRec.anchor.y = y;
+                record->charRecord[i].gRec[j].posRec.anchor.y = y + record->charRecord[tmpIndex.recordIndex].gRec[tmpIndex.glyphIndex].posRec.anchor.y;
             }
         }
         
