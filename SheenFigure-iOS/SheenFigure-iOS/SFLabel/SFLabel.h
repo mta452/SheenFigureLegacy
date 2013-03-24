@@ -27,7 +27,7 @@
     
     NSString *_text;
     UIColor *_textColor;
-    UITextAlignment _textAlign;
+    NSTextAlignment _textAlign;
 }
 
 - (void)setFont:(SFFontRef)font;
@@ -35,6 +35,6 @@
 
 @property (nonatomic, retain) NSString *text;
 @property (nonatomic, retain) UIColor *textColor;
-@property (nonatomic) UITextAlignment textAlign;
+@property (nonatomic) NSTextAlignment textAlign;
 
 @end

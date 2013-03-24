@@ -48,29 +48,18 @@ static CGColorSpaceRef _colorSpace = NULL;
 }
 
 void renderGlyph(void *pixels, int width, int rows, float x, float y, void *reserved) {
-    CGContextRef imgCtx = CGBitmapContextCreate(pixels, width, rows, 8, 4 * width, _colorSpace, kCGImageAlphaPremultipliedFirst);
-
-    CGFloat scale = 1.0;
+    CGDataProviderRef data = CGDataProviderCreateWithData(NULL, pixels, width * rows * 4, NULL);
     
-    x = floorf(x);
-    y = floorf(y);
+    CGImageRef glyphImage = CGImageCreate(width, rows, 8, 32, 4 * width, _colorSpace, kCGImageAlphaFirst,
+                                          data, NULL, false, kCGRenderingIntentDefault);
     
-    if ([[UIScreen mainScreen] respondsToSelector:@selector(scale)]) {
-        scale = [[UIScreen mainScreen] scale];
-        
-        x /= scale;
-        y /= scale;
-    }
+    UIImage *uiImage = [[UIImage alloc] initWithCGImage:glyphImage scale:1.0 orientation:UIImageOrientationUp];
     
-    CGImageRef img = CGBitmapContextCreateImage(imgCtx);
-
-    UIImage *uiImage = [[UIImage alloc] initWithCGImage:img scale:scale orientation:UIImageOrientationUp];
-    
-    CGImageRelease(img);
-    CGContextRelease(imgCtx);
-
-    [uiImage drawAtPoint:CGPointMake(x, y) blendMode:kCGBlendModeOverlay alpha:1.0];
+    [uiImage drawAtPoint:CGPointMake(floorf(x), floorf(y))];
     [uiImage release];
+    
+    CGImageRelease(glyphImage);
+    CGDataProviderRelease(data);
 }
 
 - (void)drawRect:(CGRect)rect {
@@ -78,13 +67,24 @@ void renderGlyph(void *pixels, int width, int rows, float x, float y, void *rese
     
     CGContextRef ctx = UIGraphicsGetCurrentContext();
     CGContextClearRect(ctx, rect);
-
+    
 #ifdef SF_IOS_CG
     CGContextDrawText(ctx, _sfText, _startIndex, &lns);
 #else
+    CGContextSaveGState(ctx);
+
+    CGFloat scale = 1.0;
+    
+    if ([[UIScreen mainScreen] respondsToSelector:@selector(scale)]) {
+        scale = [[UIScreen mainScreen] scale];
+    }
+    
+    CGContextScaleCTM(ctx, 1.0f / scale, 1.0f / scale);
     CGContextSetInterpolationQuality(ctx, kCGInterpolationNone);
     
     SFTextShowString(_sfText, &renderGlyph, _startIndex, &lns);
+
+    CGContextRestoreGState(ctx);
 #endif
 }
 

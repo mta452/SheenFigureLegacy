@@ -161,6 +161,7 @@ SFFontRef SFFontCreate(CGFontRef cgFont, CGFloat size) {
     
     sfFont->_cgFont = CGFontRetain(cgFont);
     sfFont->_availableFontTables = 0;
+    sfFont->_parent = NULL;
     sfFont->_retainCount = 1;
     
     setFontSize(sfFont, size);
@@ -309,7 +310,6 @@ SFFontRef SFFontCreateWithFileName(const char *name, SFFloat size) {
 	}
 
 	FT_Set_Char_Size(sfFont->_ftFace, 0, size * 64, 72, 72);
-	//FT_Set_Pixel_Sizes(sfFont->_ftFace, 0, size);
     
 	setFontSize(sfFont, size);
     

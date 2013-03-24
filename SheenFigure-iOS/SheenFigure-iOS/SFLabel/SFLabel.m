@@ -226,7 +226,7 @@
     return [[_text retain] autorelease];
 }
 
-- (void)setTextAlign:(UITextAlignment)textAlign {
+- (void)setTextAlign:(NSTextAlignment)textAlign {
     if (_textAlign == textAlign)
         return;
     
@@ -234,11 +234,11 @@
     SFTextAlignment align;
     
     switch (textAlign) {
-        case UITextAlignmentLeft:
+        case NSTextAlignmentLeft:
             align = SFTextAlignmentLeft;
             break;
             
-        case UITextAlignmentCenter:
+        case NSTextAlignmentCenter:
             align = SFTextAlignmentCenter;
             break;
             
@@ -252,7 +252,7 @@
     [self setNeedsDisplay];
 }
 
-- (UITextAlignment)textAlign {
+- (NSTextAlignment)textAlign {
     return _textAlign;
 }
 
@@ -264,7 +264,17 @@
     SFTextSetColor(_sfText, [_textColor CGColor]);
 #else
     CGFloat r, g, b, a;
-    [textColor getRed:&r green:&g blue:&b alpha:&a];
+    if (![_textColor getRed:&r green:&g blue:&b alpha:&a]) {
+        if ([_textColor getWhite:&r alpha:&a]) {
+            g = r;
+            b = r;
+        } else {
+            // hue, saturation, brightness are not supported.
+            // make default black color.
+            r = g = b = 0;
+        }
+    }
+    
     SFColor clr = ((((int)(a * 255) << 24) | ((int)(r * 255) << 16)) | ((int)(g * 255) << 8)) | (int)(b * 255);
     SFTextSetColor(_sfText, clr);
 #endif

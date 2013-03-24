@@ -1291,7 +1291,7 @@ static void SFReadChainingContextSubst(const SFUByte * const ccsTable, ChainingC
 }
 
 static void SFFreeChainingContextualSubst(ChainingContextualSubstSubtable *tablePtr) {
-	int i, j;
+	int i;
 
     switch (tablePtr->substFormat) {
             
@@ -1301,7 +1301,7 @@ static void SFFreeChainingContextualSubst(ChainingContextualSubstSubtable *table
             SFFreeCoverageTable(&tablePtr->format.format1.coverage);
             
             for (i = 0; i < tablePtr->format.format1.chainSubRuleSetCount; i++) {
-                for (j = 0; j < tablePtr->format.format1.chainSubRuleSet[i].chainSubRuleCount; j++) {
+                for (int j = 0; j < tablePtr->format.format1.chainSubRuleSet[i].chainSubRuleCount; j++) {
                     free(tablePtr->format.format1.chainSubRuleSet[i].chainSubRule[j].backtrack);
                     free(tablePtr->format.format1.chainSubRuleSet[i].chainSubRule[j].input);
                     free(tablePtr->format.format1.chainSubRuleSet[i].chainSubRule[j].lookAhead);
@@ -1326,7 +1326,7 @@ static void SFFreeChainingContextualSubst(ChainingContextualSubstSubtable *table
             SFFreeClassDefTable(&tablePtr->format.format2.lookaheadClassDef);
             
             for (i = 0; i < tablePtr->format.format2.chainSubClassSetCnt; i++) {
-                for (j = 0; j < tablePtr->format.format2.chainSubClassSet[i].chainSubClassRuleCnt; j++) {
+                for (int j = 0; j < tablePtr->format.format2.chainSubClassSet[i].chainSubClassRuleCnt; j++) {
                     free(tablePtr->format.format2.chainSubClassSet[i].chainSubClassRule[j].backtrack);
                     free(tablePtr->format.format2.chainSubClassSet[i].chainSubClassRule[j].input);
                     free(tablePtr->format.format2.chainSubClassSet[i].chainSubClassRule[j].lookAhead);

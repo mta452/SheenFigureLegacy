@@ -1931,7 +1931,7 @@ static void SFReadChainingContextPos(const SFUByte * const ccpTable, ChainingCon
 }
 
 static void SFFreeChainingContextPos(ChainingContextualPosSubtable *tablePtr) {
-	int i, j;
+	int i;
 
     switch (tablePtr->posFormat) {
             
@@ -1941,7 +1941,7 @@ static void SFFreeChainingContextPos(ChainingContextualPosSubtable *tablePtr) {
             SFFreeCoverageTable(&tablePtr->format.format1.coverage);
             
             for (i = 0; i < tablePtr->format.format1.chainPosRuleSetCount; i++) {
-                for (j = 0; j < tablePtr->format.format1.chainPosRuleSet[i].chainPosRuleCount; j++) {
+                for (int j = 0; j < tablePtr->format.format1.chainPosRuleSet[i].chainPosRuleCount; j++) {
                     free(tablePtr->format.format1.chainPosRuleSet[i].chainPosRule[j].backtrack);
                     free(tablePtr->format.format1.chainPosRuleSet[i].chainPosRule[j].input);
                     free(tablePtr->format.format1.chainPosRuleSet[i].chainPosRule[j].lookAhead);
@@ -1966,7 +1966,7 @@ static void SFFreeChainingContextPos(ChainingContextualPosSubtable *tablePtr) {
             SFFreeClassDefTable(&tablePtr->format.format2.lookaheadClassDef);
             
             for (i = 0; i < tablePtr->format.format2.chainPosClassSetCnt; i++) {
-                for (j = 0; j < tablePtr->format.format2.chainPosClassSet[i].ChainPosClassRuleCnt; j++) {
+                for (int j = 0; j < tablePtr->format.format2.chainPosClassSet[i].ChainPosClassRuleCnt; j++) {
                     free(tablePtr->format.format2.chainPosClassSet[i].chainPosClassRule[j].backtrack);
                     free(tablePtr->format.format2.chainPosClassSet[i].chainPosClassRule[j].input);
                     free(tablePtr->format.format2.chainPosClassSet[i].chainPosClassRule[j].lookAhead);

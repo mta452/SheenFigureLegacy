@@ -26,17 +26,14 @@
 #include "SFGDEFUtilization.h"
 #include "SFGSUBUtilization.h"
 
-#define FOUR_PART_URDU_LETTERS 34
+#define FOUR_PART_URDU_LETTERS 96
 static SFUnichar fourPartUrduLetters[FOUR_PART_URDU_LETTERS] =
 {
-	0x0640,				//ـ
+	0x0626,             //ئ
     0x0628,             //ب
-    0x067E,             //پ
     0x062A,             //ت
-    0x0679,             //ٹ
     0x062B,             //ث
     0x062C,             //ج
-    0x0686,             //چ
     0x062D,             //ح
     0x062E,             //خ
     0x0633,             //س
@@ -47,43 +44,144 @@ static SFUnichar fourPartUrduLetters[FOUR_PART_URDU_LETTERS] =
     0x0638,             //ظ
     0x0639,             //ع
     0x063A,             //غ
+    0x063B,             //ػ
+    0x063C,             //ؼ
+    0x063D,             //ؽ
+    0x063E,             //ؾ
+    0x063F,             //ؿ
+    0x0640,				//ـ
     0x0641,             //ف
     0x0642,             //ق
-    0x06A9,             //ک
-    0x06AF,             //گ
-    0x0643,             //Arabic kaf
+    0x0643,             //ك
     0x0644,             //ل
     0x0645,             //م
     0x0646,             //ن
-    0x0647,             //Arabic Gol Heh
+    0x0647,             //ه
+    0x0649,				//ى
+    0x064A,             //ي
+    0x066E,             //ٮ
+    0x066F,             //ٯ
+    0x0678,             //ٸ
+    0x0679,             //ٹ
+    0x067A,             //ٺ
+    0x067B,             //ٻ
+    0x067C,             //ټ
+    0x067D,             //ٽ
+    0x067E,             //پ
+    0x067F,             //ٿ
+    0x0680,             //ڀ
+    0x0681,             //ځ
+    0x0682,             //ڂ
+    0x0683,             //ڃ
+    0x0684,             //ڄ
+    0x0685,             //څ
+    0x0686,             //چ
+    0x0687,             //ڇ
+    0x069A,             //ښ
+    0x069B,             //ڛ
+    0x069C,             //ڜ
+    0x069D,             //ڝ
+    0x069E,             //ڞ
+    0x069F,             //ڟ
+    0x06A0,             //ڠ
+    0x06A1,             //ڡ
+    0x06A2,             //ڢ
+    0x06A3,             //ڣ
+    0x06A4,             //ڤ
+    0x06A5,             //ڥ
+    0x06A6,             //ڦ
+    0x06A7,             //ڧ
+    0x06A8,             //ڨ
+    0x06A9,             //ک
+    0x06AA,             //ڪ
+    0x06AB,             //ګ
+    0x06AC,             //ڬ
+    0x06AD,             //ڭ
+    0x06AE,             //ڮ
+    0x06AF,             //گ
+    0x06B0,             //ڰ
+    0x06B1,             //ڱ
+    0x06B2,             //ڲ
+    0x06B3,             //ڳ
+    0x06B4,             //ڴ
+    0x06B5,             //ڵ
+    0x06B6,             //ڶ
+    0x06B7,             //ڷ
+    0x06B8,             //ڸ
+    0x06B9,             //ڹ
+    0x06BA,             //ں
+    0x06BB,             //ڻ
+    0x06BC,             //ڼ
+    0x06BD,             //ڽ
     0x06BE,             //ھ
+    0x06BF,             //ڿ
     0x06C1,             //ہ
     0x06C2,             //ۂ
-    0x0626,             //ئ
     0x06CC,             //ی
-	0x0649,				//ى
-    0x064A,             //ي
+	0x06CE,             //ێ
+    0x06D0,             //ې
+    0x06D1,             //ۑ
+    0x06FA,             //ۺ
+    0x06FB,             //ۻ
+    0x06FC,             //ۼ
+    0x06FF,             //ۿ
 };
 
-#define TWO_PART_URDU_LETTERS 16
+#define TWO_PART_URDU_LETTERS 52
 static SFUnichar twoPartUrduLetters[TWO_PART_URDU_LETTERS] =
 {
     0x0622,             //آ
     0x0623,             //أ
+    0x0624,             //ؤ
     0x0625,             //إ
     0x0627,             //ا
+    0x0629,             //ة
     0x062F,             //د
-    0x0688,             //ڈ
     0x0630,             //ذ
     0x0631,             //ر
-    0x0691,             //ڑ
     0x0632,             //ز
-    0x0698,             //ژ
-    0x06BA,             //ں
     0x0648,             //و
-    0x0624,             //ؤ
+    0x0671,             //ٱ
+    0x0672,             //ٲ
+    0x0673,             //ٳ
+    0x0675,             //ٵ
+    0x0676,             //ٶ
+    0x0677,             //ٷ
+    0x0688,             //ڈ
+    0x0689,             //ډ
+    0x068A,             //ڊ
+    0x068B,             //ڋ
+    0x068C,             //ڌ
+    0x068D,             //ڍ
+    0x068E,             //ڎ
+    0x068F,             //ڏ
+    0x0690,             //ڐ
+    0x0691,             //ڑ
+    0x0692,             //ڒ
+    0x0693,             //ړ
+    0x0694,             //ڔ
+    0x0695,             //ڕ
+    0x0696,             //ږ
+    0x0697,             //ڗ
+    0x0698,             //ژ
+    0x0699,             //ڙ
+    0x06C0,             //ۀ
     0x06C3,             //ۃ
+    0x06C4,             //ۄ
+    0x06C5,             //ۅ
+    0x06C6,             //ۆ
+    0x06C7,             //ۇ
+    0x06C8,             //ۈ
+    0x06C9,             //ۉ
+    0x06CA,             //ۊ
+    0x06CB,             //ۋ
+    0x06CD,             //ۍ
+    0x06CF,             //ۏ
     0x06D2,             //ے
+    0x06D3,             //ۓ
+    0x06D5,             //ە
+    0x06EE,             //ۮ
+    0x06EF,             //ۯ
 };
 
 #define GSUB_FEATURE_TAGS 8
@@ -156,24 +254,24 @@ static void applyArabicSubstitution(void *stable, LookupFlag lookupFlag, LookupT
         return;
     
 #define SET_NULL_VALUES()           \
-inlt = -1;                      \
-inlf = -1;                      \
-nextIndex = UNDEFINED_INDEX;
+    inlt = -1;                      \
+    inlf = -1;                      \
+    nextIndex = UNDEFINED_INDEX;
     
 #define GET_NEXT_VALUES()                                                                       \
-for (; ni < record->charCount; ni++) {                                                      \
-if (!SFIsIgnoredGlyph(ni, 0, lookupFlag)) {        \
-break;                                                                              \
-}                                                                                       \
-}                                                                                           \
+    for (; ni < record->charCount; ni++) {                                                      \
+        if (!SFIsIgnoredGlyph(ni, 0, lookupFlag)) {                                             \
+            break;                                                                              \
+        }                                                                                       \
+    }                                                                                           \
 \
-if (ni >= record->charCount) {                                                              \
-SET_NULL_VALUES();                                                                      \
-} else {                                                                                    \
-inlt = idxunichar(twoPartUrduLetters, record->chars[ni], 0, TWO_PART_URDU_LETTERS);     \
-inlf = idxunichar(fourPartUrduLetters, record->chars[ni], 0, FOUR_PART_URDU_LETTERS);   \
-nextIndex = SFGetIndexOfGlyphInCoverage(&coverage, record->charRecord[ni].gRec[0].glyph);\
-}
+    if (ni >= record->charCount) {                                                              \
+        SET_NULL_VALUES();                                                                      \
+    } else {                                                                                    \
+        inlt = idxunichar(twoPartUrduLetters, record->chars[ni], 0, TWO_PART_URDU_LETTERS);     \
+        inlf = idxunichar(fourPartUrduLetters, record->chars[ni], 0, FOUR_PART_URDU_LETTERS);   \
+        nextIndex = SFGetIndexOfGlyphInCoverage(&coverage, record->charRecord[ni].gRec[0].glyph);\
+    }
     
     GET_NEXT_VALUES();
     i = ni;

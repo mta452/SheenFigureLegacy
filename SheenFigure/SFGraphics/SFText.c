@@ -321,9 +321,9 @@ void SFTextSetColor(SFTextRef sfText, SFColor color) {
 #ifdef SF_IOS
     //For iOS, in one uint, bytes are stored in reversed order
     //as BGRA, i.e. blue at first place and alpha at last place.
-    SFUByte r = color >> 16;
-    SFUByte g = (color >> 8) & 0xF;
-    SFUByte b = color & 0xF;
+    SFUByte r = (color >> 16) & 0xFF;
+    SFUByte g = (color >> 8) & 0xFF;
+    SFUByte b = color & 0xFF;
     sfText->_txtColor = ((b << 16) | (g << 8)) | r;
 #else
     //For android, bytes are stored in correct order as ARGB.
