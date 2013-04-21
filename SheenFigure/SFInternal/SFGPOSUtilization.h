@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2012 SheenFigure
+ * Copyright (C) 2013 SheenFigure
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,10 +17,8 @@
 #ifndef _SF_GPOS_UTILIZATION_H
 #define _SF_GPOS_UTILIZATION_H
 
-#include "SFCommonData.h"
-#include "SFGDEFData.h"
-#include "SFGPOSData.h"
+#include "SFInternal.h"
 
-void SFApplyGPOS(SFTableGPOS *gposTable, SFTableGDEF *gdefTable, SFStringRecord *strRecord);
+void SFApplyGPOS(SFInternal *internal);
 
 #endif

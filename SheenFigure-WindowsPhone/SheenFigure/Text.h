@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2012 SheenFigure
+ * Copyright (C) 2013 SheenFigure
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,6 @@
 
 #include "pch.h"
 #include "Font.h"
-#include "TextAlignment.h"
 
 using namespace Platform;
 using namespace Windows::UI;
@@ -30,29 +29,73 @@ namespace SheenFigure
 {
 	namespace Graphics
 	{
+		public enum class TextAlignment
+		{
+			Right = SFTextAlignmentRight,
+			Center = SFTextAlignmentCenter,
+			Left = SFTextAlignmentLeft,
+		};
+
+		public enum class WritingDirection
+		{
+			Auto = SFWritingDirectionAuto,
+			RTL = SFWritingDirectionRTL,
+			LTR = SFWritingDirectionLTR,
+		};
+
 		public delegate void GlyphDataDelegate(const Array<int32> ^pixels, int width, int height, float x, float y, Object ^resObj);
 
 		public ref class Text sealed
 		{
 		private:
-			SFTextRef refPtr;
-			Color textColor;
+			void Initialize(Platform::String ^string, SheenFigure::Graphics::Font ^font);
+
+			SFTextRef sfText;
+			String ^string;
+			Font ^font;
+			Color color;
+			TextAlignment alignment;
+			WritingDirection writingDirection;
+
+			SFUnichar *unistr;
+			uint32_t rgbColor;
 
 			~Text(void);
 
 		public:
 			Text(void);
+			Text(Platform::String ^string, SheenFigure::Graphics::Font ^font);
 
-			void SetViewArea(int width);
-			void SetColor(Color color);
-			void SetTextAlignment(TextAlignment align);
+			property Platform::String ^String {
+				Platform::String ^get();
+				void set(Platform::String ^value);
+			};
 
-			void ChangeFont(Font ^font);
-			void ChangeText(String ^str);
+			property SheenFigure::Graphics::Font ^Font {
+				SheenFigure::Graphics::Font ^get();
+				void set(SheenFigure::Graphics::Font ^value);
+			};
 
-			int GetCharIndexAfterLines(int initialIndex, int linesCount);
-			int MeasureHeight();
-			int RenderText(GlyphDataDelegate ^func, int initialIndex, int linesCount, int x, int y, Object ^resObj);
+			property Windows::UI::Color Color {
+				Windows::UI::Color get();
+				void set(Windows::UI::Color value);
+			};
+
+			property SheenFigure::Graphics::TextAlignment Alignment {
+				SheenFigure::Graphics::TextAlignment get();
+				void set(SheenFigure::Graphics::TextAlignment value);
+			};
+
+			property SheenFigure::Graphics::WritingDirection WritingDirection {
+				SheenFigure::Graphics::WritingDirection get();
+				void set(SheenFigure::Graphics::WritingDirection value);
+			};
+
+			int GetNextLineCharIndex(float frameWidth, int startIndex, int linesCount);
+			int MeasureLines(float frameWidth);
+			float MeasureHeight(float frameWidth);
+
+			int ShowString(GlyphDataDelegate ^delegate, float frameWidth, float x, float y, int startIndex, int lines, Object ^resObj);
 		};
 	}
 }

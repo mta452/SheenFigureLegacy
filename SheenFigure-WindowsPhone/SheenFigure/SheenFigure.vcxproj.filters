@@ -15,6 +15,5 @@
     <ClInclude Include="pch.h" />
     <ClInclude Include="Font.h" />
     <ClInclude Include="Text.h" />
-    <ClInclude Include="TextAlignment.h" />
   </ItemGroup>
 </Project>

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2012 SheenFigure
+ * Copyright (C) 2013 SheenFigure
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,24 +27,43 @@ namespace SheenFigure
 		public ref class Font sealed
 		{
 		private:
-			SFFontRef refPtr;
+			String ^path;
 
-			Font(SFFontRef ptr);
+			SFFontRef sfFont;
+			FT_Library ftLib;
+			FT_Face ftFace;
+
+			void Initialize(String ^path, float size, SFFontRef refPtr);
+
+			Font(String ^path, float size, SFFontRef refPtr);
 			~Font();
 
 		internal:
-			SFFontRef GetRefPtr();
+			SFFontRef GetSFFont();
 
 		public:
 			Font(String ^path, float size);
 			Font ^MakeClone(float size);
 
-			float GetSize();
-			float GetSizeByEm();
-	
-			float GetAscender();
-			float GetDescender();
-			float GetLeading();
+			property float Size {
+				float get();
+			};
+
+			property float SizeByEm {
+				float get();
+			};
+
+			property float Ascender {
+				float get();
+			};
+
+			property float Descender {
+				float get();
+			};
+
+			property float Leading {
+				float get();
+			};
 		};
 	}
 }

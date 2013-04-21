@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2012 SheenFigure
+ * Copyright (C) 2013 SheenFigure
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,27 +20,19 @@
 
 @implementation SSAppDelegate
 
-- (void)dealloc
-{
-    [_window release];
-    [_viewController release];
-    
-    [super dealloc];
-}
-
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
 {
-    self.window = [[[UIWindow alloc] initWithFrame:[[UIScreen mainScreen] bounds]] autorelease];
+    self.window = SF_AUTORELEASE([[UIWindow alloc] initWithFrame:[[UIScreen mainScreen] bounds]]);
 
     if ([[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPhone) {
-        self.viewController = [[[SSViewController alloc] initWithNibName:@"SSViewController_iPhone" bundle:nil] autorelease];
+        self.viewController = SF_AUTORELEASE([[SSViewController alloc] initWithNibName:@"SSViewController_iPhone" bundle:nil]);
     } else {
-        self.viewController = [[[SSViewController alloc] initWithNibName:@"SSViewController_iPad" bundle:nil] autorelease];
+        self.viewController = SF_AUTORELEASE([[SSViewController alloc] initWithNibName:@"SSViewController_iPad" bundle:nil]);
     }
     
     self.window.rootViewController = self.viewController;
     [self.window makeKeyAndVisible];
-    
+
     return YES;
 }
 
@@ -69,6 +61,16 @@
 - (void)applicationWillTerminate:(UIApplication *)application
 {
     // Called when the application is about to terminate. Save data if appropriate. See also applicationDidEnterBackground:.
+}
+
+- (void)dealloc
+{
+    SF_RELEASE(_window);
+    SF_RELEASE(_viewController);
+    
+#ifndef SF_ARC_ENABLED
+    [super dealloc];
+#endif
 }
 
 @end

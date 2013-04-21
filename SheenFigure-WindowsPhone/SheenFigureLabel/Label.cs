@@ -1,5 +1,5 @@
 ﻿/*
- * Copyright (C) 2012 SheenFigure
+ * Copyright (C) 2013 SheenFigure
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,11 +29,21 @@ namespace SheenFigure
     {
         private int m_StartIndex;
         private WriteableBitmap m_Bitmap;
+        private Image m_BitmapView;
 
-        public CachedPage(int startIndex, WriteableBitmap bitmap)
+        public CachedPage(int startIndex, WriteableBitmap bitmap, float scale)
         {
             m_StartIndex = startIndex;
             m_Bitmap = bitmap;
+            m_BitmapView = new Image()
+            {
+                HorizontalAlignment = System.Windows.HorizontalAlignment.Left,
+                VerticalAlignment = System.Windows.VerticalAlignment.Top,
+                Width = m_Bitmap.PixelWidth / scale,
+                Height = m_Bitmap.PixelHeight / scale,
+                Source = m_Bitmap,
+                Stretch = Stretch.Fill
+            };
         }
 
         public int StartIndex
@@ -44,7 +54,13 @@ namespace SheenFigure
         public WriteableBitmap Bitmap
         {
             get { return m_Bitmap; }
-            set { m_Bitmap = value; }
+            set { m_Bitmap = value; m_BitmapView.Source = m_Bitmap; }
+        }
+
+        public Image BitmapView
+        {
+            get { return m_BitmapView; }
+            set { m_BitmapView = value; }
         }
     }
 
@@ -57,55 +73,92 @@ namespace SheenFigure
         public static DependencyProperty TextColorProperty = DependencyProperty.Register(
             "TextColor", typeof(Color), typeof(Label), null);
 
-        public static DependencyProperty TextAlignProperty = DependencyProperty.Register(
-            "TextAlign", typeof(SheenFigure.TextAlignment), typeof(Label), null);
+        public static DependencyProperty TextAlignmentProperty = DependencyProperty.Register(
+            "TextAlignment", typeof(SheenFigure.Graphics.TextAlignment), typeof(Label), null);
 
-        private static readonly int MIN_WIDTH = 100;
-        private static readonly int MIN_HEIGHT = 50;
-        private static readonly Color DEFAULT_COLOR = Color.FromArgb(255, 255, 255, 255);
+        public static DependencyProperty WritingDirectionProperty = DependencyProperty.Register(
+            "WritingDirection", typeof(SheenFigure.Graphics.WritingDirection), typeof(Label), null);
 
-        private static readonly int MAX_ALLOWED_PIXELS_IN_A_PAGE = 480 * 800;
+        private static readonly Color DEFAULT_COLOR = Color.FromArgb(255, 0, 0, 0);
+
         private static readonly int PADDING = 3;
 
         private Grid m_Grid;
-
-        private Font m_Font;
         private Text m_Text;
 
         private List<CachedPage> m_CachedPages;
 
-        private int m_Width;
         private int m_MeasuredHeight;
-        private int m_PageHeight;
         private int m_LinesInPage;
+
+        private Boolean m_Drawn;
 
         public Label()
         {
             DefaultStyleKey = typeof(Label);
 
-            this.MinWidth = MIN_WIDTH;
-            this.MinHeight = MIN_HEIGHT;
-
             m_Text = new Text();
             m_CachedPages = new List<CachedPage>();
 
             object textColor = base.GetValue(TextColorProperty);
-            if (textColor == null || textColor.Equals(Color.FromArgb(0, 0, 0, 0)))
+            if (textColor == null)
                 this.TextColor = DEFAULT_COLOR;
         }
 
-        private int CalculatePageHeight(int width)
+        protected override Size MeasureOverride(Size availableSize)
         {
-            return MAX_ALLOWED_PIXELS_IN_A_PAGE / width;
+            m_Drawn = false;
+            m_MeasuredHeight = 0;
+
+            if (double.IsNaN(availableSize.Width))
+            {
+                if (m_Grid != null)
+                {
+                    TextBlock error = new TextBlock()
+                    {
+                        Text = "Width is not provided.",
+                        FontSize = 30,
+                        Foreground = new SolidColorBrush(Color.FromArgb(255, 255, 0, 0))
+                    };
+
+                    m_Grid.Children.Clear();
+                    m_Grid.Children.Add(error);
+                }
+            }
+            else
+            {
+                RefreshDrawing(availableSize.Width);
+                availableSize.Height = m_MeasuredHeight;
+            }
+
+            return base.MeasureOverride(availableSize);
+        }
+
+        public override void OnApplyTemplate()
+        {
+            base.OnApplyTemplate();
+
+            if (m_Grid == null)
+            {
+                m_Grid = this.GetTemplateChild("MainGrid") as Grid;
+
+                m_Drawn = false;
+                m_MeasuredHeight = 0;
+                this.UpdateLayout();
+            }
+        }
+
+        private int GetMaxAllowedPixelsInAPage()
+        {
+            int maxPixels = (int)(Application.Current.Host.Content.ActualWidth * Application.Current.Host.Content.ActualHeight);
+
+            return maxPixels;
         }
 
         private void ClearCachedPages()
         {
-            for (int i = m_CachedPages.Count - 1; i >= 0; i--)
-            {
-                m_CachedPages[i].Bitmap = null;
-                m_CachedPages.RemoveAt(i);
-            }
+            m_Grid.Children.Clear();
+            m_CachedPages.Clear();
 
             GC.Collect();
         }
@@ -114,18 +167,32 @@ namespace SheenFigure
         {
             WriteableBitmap source = (WriteableBitmap)resObj;
 
-            int posX, posY, orgX, difA;
+            int posX, limX, posY, orgX, difA;
             int sp, sa, sr, sg, sb;
             int dp, da, dr, dg, db;
 
             int sx = (int)x;
             int sy = (int)y;
 
-            for (posY = 0; posY < h; posY++)
-            {
-                orgX = ((sy + posY) * source.PixelWidth) + sx;
+            if (sy < 0)
+                posY = -sy;
+            else
+                posY = 0;
 
-                for (posX = 0; posX < w; posX++, orgX++)
+            for (; posY < h; posY++)
+            {
+                if ((sy + posY) >= source.PixelHeight)
+                    break;
+
+                if (sx < 0)
+                    posX = -sx;
+                else
+                    posX = 0;
+
+                orgX = ((sy + posY) * source.PixelWidth) + Math.Max(0, sx);
+                limX = ((sy + posY + 1) * source.PixelWidth) - 1;
+
+                for (; posX < w && orgX < limX; posX++, orgX++)
                 {
                     sp = pixels[(posY * w) + posX];
                     sa = (sp >> 24) & 0xFF;
@@ -152,168 +219,111 @@ namespace SheenFigure
             }
         }
 
-        private int CreateCachedPages(int width)
+        private int GenerateCachedPages(double width)
         {
             ClearCachedPages();
 
-            float lineHeight = this.Font.GetLeading();
-            m_PageHeight = CalculatePageHeight(width);
-            m_LinesInPage = (int)Math.Floor((m_PageHeight - lineHeight) / lineHeight);
+            float lineHeight = m_Text.Font.Leading;
 
+            float posX = PADDING;
+            float posY = lineHeight / 2.0f;
+
+            float scale = Windows.Graphics.Display.DisplayProperties.LogicalDpi / 96.0f;
+
+            int imageWidth = (int)(width - Padding.Right - Padding.Left);
+            int imageHeight = GetMaxAllowedPixelsInAPage() / imageWidth;
+
+            float frameWidth = imageWidth - (PADDING * 2);
+            m_LinesInPage = (int)Math.Floor((imageHeight - (lineHeight)) / (lineHeight));
+            float pageHeight = lineHeight * m_LinesInPage;
+
+            int countLines = 0;
             int totalLines = 0;
 
             int index = 0;
-            while (index > -1)
+            int prevIndex = 0;
+
+            for (int i = 0; index > -1; i++)
             {
-                int prevIndex = index;
-                index = m_Text.GetCharIndexAfterLines(index, m_LinesInPage);
+                prevIndex = index;
+                countLines = m_LinesInPage;
 
-                int measuredLines;
-                int pageHeight;
-
+                index = m_Text.GetNextLineCharIndex(frameWidth, index, countLines);
                 if (index < 0)
-                {
-                    measuredLines = -index;
-                    pageHeight = (int)(lineHeight * (measuredLines + 1));
-                }
-                else
-                {
-                    measuredLines = m_LinesInPage;
-                    pageHeight = m_PageHeight;
-                }
+                    countLines = -index - 1;
 
-                WriteableBitmap bmp = new WriteableBitmap(width, pageHeight);
-                m_Text.RenderText(RenderGlyph, prevIndex, m_LinesInPage, 0, (int)lineHeight, bmp);
+                imageHeight = (int)(lineHeight * (countLines + 1));
 
-                CachedPage page = new CachedPage(prevIndex, bmp);
+                WriteableBitmap bmp = new WriteableBitmap((int)(imageWidth * scale), (int)(imageHeight * scale));
+                m_Text.ShowString(RenderGlyph, frameWidth, posX, posY, prevIndex, countLines, bmp);
+
+                CachedPage page = new CachedPage(prevIndex, bmp, scale);
                 m_CachedPages.Add(page);
 
-                totalLines += measuredLines;
+                Image bmpView = page.BitmapView;
+                bmpView.Margin = new Thickness(Padding.Left, Padding.Top + ((i * pageHeight) - posY), Padding.Right, Padding.Bottom);
+
+                m_Grid.Children.Add(bmpView);
+
+                totalLines += countLines;
             }
+
+            m_Drawn = true;
+            m_MeasuredHeight = (int)Math.Round((totalLines * lineHeight) + Padding.Top + Padding.Bottom);
 
             return totalLines;
         }
 
-        private void RefreshDrawing(bool measureHeight)
+        private void UpdateCachedPages()
         {
-            if (this.Font == null || this.Text == string.Empty || m_Grid == null)
-                return;
+            Canvas canvas = new Canvas();
 
-            m_Grid.Children.Clear();
-            if (double.IsNaN(this.Width))
-            {
-                TextBlock error = new TextBlock()
-                {
-                    Text = "Width is not provided.",
-                    FontSize = 30,
-                    Foreground = new SolidColorBrush(Color.FromArgb(255, 255, 0, 0))
-                };
-                m_Grid.Children.Add(error);
-
-                return;
-            }
-
-            if (measureHeight)
-            {
-                int width = (int)this.Width - (PADDING * 2);
-                if (width >= MIN_WIDTH && width != m_Width)
-                {
-                    m_Text.SetViewArea(width);
-
-                    int lines = CreateCachedPages(width);
-                    m_MeasuredHeight = (int)Math.Round((lines * this.Font.GetLeading()));
-
-                    if (m_MeasuredHeight < MIN_HEIGHT)
-                        m_MeasuredHeight = MIN_HEIGHT;
-
-                    m_Width = width;
-                }
-            }
-
-            float lineHeight = this.Font.GetLeading();
-            float correctHeight = lineHeight * m_LinesInPage;
+            float posX = PADDING;
+            float posY = m_Text.Font.Leading / 2.0f;
 
             for (int i = 0; i < m_CachedPages.Count; i++)
             {
-                if (m_CachedPages[i].Bitmap == null)
-                    continue;
+                CachedPage prevPage = m_CachedPages[i];
 
-                WriteableBitmap bmp = m_CachedPages[i].Bitmap;
-                Thickness margins = new Thickness(PADDING, (i * correctHeight) - lineHeight, 0, 0);
-                Image image = new Image()
-                {
-                    Margin = margins,
-                    HorizontalAlignment = System.Windows.HorizontalAlignment.Left,
-                    VerticalAlignment = System.Windows.VerticalAlignment.Top,
-                    Width = bmp.PixelWidth,
-                    Height = bmp.PixelHeight,
-                    Source = bmp
-                };
+                int imageWidth = prevPage.Bitmap.PixelWidth;
+                int imageHeight = prevPage.Bitmap.PixelHeight;
 
-                m_Grid.Children.Add(image);
+                int frameWidth = imageWidth - (PADDING * 2);
+
+                prevPage.Bitmap = null;
+
+                WriteableBitmap bmp = new WriteableBitmap(imageWidth, imageHeight);
+                m_Text.ShowString(RenderGlyph, frameWidth, posX, posY, prevPage.StartIndex, m_LinesInPage, bmp);
+
+                prevPage.Bitmap = bmp;
             }
+
+            m_Drawn = true;
         }
 
-        protected override Size MeasureOverride(Size availableSize)
+        private void RefreshDrawing(double width)
         {
-            if (m_MeasuredHeight == 0)
-                return new Size(MIN_WIDTH, MIN_HEIGHT);
-
-            availableSize.Height = m_MeasuredHeight;
-            availableSize.Width = base.MeasureOverride(availableSize).Width;
-
-            return availableSize;
-        }
-
-        public override void OnApplyTemplate()
-        {
-            base.OnApplyTemplate();
-
             if (m_Grid == null)
-            {
-                m_Grid = this.GetTemplateChild("MainGrid") as Grid;
+                return;
 
-                this.UpdateLayout();
-                this.InvalidateMeasure();
-            }
+            Font font = m_Text.Font;
+            String text = m_Text.String;
 
-            RefreshDrawing(true);
-        }
-
-        new public double Width
-        {
-            get
+            width = (int)(width - Padding.Right - Padding.Left);
+            if (width > 0 && font != null && text != null && text.Length > 0)
             {
-                return base.Width;
-            }
-            set
-            {
-                if (base.Width != value && value > MIN_WIDTH)
+                if (!m_Drawn)
                 {
-                    base.Width = value;
-
-                    RefreshDrawing(true);
+                    if (m_MeasuredHeight == 0)
+                        GenerateCachedPages(width);
+                    else
+                        UpdateCachedPages();
                 }
             }
-        }
-
-        public Font Font
-        {
-            get
+            else
             {
-                return m_Font;
-            }
-            set
-            {
-                if (m_Font != value)
-                {
-                    m_Font = value;
-
-                    m_Text.ChangeFont(m_Font);
-                    m_Text.ChangeText(this.Text);
-
-                    RefreshDrawing(true);
-                }
+                ClearCachedPages();
+                m_Drawn = true;
             }
         }
 
@@ -333,9 +343,30 @@ namespace SheenFigure
                     value = "";
 
                 base.SetValue(TextProperty, value);
-                m_Text.ChangeText(value);
+                m_Text.String = value;
 
-                RefreshDrawing(true);
+                m_Drawn = false;
+                m_MeasuredHeight = 0;
+                this.UpdateLayout();
+            }
+        }
+
+        public Font Font
+        {
+            get
+            {
+                return m_Text.Font;
+            }
+            set
+            {
+                if (value != m_Text.Font)
+                {
+                    m_Text.Font = value;
+
+                    m_Drawn = false;
+                    m_MeasuredHeight = 0;
+                    this.UpdateLayout();
+                }
             }
         }
 
@@ -354,31 +385,54 @@ namespace SheenFigure
                 if (value == null)
                     value = DEFAULT_COLOR;
 
-                base.SetValue(TextColorProperty, value);
+                Windows.UI.Color c = m_Text.Color;
+                if (value.R != c.R || value.G != c.G || value.B != c.B)
+                {
+                    base.SetValue(TextColorProperty, value);
+                    m_Text.Color = Windows.UI.Color.FromArgb(value.A, value.R, value.G, value.B);
 
-                Color c = (Color)value;
-                m_Text.SetColor(Windows.UI.Color.FromArgb(c.A, c.R, c.G, c.B));
-
-                RefreshDrawing(false);
+                    m_Drawn = false;
+                    this.UpdateLayout();
+                }
             }
         }
 
-        public SheenFigure.TextAlignment TextAlign
+        public SheenFigure.Graphics.TextAlignment TextAlignment
         {
             get
             {
-                var obj = base.GetValue(TextAlignProperty);
-                if (obj == null)
-                    return SheenFigure.TextAlignment.Right;
-
-                return (SheenFigure.TextAlignment)obj;
+                return m_Text.Alignment;
             }
             set
             {
-                base.SetValue(TextAlignProperty, value);
-                m_Text.SetTextAlignment((SheenFigure.TextAlignment)value);
+                if (value != m_Text.Alignment)
+                {
+                    base.SetValue(TextAlignmentProperty, value);
+                    m_Text.Alignment = value;
 
-                RefreshDrawing(false);
+                    m_Drawn = false;
+                    this.UpdateLayout();
+                }
+            }
+        }
+
+        public SheenFigure.Graphics.WritingDirection WritingDirection
+        {
+            get
+            {
+                return m_Text.WritingDirection;
+            }
+            set
+            {
+                if (value != m_Text.WritingDirection)
+                {
+                    base.SetValue(WritingDirectionProperty, value);
+                    m_Text.WritingDirection = value;
+
+                    m_Drawn = false;
+                    m_MeasuredHeight = 0;
+                    this.UpdateLayout();
+                }
             }
         }
     }

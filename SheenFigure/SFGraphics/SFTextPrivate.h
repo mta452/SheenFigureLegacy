@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2012 SheenFigure
+ * Copyright (C) 2013 SheenFigure
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,22 +14,31 @@
  * limitations under the License.
  */
 
-#ifndef _SHEEN_FIGURE_JNI_H
-#define _SHEEN_FIGURE_JNI_H
-
-#include <jni.h>
-#include <android/log.h>
+#ifndef _SF_TEXT_PRIVATE_H
+#define _SF_TEXT_PRIVATE_H
 
 #include "SFConfig.h"
 #include "SFTypes.h"
+#include "SFInternal.h"
+#include "SFFontPrivate.h"
 
-#define SF_TAG "sheenfigure"
-#define LOGV(...) 	__android_log_print(ANDROID_LOG_VERBOSE, SF_TAG, __VA_ARGS__)
-#define LOGI(...)  	__android_log_print(ANDROID_LOG_INFO, SF_TAG, __VA_ARGS__)
-#define LOGW(...) 	__android_log_print(ANDROID_LOG_WARN, SF_TAG, __VA_ARGS__)
-#define LOGE(...) 	__android_log_print(ANDROID_LOG_ERROR, SF_TAG, __VA_ARGS__)
+typedef struct SFText {
+    const SFUnichar *_str;
+    int _strLength;
 
-int register_com_sheenfigure_graphics_Font(JNIEnv *env);
-int register_com_sheenfigure_graphics_Text(JNIEnv *env);
+    SFFont *_sfFont;
+    SFStringRecord *_record;
+    int _writingDirection;
+    int _txtAlign;
+    
+    SFUInt _retainCount;
+} SFText;
+
+#ifndef _SF_TEXT_REF
+#define _SF_TEXT_REF
+
+typedef struct SFText *SFTextRef;
+
+#endif
 
 #endif

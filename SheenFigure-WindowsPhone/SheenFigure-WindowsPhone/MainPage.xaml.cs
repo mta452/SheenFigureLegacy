@@ -1,5 +1,5 @@
-﻿/*
- * Copyright (C) 2012 SheenFigure
+/*
+ * Copyright (C) 2013 SheenFigure
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,20 +27,20 @@ namespace SheenFigure_WindowsPhone
 {
     public partial class MainPage : PhoneApplicationPage
     {
-        // Constructor
         public MainPage()
         {
             InitializeComponent();
-
             string fontPath = CopyFile("NafeesWeb.ttf");
+
             if (File.Exists(fontPath))
-                SheenFigureLabel.Font = new SheenFigure.Graphics.Font(fontPath, 27.0f);
+                sfLabel.Font = new SheenFigure.Graphics.Font(fontPath, 28.0f);
         }
 
-        public static void CopyFile(Stream input, Stream output)
+        private static void CopyFile(Stream input, Stream output)
         {
             long length = input.Length;
             byte[] buffer = new byte[1024];
+
             int read = 0;
             int segment;
             while (read < length)
@@ -50,7 +50,7 @@ namespace SheenFigure_WindowsPhone
             }
         }
 
-        public static string CopyFile(string filename)
+        private static string CopyFile(string filename)
         {
             IsolatedStorageFile isoStore = IsolatedStorageFile.GetUserStoreForApplication();
 

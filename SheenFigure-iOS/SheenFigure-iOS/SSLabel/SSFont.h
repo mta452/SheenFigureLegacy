@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2012 SheenFigure
+ * Copyright (C) 2013 SheenFigure
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,18 +14,22 @@
  * limitations under the License.
  */
 
-#ifndef _SF_GLOBAL
-#define _SF_GLOBAL
+#import <Foundation/Foundation.h>
 
-#include "SFCommonData.h"
-#include "SFGDEFData.h"
-#include "SFGSUBData.h"
-#include "SFGPOSData.h"
+@interface SSFont : NSObject {
+    NSString *_path;
+}
 
-SFStringRecord *record;
+- (id)initWithPath:(NSString *)path size:(float)size;
++ (SSFont *)fontWithPath:(NSString *)path size:(float)size;
 
-SFTableGDEF *gdef;
-SFTableGSUB *gsub;
-SFTableGPOS *gpos;
+- (SSFont *)makeCloneForSize:(float)size;
 
-#endif
+- (float)size;
+- (float)sizeByEm;
+- (float)ascender;
+
+- (float)descender;
+- (float)leading;
+
+@end

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2012 SheenFigure
+ * Copyright (C) 2013 SheenFigure
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,16 +14,19 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef _SS_TEXT_H
+#define _SS_TEXT_H
 
-#include "pch.h"
+#include "SSJNI.h"
 
-namespace SheenFigure
-{
-	public enum class TextAlignment
-	{
-		Right = SFTextAlignmentRight,
-		Center = SFTextAlignmentCenter,
-		Left = SFTextAlignmentLeft,
-	};
-}
+typedef struct SSTextClass {
+	SFTextRef _sfText;
+	SFFontRef _sfFont;
+	SFUnichar *_unistr;
+
+	uint32_t _rgbColor;
+} SSTextClass;
+
+int register_com_sheenfigure_graphics_Text(JNIEnv *env);
+
+#endif

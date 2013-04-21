@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2012 SheenFigure
+ * Copyright (C) 2013 SheenFigure
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,33 +14,24 @@
  * limitations under the License.
  */
 
-#ifdef SF_ANDROID
+#import <UIKit/UIKit.h>
 
-#include <stdint.h>
-#include "SheenFigure.h"
+#import "SSFont.h"
+#import "SSText.h"
 
-JNIEXPORT jint JNICALL
-JNI_OnLoad(JavaVM *jvm, void *reserved) {
-	JNIEnv *env;
-	int result;
-
-	if ((*jvm)->GetEnv(jvm, (void **)&env, JNI_VERSION_1_6)) {
-		LOGE("JNI Check failure");
-		return JNI_ERR;
-	}
-
-	if (env == NULL) {
-		LOGE("Env is NULL");
-		return JNI_ERR;
-	}
-
-	result = register_com_sheenfigure_graphics_Text(env);
-	result = register_com_sheenfigure_graphics_Font(env);
-
-	if (result != JNI_OK)
-		return JNI_ERR;
-
-	return JNI_VERSION_1_6;
+@interface SSLabel : UIView {
+    BOOL _autoFitToSize;
+    BOOL _autoAdjustSuperViewContentSize;
 }
 
-#endif
+@property (nonatomic, retain) SSFont *font;
+@property (nonatomic, retain) NSString *text;
+@property (nonatomic, retain) UIColor *textColor;
+
+@property (nonatomic) SSTextAlignment textAlignment;
+@property (nonatomic) SSWritingDirection writingDirection;
+
+@property (nonatomic) BOOL autoFitToSize;
+@property (nonatomic) BOOL autoAdjustSuperViewContentSize;
+
+@end

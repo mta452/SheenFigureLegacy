@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2012 SheenFigure
+ * Copyright (C) 2013 SheenFigure
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,274 +18,316 @@ package com.sheenfigure.widget;
 
 import java.util.ArrayList;
 
+import com.sheenfigure.R;
 import com.sheenfigure.graphics.Font;
 import com.sheenfigure.graphics.Text;
 
 import android.content.Context;
+import android.content.res.TypedArray;
 import android.graphics.Bitmap;
 import android.graphics.Bitmap.Config;
 import android.graphics.Canvas;
 import android.graphics.Color;
-import android.graphics.Rect;
 
-import android.view.View;
+import android.view.ViewGroup;
 import android.util.AttributeSet;
+import android.util.DisplayMetrics;
 
-import android.widget.TableLayout.LayoutParams;
+import android.widget.ImageView;
 
 class CachedPage {
 	
 	private int mStartIndex;
 	private Bitmap mBitmap;
+	private ImageView mBitmapView;
 	
-	public CachedPage(int startIndex, Bitmap bitmap) {
+	public CachedPage(Context context, int startIndex, Bitmap bitmap) {
 		mStartIndex = startIndex;
 		mBitmap = bitmap;
+		mBitmapView = new ImageView(context);
+		mBitmapView.setImageBitmap(mBitmap);
 	}
 	
 	public int getStartIndex() {
 		return mStartIndex;
 	}
 	
-	public void setCachedBitmap(Bitmap bitmap) {
+	public void setBitmap(Bitmap bitmap) {
 		mBitmap = bitmap;
+		mBitmapView.setImageBitmap(bitmap);
 	}
 	
 	public Bitmap getBitmap() {
 		return mBitmap;
 	}
+	
+	public ImageView getBitmapView() {
+		return mBitmapView;
+	}
 }
 
-public class Label extends View {
+public class Label extends ViewGroup {
 
-	public static final int TEXT_ALIGNMENT_RIGHT = 0;
-	public static final int TEXT_ALIGNMENT_CENTER = 1;
-	public static final int TEXT_ALIGNMENT_LEFT = 2;
-	
-	private static final int MIN_WIDTH = 100;
-	private static final int MIN_HEIGHT = 50;
-	private static final int DEFAULT_COLOR = Color.WHITE;
-	
-	private static final int MAX_ALLOWED_PIXELS_IN_A_PAGE = 320 * 480;
 	private static final int PADDING = 3;
-	
-	private Font mFont;
-	private Text mSheenFigure;
+
+	private Text mText;
 	
 	private ArrayList<CachedPage> mCachedPages;
-	
-	private boolean mNeedsRedraw;
-	private int mMeasuredHeight;
-	private int mPageHeight;
-	private int mLinesInPage;
 
-	private String mText;
-	private int mTextColor;
-	private int mAlign;
+	private int mMeasuredHeight;
+	private int mLinesInPage;
+	
+	private boolean mDrawn;
 	
 	private void init() {
-		setMinimumWidth(MIN_WIDTH);
-		setMinimumHeight(MIN_HEIGHT);
-
-		mSheenFigure = new Text();
-		
+		mText = new Text();
 		mCachedPages = new ArrayList<CachedPage>();
 		
-		mNeedsRedraw = true;
+		mDrawn = false;
 		mMeasuredHeight = 0;
-		
-		mText = "";
-		mTextColor = DEFAULT_COLOR;
-		mAlign = TEXT_ALIGNMENT_RIGHT;
 	}
 	
 	public Label(Context context) {
 		super(context);
-		
 		init();
 	}
 
 	public Label(Context context, AttributeSet attrs) {
-		super(context, attrs);
-
-		init();
+		this(context, attrs, 0);
 	}
 
 	public Label(Context context, AttributeSet attrs, int defStyle) {
 		super(context, attrs, defStyle);
-
 		init();
+		
+		TypedArray values = context.getTheme().obtainStyledAttributes(attrs, R.styleable.Label, 0, 0);
+		try {
+			setTextColor(values.getInteger(R.styleable.Label_textColor, Color.BLACK));
+			setTextAlignment(values.getInteger(R.styleable.Label_textAlignment, Text.TEXT_ALIGNMENT_RIGHT));
+			setWritingDirection(values.getInteger(R.styleable.Label_writingDirection, Text.WRITING_DIRECTION_RTL));
+			setText(values.getString(R.styleable.Label_text));
+		} finally {
+			values.recycle();
+		}
 	}
 	
-	private int calculatePageHeight(int width) {
-		return MAX_ALLOWED_PIXELS_IN_A_PAGE / width;
+	@Override
+    protected void onMeasure(final int widthMeasureSpec, final int heightMeasureSpec) {
+		mDrawn = false;
+		mMeasuredHeight = 0;
+		
+		refreshDrawing(MeasureSpec.getSize(widthMeasureSpec));
+		
+		int hSpec = heightMeasureSpec;
+		if (MeasureSpec.getMode(hSpec) == MeasureSpec.UNSPECIFIED) {
+			hSpec = MeasureSpec.makeMeasureSpec(mMeasuredHeight, MeasureSpec.EXACTLY);
+		}
+
+		super.onMeasure(widthMeasureSpec, hSpec);
+	}
+
+	@Override
+	protected void onLayout(boolean changed, int left, int top, int right, int bottom) {
+
+	}
+	
+	private int getMaxAllowedPixelsInAPage() {
+		DisplayMetrics displayMetrics = getResources().getDisplayMetrics();
+		int maxPixels = displayMetrics.widthPixels * displayMetrics.heightPixels;
+	    
+	    return maxPixels;
 	}
 	
 	private void clearCachedPages() {
 		for (int i = mCachedPages.size() - 1; i >= 0; i--) {
-			mCachedPages.get(i).getBitmap().recycle();
+			CachedPage page = mCachedPages.get(i);
+			page.getBitmap().recycle();
+			removeView(page.getBitmapView());
+			
 			mCachedPages.remove(i);
 		}
 		
 		System.gc();
 	}
-	
-	private int createCachedPages(int width) {
+
+	private int generateCachedPages(int pageWidth) {
 		clearCachedPages();
 
-		float lineHeight = mFont.getLeading();
-		mPageHeight = this.calculatePageHeight(width);
-		mLinesInPage = (int)Math.floor((mPageHeight - lineHeight) / lineHeight);
+		float lineHeight = mText.getFont().getLeading();
+		
+		float posX = PADDING;
+		float posY = lineHeight / 2.0f;
+		
+		int imageWidth = pageWidth - getPaddingRight() - getPaddingLeft();
+		int imageHeight = getMaxAllowedPixelsInAPage() / imageWidth;
+		
+		float frameWidth = imageWidth - (PADDING * 2);
+		mLinesInPage = (int) Math.floor((imageHeight - lineHeight) / lineHeight);
+		float pageHeight = lineHeight * mLinesInPage;
 
-		Canvas c = new Canvas();
+		Canvas canvas = new Canvas();
 
+		int countLines = 0;
 		int totalLines = 0;
 		
 		int index = 0;
-		while (index > -1) {
-			int prevIndex = index;
-			index = mSheenFigure.getCharIndexAfterLines(index, mLinesInPage);
-
-			int measuredLines;
-			int pageHeight;
+		int prevIndex = 0;
+		
+		for (int i = 0; index > -1; i++) {
+			prevIndex = index;
+			countLines = mLinesInPage;
 			
+			index = mText.getNextLineCharIndex(frameWidth, index, countLines);
 			if (index < 0) {
-				measuredLines = -index;
-				pageHeight = (int)(lineHeight * (measuredLines + 1));
-			} else {
-				measuredLines = mLinesInPage;
-				pageHeight = mPageHeight;
+				countLines = -index - 1;
 			}
 			
-			Bitmap bmp = Bitmap.createBitmap(width, pageHeight, Config.ARGB_8888);
-			c.setBitmap(bmp);
-			mSheenFigure.renderText(c, prevIndex, mLinesInPage, 0, (int)lineHeight);
+			imageHeight = (int)(lineHeight * (countLines + 1));
 			
-			CachedPage page = new CachedPage(prevIndex, bmp);
+			Bitmap bmp = Bitmap.createBitmap(imageWidth, imageHeight, Config.ARGB_4444);
+			canvas.setBitmap(bmp);
+			mText.showString(canvas, frameWidth, posX, posY, prevIndex, countLines);
+			
+			CachedPage page = new CachedPage(getContext(), prevIndex, bmp);
 			mCachedPages.add(page);
 			
-			totalLines += measuredLines;
+			ImageView bmpView = page.getBitmapView();
+			ViewGroup.LayoutParams params = new LayoutParams(imageWidth, imageHeight);
+			addView(bmpView, params);
+			
+			int layoutY = getPaddingTop() + (int) ((i * pageHeight) - posY);
+			bmpView.layout(getPaddingLeft(), layoutY, getPaddingLeft() + imageWidth, layoutY + imageHeight);
+			
+			totalLines += countLines;
 		}
+
+		mDrawn = true;
+		mMeasuredHeight = Math.round((totalLines * lineHeight)) + getPaddingTop() + getPaddingBottom();
 		
 		return totalLines;
 	}
 
-	private void refreshDrawing() {
-		if (mNeedsRedraw) {
-			int width = this.getWidth() - (PADDING * 2);
+	private void updateCachedPages() {
+		Canvas canvas = new Canvas();
+		
+		float posX = PADDING;
+		float posY = getFont().getLeading() / 2.0f;
+		
+		for (int i = 0; i < mCachedPages.size(); i++) {
+			CachedPage prevPage = mCachedPages.get(i);
+			
+			int imageWidth = prevPage.getBitmap().getWidth();
+			int imageHeight = prevPage.getBitmap().getHeight();
+			
+			int frameWidth = imageWidth - (PADDING * 2);
+			
+			prevPage.getBitmap().recycle();
+			prevPage.setBitmap(null);
+			
+			Bitmap bmp = Bitmap.createBitmap(imageWidth, imageHeight, Config.ARGB_8888);
+			canvas.setBitmap(bmp);
+			mText.showString(canvas, frameWidth, posX, posY, prevPage.getStartIndex(), mLinesInPage);
+			
+			prevPage.setBitmap(bmp);
+		}
+		
+		mDrawn = true;
+	}
+	
+	private void refreshDrawing(int width) {
+		final Font font = mText.getFont();
+		final String text = mText.getString();
+		
+		width = width - getPaddingRight() - getPaddingLeft();
+	    if (width > 0 && font != null && text != null && text.length() > 0) {
+	        if (!mDrawn) {
+	        	if (mMeasuredHeight == 0) {
+	        		generateCachedPages(width);
+	        	} else {
+	        		updateCachedPages();
+	        	}
+	        }
+	    } else {
+	        clearCachedPages();
+	        mDrawn = true;
+	    }
+	}
 
-			if (width < MIN_WIDTH)
-				return;
-
-			if (mMeasuredHeight == 0) {
-				mSheenFigure.setViewArea(width);
-				int lines = this.createCachedPages(width);
-				mMeasuredHeight = Math.round((lines * mFont.getLeading()));
-
-				if (mMeasuredHeight < MIN_HEIGHT)
-					mMeasuredHeight = MIN_HEIGHT;
-
-				this.setLayoutParams(new LayoutParams(width, mMeasuredHeight + PADDING));
-			}
-
-			mNeedsRedraw = false;
+	public String getText() {
+		return mText.getString();
+	}
+	
+	public void setText(String text) {
+		if (text == null) {
+			text = "";
+		}
+		 
+		if (text != mText.getString()) {
+			mText.setString(text);
+			 
+			mDrawn = false;
+			mMeasuredHeight = 0;
+			requestLayout();
+		}
+	}
+	 
+	public Font getFont() {
+		return mText.getFont();
+	}
+	 
+	public void setFont(Font font) {
+		if (font != mText.getFont()) {
+			mText.setFont(font);
+			 
+			mDrawn = false;
+			mMeasuredHeight = 0;
+			requestLayout();
 		}
 	}
 	
-	@Override
-	protected void onSizeChanged(int w, int h, int oldw, int oldh) {
-        if (w != oldw) {
-        	mNeedsRedraw = true;
-        	mMeasuredHeight = 0;
-        }
-    }
+	public int getTextColor() {
+		return mText.getColor();
+	}
 	
-	@Override
-	protected void onDraw(Canvas canvas) {
-		super.onDraw(canvas);
-		
-		this.refreshDrawing();
-		
-		Rect rect = new Rect();
-		this.getHitRect(rect);
-		this.getLocalVisibleRect(rect);
-
-		int lineHeight = (int)mFont.getLeading();
-		int correctHeight = lineHeight * mLinesInPage;
-		
-		int startPage = (int)Math.floor((float)rect.top / (float)correctHeight);
-		int endPage = (int)Math.floor((float)rect.bottom / (float)correctHeight);
-
-		int padding = PADDING;
-		for (; startPage <= endPage; startPage++) {
-			if (mCachedPages.size() > startPage && mCachedPages.get(startPage).getBitmap() != null)
-				canvas.drawBitmap(mCachedPages.get(startPage).getBitmap(), PADDING, (startPage * correctHeight) - lineHeight + padding, null);
+	public void setTextColor(int color) {
+		if (color != mText.getColor()) {
+			mText.setColor(color);
 			
-			padding = 0;
+			mDrawn = false;
+			requestLayout();
 		}
-	 }
+	}
 
-	 public void setText(String text) {
-		 if (text == null)
-			 text = "";
-		 
-		 mText = text;
-		 mSheenFigure.changeText(mText);
-		 mNeedsRedraw = true;
-		 mMeasuredHeight = 0;
+	public int getTextAlignment() {
+		return mText.getAlignment();
+	}
+	
+	public void setTextAlignment(int align) {
+		if (align != mText.getAlignment()) {
+			mText.setAlignment(align);
+			
+			mDrawn = false;
+			requestLayout();
+		}
+	}
 
-		 this.invalidate();
-	 }
-	 
-	 public String getText() {
-		 return mText;
-	 }
-	 
-	 public void setFont(Font font) {
-		 mFont = font;
-		 mSheenFigure.changeFont(mFont);
-		 mNeedsRedraw = true;
-		 mMeasuredHeight = 0;
-
-		 this.invalidate();
-	 }
-	 
-	 public void setTextColor(int color) {
-		 mTextColor = color;
-		 mSheenFigure.setColor(mTextColor);
-		 mNeedsRedraw = true;
-
-		 this.invalidate();
-	 }
-	 
-	 public int getTextColor() {
-		 return mTextColor;
-	 }
-
-	 public void setTextAlignment(int align) {
-		 if (mAlign == align)
-			 return;
-		 
-		 mAlign = align;
-		 mSheenFigure.setTextAlignment(mAlign);
-		 mNeedsRedraw = true;
-		 
-		 this.invalidate();
-	 }
-	 
-	 public int getTextAlignment() {
-		 return mTextColor;
-	 }
+	public int getWritingDirection() {
+		return mText.getAlignment();
+	}
+	
+	public void setWritingDirection(int writingDirection) {
+		if (writingDirection != mText.getWritingDirection()) {
+			mText.setWritingDirection(writingDirection);
+			
+			mDrawn = false;
+			mMeasuredHeight = 0;
+			requestLayout();
+		}
+	}
 	 
 	 @Override
 	 protected void onDetachedFromWindow() {
 		 super.onDetachedFromWindow();
-
-		 try {
-			 mSheenFigure.finalize(); 
-		 } catch (Throwable e) {
-			e.printStackTrace();
-		}
 		 
 		 this.clearCachedPages();
 	 }

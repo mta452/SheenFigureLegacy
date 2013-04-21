@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2012 SheenFigure
+ * Copyright (C) 2013 SheenFigure
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,64 +14,60 @@
  * limitations under the License.
  */
 
-#include <stdio.h>
-#include <stdlib.h>
-
-#include "SFCommonData.h"
-#include "SFGlobal.h"
-#include "SFGDEFData.h"
 #include "SFGDEFUtilization.h"
 
-void SFAddGlyphProperties(int charIndex, int glyphIndex) {
-    SFGlyph glyph = record->charRecord[charIndex].gRec[glyphIndex].glyph;
+void SFAddGlyphProperties(SFInternal *internal, SFGlyphIndex index) {
+    SFGetGlyphProperties(internal, index) |= gpReceived;
     
-    record->charRecord[charIndex].gRec[glyphIndex].glyphProp |= gpReceived;
-    
-    if (gdef->glyphClassDef.classFormat == 1) {
-        SFGlyph startGlyph = gdef->glyphClassDef.format.format1.startGlyph;
-        SFGlyph endGlyph = startGlyph + gdef->glyphClassDef.format.format1.glyphCount;
+    if (internal->gdef->glyphClassDef.classFormat == 1) {
+        SFGlyph startGlyph = internal->gdef->glyphClassDef.format.format1.startGlyph;
+        SFGlyph endGlyph = startGlyph + internal->gdef->glyphClassDef.format.format1.glyphCount;
         
-        if (glyph >= startGlyph && glyph <= endGlyph) {
-            int cls = gdef->glyphClassDef.format.format1.classValueArray[glyph - startGlyph];
-            
+        if (SFGetGlyph(internal, index) >= startGlyph && SFGetGlyph(internal, index) <= endGlyph) {
+            int cls = internal->gdef->glyphClassDef.format.format1.classValueArray[SFGetGlyph(internal, index) - startGlyph];
             switch (cls) {
                 case gcvBase:
-                    record->charRecord[charIndex].gRec[glyphIndex].glyphProp |= gpBase;
+                    SFGetGlyphProperties(internal, index) |= gpBase;
                     break;
+                    
                 case gcvMark:
-                    record->charRecord[charIndex].gRec[glyphIndex].glyphProp |= gpMark;
+                    SFGetGlyphProperties(internal, index) |= gpMark;
                     break;
+                    
                 case gcvLigature:
-                    record->charRecord[charIndex].gRec[glyphIndex].glyphProp |= gpLigature;
+                    SFGetGlyphProperties(internal, index) |= gpLigature;
                     break;
+                    
                 case gcvComponent:
-                    record->charRecord[charIndex].gRec[glyphIndex].glyphProp |= gpComponent;
+                    SFGetGlyphProperties(internal, index) |= gpComponent;
                     break;
             }
         }
-    } else if (gdef->glyphClassDef.classFormat == 2) {
-        SFUShort classRangeCount = gdef->glyphClassDef.format.format2.classRangeCount;
+    } else if (internal->gdef->glyphClassDef.classFormat == 2) {
+        SFUShort classRangeCount = internal->gdef->glyphClassDef.format.format2.classRangeCount;
         SFUShort i;
 
         for (i = 0; i < classRangeCount; i++) {
-            SFGlyph startGlyph = gdef->glyphClassDef.format.format2.classRangeRecord[i].start;
-            SFGlyph endGlyph = gdef->glyphClassDef.format.format2.classRangeRecord[i].end;
+            SFGlyph startGlyph = internal->gdef->glyphClassDef.format.format2.classRangeRecord[i].start;
+            SFGlyph endGlyph = internal->gdef->glyphClassDef.format.format2.classRangeRecord[i].end;
             
-            if (glyph >= startGlyph && glyph <= endGlyph) {
-                int cls = gdef->glyphClassDef.format.format2.classRangeRecord[i].cls;
-                
+            if (SFGetGlyph(internal, index) >= startGlyph && SFGetGlyph(internal, index) <= endGlyph) {
+                int cls = internal->gdef->glyphClassDef.format.format2.classRangeRecord[i].cls;
                 switch (cls) {
                     case gcvBase:
-                        record->charRecord[charIndex].gRec[glyphIndex].glyphProp |= gpBase;
+                        SFGetGlyphProperties(internal, index) |= gpBase;
                         break;
+                        
                     case gcvMark:
-                        record->charRecord[charIndex].gRec[glyphIndex].glyphProp |= gpMark;
+                        SFGetGlyphProperties(internal, index) |= gpMark;
                         break;
+                        
                     case gcvLigature:
-                        record->charRecord[charIndex].gRec[glyphIndex].glyphProp |= gpLigature;
+                        SFGetGlyphProperties(internal, index) |= gpLigature;
                         break;
+                        
                     case gcvComponent:
-                        record->charRecord[charIndex].gRec[glyphIndex].glyphProp |= gpComponent;
+                        SFGetGlyphProperties(internal, index) |= gpComponent;
                         break;
                 }
             }
@@ -105,37 +101,30 @@ SFBool SFDoesGlyphExistInGlyphClassDef(ClassDefTable *cls, GlyphClassValue clsVa
     return SFFalse;
 }
 
-SFBool SFIsIgnoredGlyph(int charIndex, int glyphIndex, LookupFlag lookupFlag) {
-    SFGlyph glyph;
-    SFGlyphProperty glyphProp;
-    
+SFBool SFIsIgnoredGlyph(SFInternal *internal, SFGlyphIndex index, LookupFlag lookupFlag) {
     SFBool hasMarkProperty;
     
-    glyph = record->charRecord[charIndex].gRec[glyphIndex].glyph;
-    if (glyph == 0)
+    if (!SFGetGlyph(internal, index))
         return SFTrue;
-    
-    glyphProp = record->charRecord[charIndex].gRec[glyphIndex].glyphProp;
-    
-    if (glyphProp == gpNotReceived) {
-        SFAddGlyphProperties(charIndex, glyphIndex);
-        glyphProp = record->charRecord[charIndex].gRec[glyphIndex].glyphProp;
+
+    if (SFGetGlyphProperties(internal, index) == gpNotReceived) {
+        SFAddGlyphProperties(internal, index);
     }
     
-    hasMarkProperty = (glyphProp & gpMark);
+    hasMarkProperty = (SFGetGlyphProperties(internal, index) & gpMark);
     if ((lookupFlag & lfIgnoreMarks) && hasMarkProperty)
         return SFTrue;
     
-    if ((lookupFlag & lfIgnoreLigatures) && (glyphProp & gpLigature))
+    if ((lookupFlag & lfIgnoreLigatures) && (SFGetGlyphProperties(internal, index) & gpLigature))
         return SFTrue;
     
-    if ((lookupFlag & lfIgnoreBaseGlyphs) && (glyphProp & gpBase))
+    if ((lookupFlag & lfIgnoreBaseGlyphs) && (SFGetGlyphProperties(internal, index) & gpBase))
         return SFTrue;
     
     if (lookupFlag & lfMarkAttachmentType) {
-        if (gdef->hasMarkAttachClassDef
+        if (internal->gdef->hasMarkAttachClassDef
             && hasMarkProperty
-            && !SFDoesGlyphExistInGlyphClassDef(&gdef->markAttachClassDef, lookupFlag >> 8, glyph))
+            && !SFDoesGlyphExistInGlyphClassDef(&internal->gdef->markAttachClassDef, lookupFlag >> 8, SFGetGlyph(internal, index)))
             return SFTrue;
     }
     

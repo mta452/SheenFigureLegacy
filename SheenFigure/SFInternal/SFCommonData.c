@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2012 SheenFigure
+ * Copyright (C) 2013 SheenFigure
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,14 +16,16 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include "string.h"
 
-#include "ssunistr.h"
-#include "SFTypes.h"
-#include "SFInternal.h"
 #include "SFCommonData.h"
 
-const SFPositionRecord SFPositionRecordZero = {{0, 0}, {0, 0}, 0, {0, 0}};
+SFUShort SFReadUShort(const SFUByte *base, uintptr_t offset) {
+    return (base[offset] << 8) | base[offset + 1];
+}
+
+SFUInt SFReadUInt(const SFUByte *base, uintptr_t offset) {
+    return ((((SFUInt)base[offset] << 24) | base[offset + 1] << 16) | base[offset + 2] << 8) | base[offset + 3];
+}
 
 void SFReadLangSysTable(const SFUByte * const lsTable, LangSysTable *tablePtr) {
     SFUShort *featureIndexes;
@@ -537,41 +539,6 @@ void SFReadDeviceTable(const SFUByte * const dTable, DeviceTable *tablePtr) {
     printf("\n          Delta Format: %d", tablePtr->deltaFormat);
     printf("\n          Delta Value: %d", tablePtr->deltaValue);
 #endif
-}
-
-
-void SFAllocateStringRecord(SFStringRecord *record, SFUnichar *charsPtr, int *levelsPtr, int *lOrderPtr, int len) {
-    SFCharRecord *charRecord;
-    int recordIndex;
-    
-    record->charCount = len;
-    record->glyphCount = len;
-    
-    charRecord = malloc(sizeof(SFCharRecord) * len);
-    
-    for (recordIndex = 0; recordIndex < len; recordIndex++) {
-        charRecord[recordIndex].glyphCount = 1;
-        charRecord[recordIndex].gRec = malloc(sizeof(SFGlyphRecord));
-        charRecord[recordIndex].gRec[0].glyphProp = gpNotReceived;
-        charRecord[recordIndex].gRec[0].posRec = SFPositionRecordZero;
-    }
-    
-    record->chars = charsPtr;
-    record->levels = levelsPtr;
-    record->lOrder = lOrderPtr;
-    
-    record->charRecord = charRecord;
-}
-
-void SFFreeStringRecord(SFStringRecord *record) {
-	int i;
-    for (i = 0; i < record->charCount; i++)
-        free(record->charRecord[i].gRec);
-    
-    free(record->chars);
-    free(record->levels);
-    free(record->lOrder);
-    free(record->charRecord);
 }
 
 int SFGetIndexOfGlyphInCoverage(CoverageTable *tablePtr, SFGlyph glyph) {

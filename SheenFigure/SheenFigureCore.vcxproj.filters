@@ -4,11 +4,8 @@
     <Filter Include="SFInternal">
       <UniqueIdentifier>{a736cb3c-7426-49a4-aad6-cefdd064d26d}</UniqueIdentifier>
     </Filter>
-	<Filter Include="SFInternal\bidi">
+    <Filter Include="SFInternal\bidi">
       <UniqueIdentifier>{29b7172d-9b1b-4dea-aea8-209a66f0ab7a}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="SFInternal\ssunistr">
-      <UniqueIdentifier>{5b1c92e1-5dd0-4624-bec9-160d7aeea119}</UniqueIdentifier>
     </Filter>
     <Filter Include="SFGraphics">
       <UniqueIdentifier>{b1778253-4dbc-443a-88d9-4022f7562283}</UniqueIdentifier>
@@ -26,9 +23,6 @@
     <ClInclude Include="SFInternal\bidi\interaction.h">
       <Filter>SFInternal\bidi</Filter>
     </ClInclude>
-    <ClInclude Include="SFInternal\ssunistr\ssunistr.h">
-      <Filter>SFInternal\ssunistr</Filter>
-    </ClInclude>
     <ClInclude Include="SFInternal\SFCMAPData.h">
       <Filter>SFInternal</Filter>
     </ClInclude>
@@ -36,9 +30,6 @@
       <Filter>SFInternal</Filter>
     </ClInclude>
     <ClInclude Include="SFInternal\SFCommonData.h">
-      <Filter>SFInternal</Filter>
-    </ClInclude>
-    <ClInclude Include="SFInternal\SFCommonMethods.h">
       <Filter>SFInternal</Filter>
     </ClInclude>
     <ClInclude Include="SFInternal\SFGDEFData.h">
@@ -65,11 +56,17 @@
     <ClInclude Include="SFInternal\SFInternal.h">
       <Filter>SFInternal</Filter>
     </ClInclude>
-	<ClInclude Include="SFGraphics\SFFont.h">
+    <ClInclude Include="SFGraphics\SFFont.h">
       <Filter>SFGraphics</Filter>
     </ClInclude>
     <ClInclude Include="SFGraphics\SFText.h">
       <Filter>SFGraphics</Filter>
+    </ClInclude>
+    <ClInclude Include="SFInternal\SFGSUBGPOSData.h">
+      <Filter>SFInternal</Filter>
+    </ClInclude>
+    <ClInclude Include="SFInternal\SFGSUBGPOSUtilization.h">
+      <Filter>SFInternal</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -79,9 +76,6 @@
     <ClCompile Include="SFInternal\bidi\interaction.c">
       <Filter>SFInternal\bidi</Filter>
     </ClCompile>
-    <ClCompile Include="SFInternal\ssunistr\ssunistr.c">
-      <Filter>SFInternal\ssunistr</Filter>
-    </ClCompile>
     <ClCompile Include="SFInternal\SFCMAPData.c">
       <Filter>SFInternal</Filter>
     </ClCompile>
@@ -89,9 +83,6 @@
       <Filter>SFInternal</Filter>
     </ClCompile>
     <ClCompile Include="SFInternal\SFCommonData.c">
-      <Filter>SFInternal</Filter>
-    </ClCompile>
-    <ClCompile Include="SFInternal\SFCommonMethods.c">
       <Filter>SFInternal</Filter>
     </ClCompile>
     <ClCompile Include="SFInternal\SFGDEFData.c">
@@ -115,11 +106,17 @@
     <ClCompile Include="SFInternal\SFInternal.c">
       <Filter>SFInternal</Filter>
     </ClCompile>
-	<ClCompile Include="SFGraphics\SFFont.c">
+    <ClCompile Include="SFGraphics\SFFont.c">
       <Filter>SFGraphics</Filter>
     </ClCompile>
     <ClCompile Include="SFGraphics\SFText.c">
       <Filter>SFGraphics</Filter>
+    </ClCompile>
+    <ClCompile Include="SFInternal\SFGSUBGPOSData.c">
+      <Filter>SFInternal</Filter>
+    </ClCompile>
+    <ClCompile Include="SFInternal\SFGSUBGPOSUtilization.c">
+      <Filter>SFInternal</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

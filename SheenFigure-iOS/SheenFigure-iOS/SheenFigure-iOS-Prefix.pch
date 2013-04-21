@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2012 SheenFigure
+ * Copyright (C) 2013 SheenFigure
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,7 +34,7 @@
 
 #ifdef USE_FREETYPE
 
-#define T2_BUILD_LIBRARY
+#define FT2_BUILD_LIBRARY
 #define DARWIN_NO_CARBON
 #define SF_IOS
 
@@ -42,6 +42,24 @@
 
 #define SF_IOS_CG
 
+#endif
+
+#if __has_feature(objc_arc) && __clang_major__ >= 3
+#define SF_ARC_ENABLED
+#endif
+
+#ifdef SF_ARC_ENABLED
+#define SF_RETAIN(xx)           (xx)
+#define SF_RELEASE(xx)          (xx = nil)
+#define SF_AUTORELEASE(xx)      (xx)
+#define SF_BRIDGE               __bridge
+#define SF_WEAK                 __weak
+#else
+#define SF_RETAIN(xx)           [xx retain]
+#define SF_RELEASE(xx)          [xx release], xx = nil
+#define SF_AUTORELEASE(xx)      [xx autorelease]
+#define SF_BRIDGE
+#define SF_WEAK
 #endif
 
 #endif

@@ -17,13 +17,10 @@
 		6E02154C157B46B800057721 /* SFCMAPUtilization.h in Headers */ = {isa = PBXBuildFile; fileRef = 6E021525157B46B800057721 /* SFCMAPUtilization.h */; };
 		6E02154D157B46B800057721 /* SFCommonData.c in Sources */ = {isa = PBXBuildFile; fileRef = 6E021526157B46B800057721 /* SFCommonData.c */; };
 		6E02154E157B46B800057721 /* SFCommonData.h in Headers */ = {isa = PBXBuildFile; fileRef = 6E021527157B46B800057721 /* SFCommonData.h */; };
-		6E02154F157B46B800057721 /* SFCommonMethods.c in Sources */ = {isa = PBXBuildFile; fileRef = 6E021528157B46B800057721 /* SFCommonMethods.c */; };
-		6E021550157B46B800057721 /* SFCommonMethods.h in Headers */ = {isa = PBXBuildFile; fileRef = 6E021529157B46B800057721 /* SFCommonMethods.h */; };
 		6E021551157B46B800057721 /* SFGDEFData.c in Sources */ = {isa = PBXBuildFile; fileRef = 6E02152A157B46B800057721 /* SFGDEFData.c */; };
 		6E021552157B46B800057721 /* SFGDEFData.h in Headers */ = {isa = PBXBuildFile; fileRef = 6E02152B157B46B800057721 /* SFGDEFData.h */; };
 		6E021553157B46B800057721 /* SFGDEFUtilization.c in Sources */ = {isa = PBXBuildFile; fileRef = 6E02152C157B46B800057721 /* SFGDEFUtilization.c */; };
 		6E021554157B46B800057721 /* SFGDEFUtilization.h in Headers */ = {isa = PBXBuildFile; fileRef = 6E02152D157B46B800057721 /* SFGDEFUtilization.h */; };
-		6E021555157B46B800057721 /* SFGlobal.h in Headers */ = {isa = PBXBuildFile; fileRef = 6E02152E157B46B800057721 /* SFGlobal.h */; };
 		6E021556157B46B800057721 /* SFGPOSData.c in Sources */ = {isa = PBXBuildFile; fileRef = 6E02152F157B46B800057721 /* SFGPOSData.c */; };
 		6E021557157B46B800057721 /* SFGPOSData.h in Headers */ = {isa = PBXBuildFile; fileRef = 6E021530157B46B800057721 /* SFGPOSData.h */; };
 		6E021558157B46B800057721 /* SFGPOSUtilization.c in Sources */ = {isa = PBXBuildFile; fileRef = 6E021531157B46B800057721 /* SFGPOSUtilization.c */; };
@@ -34,8 +31,6 @@
 		6E02155D157B46B800057721 /* SFGSUBUtilization.h in Headers */ = {isa = PBXBuildFile; fileRef = 6E021536157B46B800057721 /* SFGSUBUtilization.h */; };
 		6E02155E157B46B800057721 /* SFInternal.c in Sources */ = {isa = PBXBuildFile; fileRef = 6E021537157B46B800057721 /* SFInternal.c */; };
 		6E02155F157B46B800057721 /* SFInternal.h in Headers */ = {isa = PBXBuildFile; fileRef = 6E021538157B46B800057721 /* SFInternal.h */; };
-		6E021560157B46B800057721 /* ssunistr.c in Sources */ = {isa = PBXBuildFile; fileRef = 6E02153A157B46B800057721 /* ssunistr.c */; };
-		6E021561157B46B800057721 /* ssunistr.h in Headers */ = {isa = PBXBuildFile; fileRef = 6E02153B157B46B800057721 /* ssunistr.h */; };
 		6E021564157B473B00057721 /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6E021563157B473B00057721 /* CoreGraphics.framework */; };
 		6E2A9429163B0E69000B9FA1 /* SFFont.c in Sources */ = {isa = PBXBuildFile; fileRef = 6E2A9425163B0E69000B9FA1 /* SFFont.c */; };
 		6E2A942A163B0E69000B9FA1 /* SFFont.h in Headers */ = {isa = PBXBuildFile; fileRef = 6E2A9426163B0E69000B9FA1 /* SFFont.h */; };
@@ -46,6 +41,10 @@
 		6EAEDF11163C031F0054FF6F /* interaction.h in Headers */ = {isa = PBXBuildFile; fileRef = 6EAEDF0E163C031E0054FF6F /* interaction.h */; };
 		6EC20373157AD461002666E9 /* SFConfig.h in Headers */ = {isa = PBXBuildFile; fileRef = 6EC2034B157AD461002666E9 /* SFConfig.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		6EC2038B157ADA82002666E9 /* SFTypes.h in Headers */ = {isa = PBXBuildFile; fileRef = 6EC20377157AD7E7002666E9 /* SFTypes.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		6ED95B3C17114F8E004249C1 /* CoreFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6ED95B3B17114F8D004249C1 /* CoreFoundation.framework */; };
+		6EEAF2B117046AE400B1ED51 /* SFGSUBGPOSData.c in Sources */ = {isa = PBXBuildFile; fileRef = 6EEAF2AF17046AE400B1ED51 /* SFGSUBGPOSData.c */; };
+		6EEAF2B217046AE400B1ED51 /* SFGSUBGPOSData.h in Headers */ = {isa = PBXBuildFile; fileRef = 6EEAF2B017046AE400B1ED51 /* SFGSUBGPOSData.h */; };
+		6EEAF2B417046BEC00B1ED51 /* SFGSUBGPOSUtilization.c in Sources */ = {isa = PBXBuildFile; fileRef = 6EEAF2B317046BEC00B1ED51 /* SFGSUBGPOSUtilization.c */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -59,13 +58,10 @@
 		6E021525157B46B800057721 /* SFCMAPUtilization.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SFCMAPUtilization.h; sourceTree = "<group>"; };
 		6E021526157B46B800057721 /* SFCommonData.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = SFCommonData.c; sourceTree = "<group>"; };
 		6E021527157B46B800057721 /* SFCommonData.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SFCommonData.h; sourceTree = "<group>"; };
-		6E021528157B46B800057721 /* SFCommonMethods.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = SFCommonMethods.c; sourceTree = "<group>"; };
-		6E021529157B46B800057721 /* SFCommonMethods.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SFCommonMethods.h; sourceTree = "<group>"; };
 		6E02152A157B46B800057721 /* SFGDEFData.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = SFGDEFData.c; sourceTree = "<group>"; };
 		6E02152B157B46B800057721 /* SFGDEFData.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SFGDEFData.h; sourceTree = "<group>"; };
 		6E02152C157B46B800057721 /* SFGDEFUtilization.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = SFGDEFUtilization.c; sourceTree = "<group>"; };
 		6E02152D157B46B800057721 /* SFGDEFUtilization.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SFGDEFUtilization.h; sourceTree = "<group>"; };
-		6E02152E157B46B800057721 /* SFGlobal.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SFGlobal.h; sourceTree = "<group>"; };
 		6E02152F157B46B800057721 /* SFGPOSData.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = SFGPOSData.c; sourceTree = "<group>"; };
 		6E021530157B46B800057721 /* SFGPOSData.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SFGPOSData.h; sourceTree = "<group>"; };
 		6E021531157B46B800057721 /* SFGPOSUtilization.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = SFGPOSUtilization.c; sourceTree = "<group>"; };
@@ -76,8 +72,6 @@
 		6E021536157B46B800057721 /* SFGSUBUtilization.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SFGSUBUtilization.h; sourceTree = "<group>"; };
 		6E021537157B46B800057721 /* SFInternal.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = SFInternal.c; sourceTree = "<group>"; };
 		6E021538157B46B800057721 /* SFInternal.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SFInternal.h; sourceTree = "<group>"; };
-		6E02153A157B46B800057721 /* ssunistr.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = ssunistr.c; sourceTree = "<group>"; };
-		6E02153B157B46B800057721 /* ssunistr.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ssunistr.h; sourceTree = "<group>"; };
 		6E021563157B473B00057721 /* CoreGraphics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreGraphics.framework; path = System/Library/Frameworks/CoreGraphics.framework; sourceTree = SDKROOT; };
 		6E2A9425163B0E69000B9FA1 /* SFFont.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = SFFont.c; sourceTree = "<group>"; };
 		6E2A9426163B0E69000B9FA1 /* SFFont.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SFFont.h; sourceTree = "<group>"; };
@@ -89,6 +83,11 @@
 		6EC20319157AD40B002666E9 /* libsheenfigure.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libsheenfigure.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		6EC2034B157AD461002666E9 /* SFConfig.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SFConfig.h; sourceTree = "<group>"; };
 		6EC20377157AD7E7002666E9 /* SFTypes.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SFTypes.h; sourceTree = "<group>"; };
+		6ED95B3B17114F8D004249C1 /* CoreFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreFoundation.framework; path = System/Library/Frameworks/CoreFoundation.framework; sourceTree = SDKROOT; };
+		6EEAF2AF17046AE400B1ED51 /* SFGSUBGPOSData.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = SFGSUBGPOSData.c; sourceTree = "<group>"; };
+		6EEAF2B017046AE400B1ED51 /* SFGSUBGPOSData.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SFGSUBGPOSData.h; sourceTree = "<group>"; };
+		6EEAF2B317046BEC00B1ED51 /* SFGSUBGPOSUtilization.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = SFGSUBGPOSUtilization.c; sourceTree = "<group>"; };
+		6EEAF2B517046BFB00B1ED51 /* SFGSUBGPOSUtilization.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SFGSUBGPOSUtilization.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -96,6 +95,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				6ED95B3C17114F8E004249C1 /* CoreFoundation.framework in Frameworks */,
 				6E021564157B473B00057721 /* CoreGraphics.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -117,21 +117,17 @@
 		6E021517157B46B800057721 /* SFInternal */ = {
 			isa = PBXGroup;
 			children = (
-				6E021539157B46B800057721 /* ssunistr */,
 				6E021518157B46B800057721 /* bidi */,
+				6E021526157B46B800057721 /* SFCommonData.c */,
+				6E021527157B46B800057721 /* SFCommonData.h */,
 				6E021522157B46B800057721 /* SFCMAPData.c */,
 				6E021523157B46B800057721 /* SFCMAPData.h */,
 				6E021524157B46B800057721 /* SFCMAPUtilization.c */,
 				6E021525157B46B800057721 /* SFCMAPUtilization.h */,
-				6E021526157B46B800057721 /* SFCommonData.c */,
-				6E021527157B46B800057721 /* SFCommonData.h */,
-				6E021528157B46B800057721 /* SFCommonMethods.c */,
-				6E021529157B46B800057721 /* SFCommonMethods.h */,
 				6E02152A157B46B800057721 /* SFGDEFData.c */,
 				6E02152B157B46B800057721 /* SFGDEFData.h */,
 				6E02152C157B46B800057721 /* SFGDEFUtilization.c */,
 				6E02152D157B46B800057721 /* SFGDEFUtilization.h */,
-				6E02152E157B46B800057721 /* SFGlobal.h */,
 				6E02152F157B46B800057721 /* SFGPOSData.c */,
 				6E021530157B46B800057721 /* SFGPOSData.h */,
 				6E021531157B46B800057721 /* SFGPOSUtilization.c */,
@@ -140,6 +136,10 @@
 				6E021534157B46B800057721 /* SFGSUBData.h */,
 				6E021535157B46B800057721 /* SFGSUBUtilization.c */,
 				6E021536157B46B800057721 /* SFGSUBUtilization.h */,
+				6EEAF2AF17046AE400B1ED51 /* SFGSUBGPOSData.c */,
+				6EEAF2B017046AE400B1ED51 /* SFGSUBGPOSData.h */,
+				6EEAF2B317046BEC00B1ED51 /* SFGSUBGPOSUtilization.c */,
+				6EEAF2B517046BFB00B1ED51 /* SFGSUBGPOSUtilization.h */,
 				6E021537157B46B800057721 /* SFInternal.c */,
 				6E021538157B46B800057721 /* SFInternal.h */,
 			);
@@ -160,15 +160,6 @@
 			path = bidi;
 			sourceTree = "<group>";
 		};
-		6E021539157B46B800057721 /* ssunistr */ = {
-			isa = PBXGroup;
-			children = (
-				6E02153A157B46B800057721 /* ssunistr.c */,
-				6E02153B157B46B800057721 /* ssunistr.h */,
-			);
-			path = ssunistr;
-			sourceTree = "<group>";
-		};
 		6EC2030E157AD40B002666E9 = {
 			isa = PBXGroup;
 			children = (
@@ -176,6 +167,7 @@
 				6E021512157B46B800057721 /* SFGraphics */,
 				6EC2034B157AD461002666E9 /* SFConfig.h */,
 				6EC20377157AD7E7002666E9 /* SFTypes.h */,
+				6ED95B3B17114F8D004249C1 /* CoreFoundation.framework */,
 				6E021563157B473B00057721 /* CoreGraphics.framework */,
 				6EC2031A157AD40B002666E9 /* Products */,
 			);
@@ -203,19 +195,17 @@
 				6E02154A157B46B800057721 /* SFCMAPData.h in Headers */,
 				6E02154C157B46B800057721 /* SFCMAPUtilization.h in Headers */,
 				6E02154E157B46B800057721 /* SFCommonData.h in Headers */,
-				6E021550157B46B800057721 /* SFCommonMethods.h in Headers */,
 				6E021552157B46B800057721 /* SFGDEFData.h in Headers */,
 				6E021554157B46B800057721 /* SFGDEFUtilization.h in Headers */,
-				6E021555157B46B800057721 /* SFGlobal.h in Headers */,
 				6E021557157B46B800057721 /* SFGPOSData.h in Headers */,
 				6E021559157B46B800057721 /* SFGPOSUtilization.h in Headers */,
 				6E02155B157B46B800057721 /* SFGSUBData.h in Headers */,
 				6E02155D157B46B800057721 /* SFGSUBUtilization.h in Headers */,
 				6E02155F157B46B800057721 /* SFInternal.h in Headers */,
-				6E021561157B46B800057721 /* ssunistr.h in Headers */,
 				6E2A942A163B0E69000B9FA1 /* SFFont.h in Headers */,
 				6E2A942C163B0E69000B9FA1 /* SFText.h in Headers */,
 				6EAEDF11163C031F0054FF6F /* interaction.h in Headers */,
+				6EEAF2B217046AE400B1ED51 /* SFGSUBGPOSData.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -245,7 +235,7 @@
 		6EC20310157AD40B002666E9 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastUpgradeCheck = 0430;
+				LastUpgradeCheck = 0460;
 				ORGANIZATIONNAME = "Sheen Solutions";
 			};
 			buildConfigurationList = 6EC20313157AD40B002666E9 /* Build configuration list for PBXProject "SheenFigureCG" */;
@@ -275,7 +265,6 @@
 				6E021549157B46B800057721 /* SFCMAPData.c in Sources */,
 				6E02154B157B46B800057721 /* SFCMAPUtilization.c in Sources */,
 				6E02154D157B46B800057721 /* SFCommonData.c in Sources */,
-				6E02154F157B46B800057721 /* SFCommonMethods.c in Sources */,
 				6E021551157B46B800057721 /* SFGDEFData.c in Sources */,
 				6E021553157B46B800057721 /* SFGDEFUtilization.c in Sources */,
 				6E021556157B46B800057721 /* SFGPOSData.c in Sources */,
@@ -283,11 +272,12 @@
 				6E02155A157B46B800057721 /* SFGSUBData.c in Sources */,
 				6E02155C157B46B800057721 /* SFGSUBUtilization.c in Sources */,
 				6E02155E157B46B800057721 /* SFInternal.c in Sources */,
-				6E021560157B46B800057721 /* ssunistr.c in Sources */,
 				6E2A9429163B0E69000B9FA1 /* SFFont.c in Sources */,
 				6E2A942B163B0E69000B9FA1 /* SFText.c in Sources */,
 				6EAEDF0F163C031F0054FF6F /* fribidi_tab_char_type_9.i in Sources */,
 				6EAEDF10163C031F0054FF6F /* interaction.c in Sources */,
+				6EEAF2B117046AE400B1ED51 /* SFGSUBGPOSData.c in Sources */,
+				6EEAF2B417046BEC00B1ED51 /* SFGSUBGPOSUtilization.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -300,8 +290,12 @@
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
 				CLANG_ENABLE_OBJC_ARC = NO;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
-				GCC_C_LANGUAGE_STANDARD = ansi;
+				GCC_C_LANGUAGE_STANDARD = c89;
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_ENABLE_OBJC_EXCEPTIONS = YES;
 				GCC_OPTIMIZATION_LEVEL = 0;
@@ -317,7 +311,10 @@
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				MACOSX_DEPLOYMENT_TARGET = 10.7;
 				ONLY_ACTIVE_ARCH = YES;
-				OTHER_CFLAGS = "-DSF_IOS_CG";
+				OTHER_CFLAGS = (
+					"-DSF_IOS_CG",
+					"-Werror=declaration-after-statement",
+				);
 				SDKROOT = iphoneos;
 			};
 			name = Debug;
@@ -328,9 +325,13 @@
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
 				CLANG_ENABLE_OBJC_ARC = NO;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = YES;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
-				GCC_C_LANGUAGE_STANDARD = ansi;
+				GCC_C_LANGUAGE_STANDARD = c89;
 				GCC_ENABLE_OBJC_EXCEPTIONS = YES;
 				GCC_VERSION = com.apple.compilers.llvm.clang.1_0;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
@@ -338,7 +339,10 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				MACOSX_DEPLOYMENT_TARGET = 10.7;
-				OTHER_CFLAGS = "-DSF_IOS_CG";
+				OTHER_CFLAGS = (
+					"-DSF_IOS_CG",
+					"-Werror=declaration-after-statement",
+				);
 				SDKROOT = iphoneos;
 			};
 			name = Release;

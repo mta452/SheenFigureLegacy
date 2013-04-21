@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2012 SheenFigure
+ * Copyright (C) 2013 SheenFigure
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,15 +17,13 @@
 #ifndef _SF_CONFIG_H
 #define _SF_CONFIG_H
 
-
 //#define CMAP_TEST
 //#define GDEF_TEST
 //#define SCRIPT_TEST
 //#define FEATURE_TEST
 //#define LOOKUP_TEST
 
-
-///////////////DEFINE TABLES THAT WE HAVE IMPLEMENTED IN OUR SOFTWARE///////////////////
+/////////////////DEFINE TABLES THAT ARE IMPLEMENTED IN THE LIBRARY//////////////////////
 
 //////////////////////////////////////GDEF TABLE////////////////////////////////////////
 
@@ -36,7 +34,6 @@
 #define GDEF_MARK_GLYPH_SETS_DEF
 
 ////////////////////////////////////////////////////////////////////////////////////////
-
 
 //////////////////////////////////////GSUB TABLE////////////////////////////////////////
 
@@ -51,20 +48,6 @@
 #define GSUB_ALTERNATE
 
 #define GSUB_LIGATURE
-
-//#define GSUB_CONTEXT_FORMAT1
-//#define GSUB_CONTEXT_FORMAT2
-//#define GSUB_CONTEXT_FORMAT3
-#if defined(GSUB_CONTEXT_FORMAT1) || defined(GSUB_CONTEXT_FORMAT2) || defined(GSUB_CONTEXT_FORMAT3)
-#define GSUB_CONTEXT
-#endif
-
-//#define GSUB_CHAINING_CONTEXT_FORMAT1
-//#define GSUB_CHAINING_CONTEXT_FORMAT2
-#define GSUB_CHAINING_CONTEXT_FORMAT3
-#if defined(GSUB_CHAINING_CONTEXT_FORMAT1) || defined(GSUB_CHAINING_CONTEXT_FORMAT2) || defined(GSUB_CHAINING_CONTEXT_FORMAT3)
-#define GSUB_CHAINING_CONTEXT
-#endif
 
 #define GSUB_EXTENSION
 
@@ -103,21 +86,27 @@
 #define GPOS_ANCHOR
 #endif
 
-//#define GPOS_CONTEXT_FORMAT1
-//#define GPOS_CONTEXT_FORMAT2
-//#define GPOS_CONTEXT_FORMAT3
-#if defined(GPOS_CONTEXT_FORMAT1) || defined(GPOS_CONTEXT_FORMAT2) || defined(GPOS_CONTEXT_FORMAT3)
-#define GPOS_CONTEXT
-#endif
-
-//#define GPOS_CHAINING_CONTEXT_FORMAT1
-//#define GPOS_CHAINING_CONTEXT_FORMAT2
-#define GPOS_CHAINING_CONTEXT_FORMAT3
-#if defined(GPOS_CHAINING_CONTEXT_FORMAT1) || defined(GPOS_CHAINING_CONTEXT_FORMAT2) || defined(GPOS_CHAINING_CONTEXT_FORMAT3)
-#define GPOS_CHAINING_CONTEXT
-#endif
-
 #define GPOS_EXTENSION
+
+////////////////////////////////////////////////////////////////////////////////////////
+
+////////////////////////////////GSUB GPOS COMMON TABLE//////////////////////////////////
+
+//#define GSUB_GPOS_CONTEXT_FORMAT1
+//#define GSUB_GPOS_CONTEXT_FORMAT2
+//#define GSUB_GPOS_CONTEXT_FORMAT3
+
+#if defined(GSUB_GPOS_CONTEXT_FORMAT1) || defined(GSUB_GPOS_CONTEXT_FORMAT2) || defined(GSUB_GPOS_CONTEXT_FORMAT3)
+#define GSUB_GPOS_CONTEXT
+#endif
+
+//#define GSUB_GPOS_CHAINING_CONTEXT_FORMAT1
+//#define GSUB_GPOS_CHAINING_CONTEXT_FORMAT2
+#define GSUB_GPOS_CHAINING_CONTEXT_FORMAT3
+
+#if defined(GSUB_GPOS_CHAINING_CONTEXT_FORMAT1) || defined(GSUB_GPOS_CHAINING_CONTEXT_FORMAT2) || defined(GSUB_GPOS_CHAINING_CONTEXT_FORMAT3)
+#define GSUB_GPOS_CHAINING_CONTEXT
+#endif
 
 ////////////////////////////////////////////////////////////////////////////////////////
 

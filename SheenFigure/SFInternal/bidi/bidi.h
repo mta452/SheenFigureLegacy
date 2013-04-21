@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2012 SheenFigure
+ * Copyright (C) 2013 SheenFigure
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,11 +17,18 @@
 #ifndef _BIDI_H
 #define _BIDI_H
 
-#include "ssunistr.h"
+#include "SFTypes.h"
 
-#define odd(x) ((x) & 1)
-#define even(x) !odd(x)
+typedef struct SFMirroredChar {
+    int index;
+    SFUnichar ch;
+    
+    struct SFMirroredChar *next;
+} SFMirroredChar;
 
-void resolveBidi(SFUnichar *pszInput, int *types, int *levels, int cch, int *lOrder);
+int baseLevel(const int *pcls, int cch);
+SFMirroredChar *generateMirroredChars(const SFUnichar *pszInput, const int *plevel, int cch);
+void generateBidiVisualOrder(int baselevel, const int *pclsLine, int *plevelLine, int *visOrder, int cchPara);
+void generateBidiTypesAndLevels(int baselevel, const SFUnichar *pszInput, int *types, int *levels, int cch);
 
 #endif

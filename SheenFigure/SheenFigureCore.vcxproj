@@ -138,16 +138,16 @@
     <ClInclude Include="SFInternal\SFCMAPData.h" />
     <ClInclude Include="SFInternal\SFCMAPUtilization.h" />
     <ClInclude Include="SFInternal\SFCommonData.h" />
-    <ClInclude Include="SFInternal\SFCommonMethods.h" />
     <ClInclude Include="SFInternal\SFGDEFData.h" />
     <ClInclude Include="SFInternal\SFGDEFUtilization.h" />
     <ClInclude Include="SFInternal\SFGlobal.h" />
     <ClInclude Include="SFInternal\SFGPOSData.h" />
     <ClInclude Include="SFInternal\SFGPOSUtilization.h" />
     <ClInclude Include="SFInternal\SFGSUBData.h" />
+    <ClInclude Include="SFInternal\SFGSUBGPOSData.h" />
+    <ClInclude Include="SFInternal\SFGSUBGPOSUtilization.h" />
     <ClInclude Include="SFInternal\SFGSUBUtilization.h" />
     <ClInclude Include="SFInternal\SFInternal.h" />
-    <ClInclude Include="SFInternal\ssunistr\ssunistr.h" />
     <ClInclude Include="SFTypes.h" />
   </ItemGroup>
   <ItemGroup>
@@ -158,15 +158,15 @@
     <ClCompile Include="SFInternal\SFCMAPData.c" />
     <ClCompile Include="SFInternal\SFCMAPUtilization.c" />
     <ClCompile Include="SFInternal\SFCommonData.c" />
-    <ClCompile Include="SFInternal\SFCommonMethods.c" />
     <ClCompile Include="SFInternal\SFGDEFData.c" />
     <ClCompile Include="SFInternal\SFGDEFUtilization.c" />
     <ClCompile Include="SFInternal\SFGPOSData.c" />
     <ClCompile Include="SFInternal\SFGPOSUtilization.c" />
     <ClCompile Include="SFInternal\SFGSUBData.c" />
+    <ClCompile Include="SFInternal\SFGSUBGPOSData.c" />
+    <ClCompile Include="SFInternal\SFGSUBGPOSUtilization.c" />
     <ClCompile Include="SFInternal\SFGSUBUtilization.c" />
     <ClCompile Include="SFInternal\SFInternal.c" />
-    <ClCompile Include="SFInternal\ssunistr\ssunistr.c" />
   </ItemGroup>
   <ItemGroup>
     <None Include="SFInternal\bidi\fribidi_tab_char_type_9.i" />

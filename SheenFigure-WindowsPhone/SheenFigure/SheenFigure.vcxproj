@@ -132,7 +132,6 @@
     <ClInclude Include="Font.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="Text.h" />
-    <ClInclude Include="TextAlignment.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Font.cpp" />

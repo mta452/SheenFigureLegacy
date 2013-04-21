@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2012 SheenFigure
+ * Copyright (C) 2013 SheenFigure
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,67 +22,85 @@
 
 using namespace SheenFigure::Graphics;
 
-Font::Font(SFFontRef ptr)
+void Font::Initialize(String ^path, float size, SFFontRef refPtr)
 {
-	refPtr = ptr;
-}
+	this->path = path;
 
-Font::Font(String ^path, float size)
-{
 	const wchar_t *uniPath = path->Data();
 	int length = path->Length();
 
 	char *asciiPath = (char *)malloc(sizeof(char) * (length + 1));
 	asciiPath[length] = '\0';
 
-	for (int i = 0; i < length; i++)
+	for (int i = 0; i < length; i++) {
 		asciiPath[i] = (char)uniPath[i];
+	}
 
-	OutputDebugStringA(asciiPath);
+	float scale = Windows::Graphics::Display::DisplayProperties::LogicalDpi / 96.0f;
 
-	refPtr = SFFontCreateWithFileName(asciiPath, size);
-	if (!refPtr)
+	FT_Init_FreeType(&ftLib);
+	FT_New_Face(ftLib, asciiPath, 0, &ftFace);
+	FT_Set_Char_Size(ftFace, 0, (int)(size * scale * 64), 72, 72);
+
+	if (refPtr) {
+		sfFont = SFFontMakeCloneForFTFace(refPtr, ftFace, size);
+	} else {
+		sfFont = SFFontCreateWithFTFace(ftFace, size);
+	}
+
+	if (!sfFont) {
 		throw ref new Exception(0, "Could not initialize font.");
+	}
 }
 
-SFFontRef Font::GetRefPtr()
+Font::Font(String ^path, float size)
 {
-	return refPtr;
+	Initialize(path, size, 0);
+}
+
+Font::Font(String ^path, float size, SFFontRef refPtr)
+{
+	Initialize(path, size, refPtr);
 }
 
 Font ^Font::MakeClone(float size)
 {
-	SFFontRef clonePtr = SFFontMakeClone(refPtr, size);
-
-	return (ref new Font(clonePtr));
+	return (ref new Font(path, size, sfFont));
 }
 
-float Font::GetSize()
+SFFontRef Font::GetSFFont()
 {
-	return SFFontGetSize(refPtr);
+	return sfFont;
 }
 
-float Font::GetSizeByEm()
+float Font::Size::get()
 {
-	return SFFontGetSizeByEm(refPtr);
+	return SFFontGetSize(sfFont);
+}
+
+float Font::SizeByEm::get()
+{
+	return SFFontGetSizeByEm(sfFont);
 }
 	
-float Font::GetAscender()
+float Font::Ascender::get()
 {
-	return SFFontGetAscender(refPtr);
+	return SFFontGetAscender(sfFont);
 }
 
-float Font::GetDescender()
+float Font::Descender::get()
 {
-	return SFFontGetDescender(refPtr);
+	return SFFontGetDescender(sfFont);
 }
 
-float Font::GetLeading()
+float Font::Leading::get()
 {
-	return SFFontGetLeading(refPtr);
+	return SFFontGetLeading(sfFont);
 }
 
 Font::~Font() {
-	SFFontRelease(refPtr);
-}
+	SFFontRelease(sfFont);
 
+	FT_Done_Face(ftFace);
+	FT_Done_FreeType(ftLib);
+}

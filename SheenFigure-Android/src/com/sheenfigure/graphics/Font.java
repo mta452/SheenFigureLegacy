@@ -16,41 +16,32 @@
 
 package com.sheenfigure.graphics;
 
-import android.util.Log;
-
 public class Font extends Base {
 
-	private int mRefPtr = 0;
+	int mRefPtr = 0;
+	
+	private String mPath;
 
+	private Font(String path, float size, int refPtr) {
+		mPath = path;
+		initialize(path, size, refPtr);
+	}
+	
 	public Font(String path, float size) {
-		initialize(path, size);
+		this(path, size, 0);
 	}
-	
-	private Font(int refPtr) {
-		mRefPtr = refPtr;
-		Log.i("asdf", mRefPtr + "");
-	}
-	
-	public Font makeCloneOfDifferentSize(float size) {
-		int cloneRefPtr = makeClone(size);
-		Font clone = new Font(cloneRefPtr);
-		
-		return clone;
-	}
-	
-	protected long getRefPtr() {
-		return mRefPtr;
+
+	public Font makeClone(float size) {
+		return (new Font(mPath, size, mRefPtr));
 	}
 
 	@Override
 	public void finalize() throws Throwable {
 		super.finalize();
-
 		destroy();
 	}
 	
-	private native void initialize(String path, float size);
-	private native int makeClone(float size);
+	private native void initialize(String path, float size, int refPtr);
 
 	public native float getSize();
 	public native float getSizeByEm();

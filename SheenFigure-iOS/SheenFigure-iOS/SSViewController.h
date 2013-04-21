@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2012 SheenFigure
+ * Copyright (C) 2013 SheenFigure
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,13 +15,13 @@
  */
 
 #import <UIKit/UIKit.h>
-#import "SFLabel.h"
+#import "SSLabel.h"
 
 @interface SSViewController : UIViewController {
     IBOutlet UILabel *_lblTitle;
     IBOutlet UILabel *_lblReference;
-    
-    SFLabel *_lblDesc;
+    IBOutlet UIScrollView *_scrlView;
+    SSLabel *_lblDesc;
 }
 
 @end

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2012 SheenFigure
+ * Copyright (C) 2013 SheenFigure
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,17 +17,13 @@
 #ifndef _SF_COMMON_DATA_H
 #define _SF_COMMON_DATA_H
 
-#include <stdint.h>
-
-#include "ssunistr.h"
-#include "bidi/bidi.h"
-
 #include "SFConfig.h"
 #include "SFTypes.h"
 
-
 #define UNDEFINED_INDEX     -1
 
+SFUShort SFReadUShort(const SFUByte *base, uintptr_t offset);
+SFUInt SFReadUInt(const SFUByte *base, uintptr_t offset);
 
 /************************************SCRIPT TABLES***************************************/
 
@@ -241,76 +237,6 @@ void SFFreeCoverageTable(CoverageTable *tablePtr);
 
 void SFReadDeviceTable(const SFUByte * const dTable, DeviceTable *tablePtr);
 
-typedef struct SFRange {
-    int start;
-    int end;
-} SFRange;
-
-typedef struct SFPoint {
-    short x;
-    short y;
-} SFPoint;
-
-typedef enum SFAnchorType {
-    atNone = 0x0000,
-    atCursiveIgnored = 0x001,
-    atMark = 0x002,
-    atExit = 0x004,
-    atEntry = 0x008,
-} SFAnchorType;
-
-typedef enum SFGlyphProperty {
-    gpNotReceived = 0,
-    gpReceived = 1,
-    gpBase = 2,
-    gpMark = 4,
-    gpLigature = 8,
-    gpComponent = 16,
-    gpAdvance = 32
-} SFGlyphProperty;
-
-typedef struct SFPositionRecord {
-    SFPoint placement;
-    SFPoint advance;
-    
-    SFAnchorType anchorType;
-    SFPoint anchor;             //Either mark or base anchor
-} SFPositionRecord;
-
-extern const SFPositionRecord SFPositionRecordZero;
-
-typedef struct SFGlyphRecord {
-    SFGlyph glyph;
-    SFGlyphProperty glyphProp;
-    SFPositionRecord posRec;
-    float advance;
-} SFGlyphRecord;
-
-typedef struct SFCharRecord {
-    int glyphCount;
-    SFGlyphRecord *gRec;        //glyphs[glyphCount]
-} SFCharRecord;
-
-typedef struct SFStringRecord {
-    int charCount;
-    SFUnichar *chars;             //chars[charCount]
-    int *levels;                //levels[charCount]
-    int *lOrder;                //logicalOrder[charCount]
-    SFCharRecord *charRecord;   //charRecord[charCount]
-    int glyphCount;
-} SFStringRecord;
-
-typedef struct SFGlyphIndex {
-    int recordIndex;
-    int glyphIndex;
-} SFGlyphIndex;
-
-void SFAllocateStringRecord(SFStringRecord *record, SFUnichar *charsPtr, int *levelsPtr, int *lOrderPtr, int len);
-void SFFreeStringRecord(SFStringRecord *record);
-
 int SFGetIndexOfGlyphInCoverage(CoverageTable *tablePtr, SFGlyph glyph);
 
-
 #endif
-
-

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2012 SheenFigure
+ * Copyright (C) 2013 SheenFigure
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,9 +20,14 @@
 #include "SFConfig.h"
 #include "SFTypes.h"
 
+#ifndef _SF_TEXT_REF
+#define _SF_TEXT_REF
+
 typedef struct SFText *SFTextRef;
 
-typedef void (*SFGlyphRenderFunction)(void *, int, int, float, float, void *);
+#endif
+
+typedef void (*SFGlyphRenderFunction)(SFTextRef sfText, SFGlyph glyph, SFFloat x, SFFloat y, void *resObj);
 
 typedef enum {
     SFTextAlignmentRight = 0,
@@ -30,35 +35,25 @@ typedef enum {
     SFTextAlignmentLeft = 2,
 } SFTextAlignment;
 
-#ifdef SF_IOS_CG
+typedef enum {
+	SFWritingDirectionAuto = 0,
+    SFWritingDirectionRTL = 1,
+    SFWritingDirectionLTR = 2,
+} SFWritingDirection;
 
-#include <CoreGraphics/CoreGraphics.h>
-
-SFTextRef SFTextCreate(SFFontRef sfFont, CFStringRef str, SFFloat pageWidth);
-void SFTextChangeString(SFTextRef sfText, CFStringRef str);
-void SFTextSetColor(SFTextRef sfText, CGColorRef color);
-void CGContextDrawText(CGContextRef context, SFTextRef sfText, int startIndex, int *lines);
-
-#else
-
-SFTextRef SFTextCreate(SFFontRef sfFont, SFUnichar *str, int length, SFFloat pageWidth);
-void SFTextChangeString(SFTextRef sfText, SFUnichar *str, int length);
-void SFTextSetColor(SFTextRef sfText, SFColor color);
-int SFTextShowString(SFTextRef sfText, SFGlyphRenderFunction func, int startIndex, int *lines);
-
-#endif
-
-void SFTextSetReservedObject(SFTextRef sfText, void *obj);
-void SFTextChangeFont(SFTextRef sfText, SFFontRef sfFont);
-void SFTextChangePageWidth(SFTextRef sfText, SFFloat pageWidth);
-void SFTextSetAlignment(SFTextRef sfText, SFTextAlignment align);
-void SFTextSetInitialPosition(SFTextRef sfText, CGPoint pos);
-
-SFFontRef SFTextGetFont(SFTextRef sfText);
-
+SFTextRef SFTextCreateWithString(const SFUnichar *str, int length, SFFontRef sfFont);
 SFTextRef SFTextRetain(SFTextRef sfText);
 void SFTextRelease(SFTextRef sfText);
 
-int SFTextGetNextLineCharIndex(SFTextRef sfText, int maxLines, int startIndex, int *createdLines);
+void SFTextSetString(SFTextRef sfText, const SFUnichar *str, int length);
+void SFTextSetFont(SFTextRef sfText, SFFontRef sfFont);
+void SFTextSetAlignment(SFTextRef sfText, SFTextAlignment alignment);
+void SFTextSetWritingDirection(SFTextRef sfText, SFWritingDirection writingDirection);
+
+int SFTextGetNextLineCharIndex(SFTextRef sfText, SFFloat frameWidth, int startIndex, int *countLines);
+int SFTextMeasureLines(SFTextRef sfText, SFFloat frameWidth);
+SFFloat SFTextMeasureHeight(SFTextRef sfText, SFFloat frameWidth);
+
+int SFTextShowString(SFTextRef sfText, SFFloat frameWidth, SFPoint position, int startIndex, int *lines, void *resObj, SFGlyphRenderFunction func);
 
 #endif

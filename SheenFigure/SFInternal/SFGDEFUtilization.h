@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2012 SheenFigure
+ * Copyright (C) 2013 SheenFigure
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,11 +17,10 @@
 #ifndef _SF_GDEF_UTILIZATION_H
 #define _SF_GDEF_UTILIZATION_H
 
-#include "SFCommonData.h"
-#include "SFGDEFData.h"
+#include "SFInternal.h"
 
-void SFAddGlyphProperties(int charIndex, int glyphIndex);
+void SFAddGlyphProperties(SFInternal *internal, SFGlyphIndex index);
 SFBool SFDoesGlyphExistInGlyphClassDef(ClassDefTable *cls, GlyphClassValue clsValue, SFGlyph glyph);
-SFBool SFIsIgnoredGlyph(int charIndex, int glyphIndex, LookupFlag lookupFlag);
+SFBool SFIsIgnoredGlyph(SFInternal *internal, SFGlyphIndex index, LookupFlag lookupFlag);
 
 #endif

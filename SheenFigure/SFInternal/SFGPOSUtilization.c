@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2012 SheenFigure
+ * Copyright (C) 2013 SheenFigure
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,14 +14,11 @@
  * limitations under the License.
  */
 
-#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <stdint.h>
 
-#include "SFTypes.h"
-#include "SFGlobal.h"
-#include "SFCommonMethods.h"
+#include "SFGDEFUtilization.h"
+#include "SFGSUBGPOSUtilization.h"
 #include "SFGPOSUtilization.h"
 
 #define GPOS_FEATURE_TAGS 4
@@ -32,14 +29,16 @@ static unsigned char gposFeaturesTagOrder[GPOS_FEATURE_TAGS][5] = {
     "mkmk"                          //Mark to mark positioning
 };
 
-static void SFApplyGPOSLookup(LookupTable lookup, SFGlyphIndex sindex, SFGlyphIndex eindex);
+static void SFApplyGPOSLookup(SFInternal *internal, LookupTable lookup, SFGlyphIndex sidx, SFGlyphIndex eidx);
 
-static void createPositioningValues(ValueRecord record, ValueFormat format, SFPoint *point, SFPoint *advance) {
+#if defined(GPOS_SINGLE) || defined(GPOS_PAIR)
+
+static void createPositioningValues(ValueRecord record, ValueFormat format, SFPosition *pos, SFPosition *advance) {
     if (format & vfXPlacement)
-        point->x = record.xPlacement;
+        pos->x = record.xPlacement;
     
     if (format & vfYPlacement)
-        point->y = record.yPlacement;
+        pos->y = record.yPlacement;
     
     if (format & vfXAdvance)
         advance->x = record.xAdvance;
@@ -48,52 +47,60 @@ static void createPositioningValues(ValueRecord record, ValueFormat format, SFPo
         advance->y = record.yAdvance;
 }
 
-static void SFApplySingleAdjustment(SingleAdjustmentPosSubtable *stable, LookupFlag lookupFlag, SFGlyphIndex sindex, SFGlyphIndex eindex) {
-    int endRecordIndex = eindex.recordIndex + 1;
 
-	int i = sindex.recordIndex;
-    int j = sindex.glyphIndex;
+#ifdef GPOS_SINGLE
+
+static void SFApplySingleAdjustment(SFInternal *internal, SingleAdjustmentPosSubtable *stable, LookupFlag lookupFlag, SFGlyphIndex sidx, SFGlyphIndex eidx) {
+    int gidx;                   // end glyph index
+    int cidx;                   // coverage index
     
-    int endGlyphIndex;
-    
-    for (; i < endRecordIndex; i++) {
-        if (i == (endRecordIndex - 1))
-            endGlyphIndex = eindex.glyphIndex + 1;
-        else
-            endGlyphIndex = record->charRecord[i].glyphCount;
+    for (; ;) {
+        if (sidx.record < eidx.record) {
+            gidx = SFGetGlyphCount(internal, sidx.record);
+        } else if (sidx.record == eidx.record) {
+            gidx = eidx.glyph + 1;
+        } else {
+            break;
+        }
         
-        for (; j < endGlyphIndex; j++) {
-            int coverageIndex;
-            
-            if (SFIsIgnoredGlyph(i, j, lookupFlag))
+        for (; sidx.glyph < gidx; sidx.glyph++) {
+            if (SFIsIgnoredGlyph(internal, sidx, lookupFlag)) {
                 continue;
+            }
             
-            coverageIndex = SFGetIndexOfGlyphInCoverage(&stable->coverage, record->charRecord[i].gRec[j].glyph);
-            if (coverageIndex != UNDEFINED_INDEX) {
-                if (stable->posFormat == 1)
+            cidx = SFGetIndexOfGlyphInCoverage(&stable->coverage, SFGetGlyph(internal, sidx));
+            if (cidx != UNDEFINED_INDEX) {
+                if (stable->posFormat == 1) {
                     createPositioningValues(stable->format.format1.value,
                                             stable->valueFormat,
-                                            &record->charRecord[i].gRec[j].posRec.placement,
-                                            &record->charRecord[i].gRec[j].posRec.advance);
-                else if (stable->posFormat == 2)
-                    createPositioningValues(stable->format.format2.value[coverageIndex],
+                                            &SFGetPositionRecord(internal, sidx).placement,
+                                            &SFGetPositionRecord(internal, sidx).advance);
+                } else if (stable->posFormat == 2) {
+                    createPositioningValues(stable->format.format2.value[cidx],
                                             stable->valueFormat,
-                                            &record->charRecord[i].gRec[j].posRec.placement,
-                                            &record->charRecord[i].gRec[j].posRec.advance);
+                                            &SFGetPositionRecord(internal, sidx).placement,
+                                            &SFGetPositionRecord(internal, sidx).advance);
+                }
             }
         }
         
-        j = 0;
+        sidx.record++;
+        sidx.glyph = 0;
     }
 }
+
+#endif
+
+#ifdef GPOS_PAIR
 
 static int SFGetIndexOfGlyphInPairSet(PairSetTable *pairSet, SFGlyph glyph) {
 	int i;
     for (i = 0; i < pairSet->pairValueCount; i++) {
         SFGlyph inputGlyph = pairSet->pairValueRecord[i].secondGlyph;
         
-        if (inputGlyph == glyph)
+        if (inputGlyph == glyph) {
             return i;
+        }
     }
     
     return UNDEFINED_INDEX;
@@ -125,478 +132,475 @@ static int SFGetClassOfGlyphInClassDef(ClassDefTable *cls, SFGlyph glyph) {
     return UNDEFINED_INDEX;
 }
 
-static void SFApplyPairAdjustment(PairAdjustmentPosSubtable *stable, LookupFlag lookupFlag, SFGlyphIndex sindex, SFGlyphIndex eindex) {
-    int endRecordIndex;
-    int endGlyphIndex;
+static void SFApplyPairAdjustment(SFInternal *internal, PairAdjustmentPosSubtable *stable, LookupFlag lookupFlag, SFGlyphIndex sidx, SFGlyphIndex eidx) {
+    int gidx;                   // end glyph index
+    int cidx;                   // coverage index
     
-    int i, j;
-    
-    if (sindex.recordIndex == eindex.recordIndex && sindex.glyphIndex == eindex.glyphIndex)
-        return;
-    
-    endRecordIndex = eindex.recordIndex + 1;
-    j = sindex.glyphIndex;
-    
-    for (i = sindex.recordIndex; i < endRecordIndex; i++) {
-        if (i == (endRecordIndex - 1))
-            endGlyphIndex = eindex.glyphIndex + 1;
-        else
-            endGlyphIndex = record->charRecord[i].glyphCount;
+    for (; ;) {
+        if (sidx.record < eidx.record) {
+            gidx = SFGetGlyphCount(internal, sidx.record);
+        } else if (sidx.record == eidx.record) {
+            gidx = eidx.glyph + 1;
+        } else {
+            break;
+        }
         
-        for (; j < endGlyphIndex; j++) {
-            int coverageIndex;
-            
-            if (SFIsIgnoredGlyph(i, j, lookupFlag))
+        for (; sidx.glyph < gidx; sidx.glyph++) {
+            if (SFIsIgnoredGlyph(internal, sidx, lookupFlag)) {
                 continue;
+            }
             
-            coverageIndex = SFGetIndexOfGlyphInCoverage(&stable->coverage, record->charRecord[i].gRec[j].glyph);
-            if (coverageIndex != UNDEFINED_INDEX) {
-                SFGlyphIndex tmpIndex;
-                SFGlyph nextGlyph;
-                
-                tmpIndex = SFMakeGlyphIndex(i, j);
-                if (!SFGetNextValidGlyphIndex(&tmpIndex, lookupFlag))
-                    continue;
-                
-                nextGlyph = record->charRecord[tmpIndex.recordIndex].gRec[tmpIndex.glyphIndex].glyph;
+            cidx = SFGetIndexOfGlyphInCoverage(&stable->coverage, SFGetGlyph(internal, sidx));
+            if (cidx != UNDEFINED_INDEX) {
+                SFGlyphIndex nidx = sidx;
+                SFGlyph nglyph;
+
+                if (!SFGetNextValidGlyphIndex(internal, &nidx, lookupFlag)
+                    || SFCompareGlyphIndex(nidx, eidx) == 1) {
+                    return;     // if there is no next glyph or if index of next glyph is greater
+                                // than end index then there is no need to perform any action
+                }
+
+                nglyph = SFGetGlyph(internal, nidx);
                 
                 if (stable->posFormat == 1) {
-                    int pairSetIndex = SFGetIndexOfGlyphInPairSet(stable->format.format1.pairSetTable, nextGlyph);
+                    int pairSetIndex = SFGetIndexOfGlyphInPairSet(stable->format.format1.pairSetTable, nglyph);
                     
                     if (pairSetIndex != UNDEFINED_INDEX) {
                         createPositioningValues(
-                                                stable->format.format1.pairSetTable[coverageIndex].pairValueRecord[pairSetIndex].value1,
+                                                stable->format.format1.pairSetTable[cidx].pairValueRecord[pairSetIndex].value1,
                                                 stable->valueFormat1,
-                                                &record->charRecord[i].gRec[j].posRec.placement,
-                                                &record->charRecord[i].gRec[j].posRec.advance);
+                                                &SFGetPositionRecord(internal, sidx).placement,
+                                                &SFGetPositionRecord(internal, sidx).advance);
                         
                         createPositioningValues(
-                                                stable->format.format1.pairSetTable[coverageIndex].pairValueRecord[pairSetIndex].value2,
+                                                stable->format.format1.pairSetTable[cidx].pairValueRecord[pairSetIndex].value2,
                                                 stable->valueFormat2,
-                                                &record->charRecord[tmpIndex.recordIndex].gRec[tmpIndex.glyphIndex].posRec.placement,
-                                                &record->charRecord[tmpIndex.recordIndex].gRec[tmpIndex.glyphIndex].posRec.advance);
+                                                &SFGetPositionRecord(internal, nidx).placement,
+                                                &SFGetPositionRecord(internal, nidx).advance);
                     }
                 } else if (stable->posFormat == 2) {
                     int class1Index;
                     int class2Index;
                     
-                    class2Index = SFGetClassOfGlyphInClassDef(&stable->format.format2.classDef2, nextGlyph);
+                    class2Index = SFGetClassOfGlyphInClassDef(&stable->format.format2.classDef2, nglyph);
                     if (class2Index == UNDEFINED_INDEX)
                         continue;
                     
-                    class1Index = SFGetClassOfGlyphInClassDef(&stable->format.format2.classDef1, record->charRecord[i].gRec[j].glyph);
+                    class1Index = SFGetClassOfGlyphInClassDef(&stable->format.format2.classDef1, SFGetGlyph(internal, sidx));
                     
                     createPositioningValues(
                                             stable->format.format2.class1Record[class1Index].class2Record[class2Index].value1,
                                             stable->valueFormat1,
-                                            &record->charRecord[i].gRec[j].posRec.placement,
-                                            &record->charRecord[i].gRec[j].posRec.advance);
+                                            &SFGetPositionRecord(internal, sidx).placement,
+                                            &SFGetPositionRecord(internal, sidx).advance);
                     
                     createPositioningValues(
                                             stable->format.format2.class1Record[class1Index].class2Record[class2Index].value2,
                                             stable->valueFormat2,
-                                            &record->charRecord[tmpIndex.recordIndex].gRec[tmpIndex.glyphIndex].posRec.placement,
-                                            &record->charRecord[tmpIndex.recordIndex].gRec[tmpIndex.glyphIndex].posRec.advance);
+                                            &SFGetPositionRecord(internal, nidx).placement,
+                                            &SFGetPositionRecord(internal, nidx).advance);
                 }
                 
-                i = tmpIndex.recordIndex;
-                j = tmpIndex.glyphIndex;
+                sidx = nidx;
             }
         }
         
-        j = 0;
+        sidx.record++;
+        sidx.glyph = 0;
     }
 }
 
-static void SFApplyCursiveAttachment(CursiveAttachmentPosSubtable *stable, LookupFlag lookupFlag, SFGlyphIndex sindex, SFGlyphIndex eindex) {
-    int endRecordIndex = eindex.recordIndex + 1;
+#endif
 
-	int i = sindex.recordIndex;
-    int j = sindex.glyphIndex;
-    
-    int endGlyphIndex;
+#endif
+
+
+#ifdef GPOS_CURSIVE
+
+static void SFApplyCursiveAttachment(SFInternal *internal, CursiveAttachmentPosSubtable *stable, LookupFlag lookupFlag, SFGlyphIndex sidx, SFGlyphIndex eidx) {
+    int gidx;                   // end glyph index
+    int cidx;                   // coverage index
     
     SFBool hasExitAnchor = SFFalse;
     AnchorTable exitAnchor;
     
-    for (; i < endRecordIndex; i++) {
-        if (i == (endRecordIndex - 1))
-            endGlyphIndex = eindex.glyphIndex + 1;
-        else
-            endGlyphIndex = record->charRecord[i].glyphCount;
+    for (; ;) {
+        if (sidx.record < eidx.record) {
+            gidx = SFGetGlyphCount(internal, sidx.record);
+        } else if (sidx.record == eidx.record) {
+            gidx = eidx.glyph + 1;
+        } else {
+            break;
+        }
         
-        for (; j < endGlyphIndex; j++) {
-            int coverageIndex;
-            
-            if (SFIsIgnoredGlyph(i, j, lookupFlag) && hasExitAnchor) {
-                record->charRecord[i].gRec[j].posRec.anchorType |= atCursiveIgnored;
+        for (; sidx.glyph < gidx; sidx.glyph++) {
+            if (SFIsIgnoredGlyph(internal, sidx, lookupFlag) && hasExitAnchor) {
+                SFGetPositionRecord(internal, sidx).anchorType |= atCursiveIgnored;
                 continue;
             }
             
-            coverageIndex = SFGetIndexOfGlyphInCoverage(&stable->coverage, record->charRecord[i].gRec[j].glyph);
-            if (coverageIndex != UNDEFINED_INDEX) {
-                if (stable->entryExitRecord[coverageIndex].hasEntryAnchor && hasExitAnchor) {
-                    record->charRecord[i].gRec[j].posRec.anchorType |= atEntry;
-                    record->charRecord[i].gRec[j].posRec.anchor.x = exitAnchor.xCoordinate - stable->entryExitRecord[coverageIndex].entryAnchor.xCoordinate;
-                    record->charRecord[i].gRec[j].posRec.anchor.y = exitAnchor.yCoordinate - stable->entryExitRecord[coverageIndex].entryAnchor.yCoordinate;
+            cidx = SFGetIndexOfGlyphInCoverage(&stable->coverage, SFGetGlyph(internal, sidx));
+            if (cidx != UNDEFINED_INDEX) {
+                if (stable->entryExitRecord[cidx].hasEntryAnchor && hasExitAnchor) {
+                    SFGetPositionRecord(internal, sidx).anchorType |= atEntry;
+                    SFGetPositionRecord(internal, sidx).anchor.x = exitAnchor.xCoordinate - stable->entryExitRecord[cidx].entryAnchor.xCoordinate;
+                    SFGetPositionRecord(internal, sidx).anchor.y = exitAnchor.yCoordinate - stable->entryExitRecord[cidx].entryAnchor.yCoordinate;
                     
                     hasExitAnchor = SFFalse;
                 }
                 
-                if (stable->entryExitRecord[coverageIndex].hasExitAnchor) {
-                    record->charRecord[i].gRec[j].posRec.anchorType |= atExit;
+                if (stable->entryExitRecord[cidx].hasExitAnchor) {
+                    SFGetPositionRecord(internal, sidx).anchorType |= atExit;
                     
                     hasExitAnchor = SFTrue;
-                    exitAnchor = stable->entryExitRecord[coverageIndex].exitAnchor;
+                    exitAnchor = stable->entryExitRecord[cidx].exitAnchor;
                 }
-            } else
+            } else {
                 hasExitAnchor = SFFalse;
+            }
         }
         
-        j = 0;
+        sidx.record++;
+        sidx.glyph = 0;
     }
 }
 
-static void SFApplyMarkToBaseAttachment(MarkToBaseAttachmentPosSubtable *stable, LookupFlag lookupFlag, SFGlyphIndex sindex, SFGlyphIndex eindex) {
-    int endRecordIndex = eindex.recordIndex + 1;
+#endif
 
-	int i = sindex.recordIndex;
-    int j = sindex.glyphIndex;
-    
-    int endGlyphIndex;
-    
-    for (; i < endRecordIndex; i++) {
-        if (odd(record->levels[i]))
-            goto continue_loop;
-        
-        if (i == (endRecordIndex - 1))
-            endGlyphIndex = eindex.glyphIndex + 1;
-        else
-            endGlyphIndex = record->charRecord[i].glyphCount;
-        
-        for (; j < endGlyphIndex; j++) {
-            int markIndex = SFGetIndexOfGlyphInCoverage(&stable->markCoverage, record->charRecord[i].gRec[j].glyph);
+#ifdef GPOS_MARK_TO_BASE
+
+static void SFApplyMarkToBaseAttachment(SFInternal *internal, MarkToBaseAttachmentPosSubtable *stable, LookupFlag lookupFlag, SFGlyphIndex sidx, SFGlyphIndex eidx) {
+    int gidx;                   // end glyph index
+
+    for (; ;) {
+        if (sidx.record < eidx.record) {
+            if (SFIsOddLevel(internal, sidx.record)) {
+                goto continue_loop;
+            }
             
-            if (markIndex != UNDEFINED_INDEX) {
-                SFGlyphIndex tmpIndex;
-                SFUShort classValue;
-                SFGlyph previousGlyph;
+            gidx = SFGetGlyphCount(internal, sidx.record);
+        } else if (sidx.record == eidx.record) {
+            if (SFIsOddLevel(internal, sidx.record)) {
+                break;
+            }
+            
+            gidx = eidx.glyph + 1;
+        } else {
+            break;
+        }
+
+        for (; sidx.glyph < gidx; sidx.glyph++) {
+            int midx = SFGetIndexOfGlyphInCoverage(&stable->markCoverage, SFGetGlyph(internal, sidx));
+            if (midx != UNDEFINED_INDEX) {
+                SFGlyphIndex pidx;  // previous index
+                SFUShort cls;
                 
-                int baseIndex;
+                int bidx;           // base index
                 int x, y;
                 
-                tmpIndex = SFMakeGlyphIndex(i, j);
-                
-                // Class Index to be applied on base glyph.
-                classValue = stable->markArray.markRecord[markIndex].cls;
-                
-                if (!SFGetPreviousBaseGlyphIndex(&tmpIndex, lookupFlag))
+                pidx = sidx;
+                if (!SFGetPreviousBaseGlyphIndex(internal, &pidx, lookupFlag)) {
                     continue;
-                
-                previousGlyph = record->charRecord[tmpIndex.recordIndex].gRec[tmpIndex.glyphIndex].glyph;
-                
-                baseIndex = SFGetIndexOfGlyphInCoverage(&stable->baseCoverage, previousGlyph);
-                
-                if (baseIndex == UNDEFINED_INDEX)
-                    continue;   // Previous glyph did not match any of the base glyphs
+                }
+
+                bidx = SFGetIndexOfGlyphInCoverage(&stable->baseCoverage, SFGetGlyph(internal, pidx));
+                if (bidx == UNDEFINED_INDEX) {
+                    continue;   // previous glyph did not match any of the base glyphs
 								// listed in base coverage table, so try matching sequence
 								// from next input glyph.
+                }
                 
-                record->charRecord[i].gRec[j].posRec.anchorType |= atMark;
+                SFGetPositionRecord(internal, sidx).anchorType |= atMark;
                 
-                x = stable->markArray.markRecord[markIndex].markAnchor.xCoordinate - stable->baseArray.baseRecord[baseIndex].baseAnchor[classValue].xCoordinate;
-                if (x)
-                    record->charRecord[i].gRec[j].posRec.anchor.x = x;
+                // class Index to be applied on base glyph.
+                cls = stable->markArray.markRecord[midx].cls;
                 
-                y = stable->markArray.markRecord[markIndex].markAnchor.yCoordinate - stable->baseArray.baseRecord[baseIndex].baseAnchor[classValue].yCoordinate;
-                record->charRecord[i].gRec[j].posRec.anchor.y = y;
+                x = stable->markArray.markRecord[midx].markAnchor.xCoordinate - stable->baseArray.baseRecord[bidx].baseAnchor[cls].xCoordinate;
+                if (x) {
+                    SFGetPositionRecord(internal, sidx).anchor.x = x;
+                }
+                
+                y = stable->markArray.markRecord[midx].markAnchor.yCoordinate - stable->baseArray.baseRecord[bidx].baseAnchor[cls].yCoordinate;
+                SFGetPositionRecord(internal, sidx).anchor.y = y;
             }
         }
         
     continue_loop:
-        j = 0;
+        sidx.record++;
+        sidx.glyph = 0;
     }
 }
 
-static void SFApplyMarkToLigatureAttachment(MarkToLigatureAttachmentPosSubtable *stable, LookupFlag lookupFlag, SFGlyphIndex sindex, SFGlyphIndex eindex) {
-    int endRecordIndex = eindex.recordIndex + 1;
+#endif
 
-	int i = sindex.recordIndex;
-    int j = sindex.glyphIndex;
+#ifdef GPOS_MARK_TO_LIGATURE
+
+static void SFApplyMarkToLigatureAttachment(SFInternal *internal, MarkToLigatureAttachmentPosSubtable *stable, LookupFlag lookupFlag, SFGlyphIndex sidx, SFGlyphIndex eidx) {
+    int gidx;                   // end glyph index
     
-    int endGlyphIndex;
-    
-    for (; i < endRecordIndex; i++) {
-        if (odd(record->levels[i]))
-            goto continue_loop;
+    for (; ;) {
+        if (sidx.record < eidx.record) {
+            if (SFIsOddLevel(internal, sidx.record)) {
+                goto continue_loop;
+            }
+            
+            gidx = SFGetGlyphCount(internal, sidx.record);
+        } else if (sidx.record == eidx.record) {
+            if (SFIsOddLevel(internal, sidx.record)) {
+                break;
+            }
+            
+            gidx = eidx.glyph + 1;
+        } else {
+            break;
+        }
         
-        if (i == (endRecordIndex - 1))
-            endGlyphIndex = eindex.glyphIndex + 1;
-        else
-            endGlyphIndex = record->charRecord[i].glyphCount;
-        
-        for (; j < endGlyphIndex; j++) {
-            int markIndex = SFGetIndexOfGlyphInCoverage(&stable->markCoverage, record->charRecord[i].gRec[j].glyph);
+        for (; sidx.glyph < gidx; sidx.glyph++) {
+            int markIndex = SFGetIndexOfGlyphInCoverage(&stable->markCoverage, SFGetGlyph(internal, sidx));
             
             if (markIndex != UNDEFINED_INDEX) {
-                SFGlyphIndex tmpIndex;
-                SFUShort classValue;
+                SFGlyphIndex pidx;  // previous index
+                SFUShort cls;
                 int component;
+
+                LigatureAttachTable *ligAttach;
                 
-                SFGlyph previousGlyph;
-                LigatureAttachTable ligAttach;
-                
-                int ligatureIndex;
+                int lidx;           // ligature index
                 int x, y;
                 
-                tmpIndex = SFMakeGlyphIndex(i, j);
-                
-                // Class Index to be applied on base glyph.
-                classValue = stable->markArray.markRecord[markIndex].cls;
+                pidx = sidx;
                 component = 0;
                 
-                if (!SFGetPreviousLigatureGlyphIndex(&tmpIndex, lookupFlag, &component))
+                if (!SFGetPreviousLigatureGlyphIndex(internal, &pidx, lookupFlag, &component)) {
                     continue;
+                }
+
+                lidx = SFGetIndexOfGlyphInCoverage(&stable->ligatureCoverage, SFGetGlyph(internal, pidx));
+                ligAttach = &stable->ligatureArray.ligatureAttach[lidx];
                 
-                previousGlyph = record->charRecord[tmpIndex.recordIndex].gRec[tmpIndex.glyphIndex].glyph;
-                
-                ligatureIndex = SFGetIndexOfGlyphInCoverage(&stable->ligatureCoverage, previousGlyph);
-                ligAttach = stable->ligatureArray.ligatureAttach[ligatureIndex];
-                
-                if (ligatureIndex == UNDEFINED_INDEX || component >= ligAttach.componentCount)
+                if (lidx == UNDEFINED_INDEX || component >= ligAttach->componentCount) {
                     continue;   // Previous glyph did not match any of the ligature glyphs
 								// listed in base coverage table, so try matching sequence
 								// from next input glyph.
+                }
                 
-                record->charRecord[i].gRec[j].posRec.anchorType = atMark;
+                SFGetPositionRecord(internal, sidx).anchorType = atMark;
                 
-                x = stable->markArray.markRecord[markIndex].markAnchor.xCoordinate - ligAttach.componentRecord[component].ligatureAnchor[classValue].xCoordinate;
-                if (x)
-                    record->charRecord[i].gRec[j].posRec.anchor.x = x;
+                // class Index to be applied on base glyph.
+                cls = stable->markArray.markRecord[markIndex].cls;
                 
-                y = stable->markArray.markRecord[markIndex].markAnchor.yCoordinate - ligAttach.componentRecord[component].ligatureAnchor[classValue].yCoordinate;
-                record->charRecord[i].gRec[j].posRec.anchor.y = y;
+                x = stable->markArray.markRecord[markIndex].markAnchor.xCoordinate - ligAttach->componentRecord[component].ligatureAnchor[cls].xCoordinate;
+                if (x) {
+                    SFGetPositionRecord(internal, sidx).anchor.x = x;
+                }
+                
+                y = stable->markArray.markRecord[markIndex].markAnchor.yCoordinate - ligAttach->componentRecord[component].ligatureAnchor[cls].yCoordinate;
+                SFGetPositionRecord(internal, sidx).anchor.y = y;
             }
         }
         
     continue_loop:
-        j = 0;
+        sidx.record++;
+        sidx.glyph = 0;
     }
 }
 
-static void SFApplyMarkToMarkAttachment(MarkToMarkAttachmentPosSubtable *stable, LookupFlag lookupFlag, SFGlyphIndex sindex, SFGlyphIndex eindex) {
-    int endRecordIndex = eindex.recordIndex + 1;
+#endif
 
-	int i = sindex.recordIndex;
-    int j = sindex.glyphIndex;
+#ifdef GPOS_MARK_TO_MARK
+
+static void SFApplyMarkToMarkAttachment(SFInternal *internal, MarkToMarkAttachmentPosSubtable *stable, LookupFlag lookupFlag, SFGlyphIndex sidx, SFGlyphIndex eidx) {
+    int gidx;                   // end glyph index
     
-    int endGlyphIndex;
-    
-    for (; i < endRecordIndex; i++) {
-        if (odd(record->levels[i]))
-            goto continue_loop;
+    for (; ;) {
+        if (sidx.record < eidx.record) {
+            if (SFIsOddLevel(internal, sidx.record)) {
+                goto continue_loop;
+            }
+            
+            gidx = SFGetGlyphCount(internal, sidx.record);
+        } else if (sidx.record == eidx.record) {
+            if (SFIsOddLevel(internal, sidx.record)) {
+                break;
+            }
+            
+            gidx = eidx.glyph + 1;
+        } else {
+            break;
+        }
         
-        if (i == (endRecordIndex - 1))
-            endGlyphIndex = eindex.glyphIndex + 1;
-        else
-            endGlyphIndex = record->charRecord[i].glyphCount;
-        
-        for (; j < endGlyphIndex; j++) {
-            int mark1Index = SFGetIndexOfGlyphInCoverage(&stable->mark1Coverage, record->charRecord[i].gRec[j].glyph);
+        for (; sidx.glyph < gidx; sidx.glyph++) {
+            int mark1Index = SFGetIndexOfGlyphInCoverage(&stable->mark1Coverage, SFGetGlyph(internal, sidx));
             
             if (mark1Index != UNDEFINED_INDEX) {
-                SFGlyphIndex tmpIndex;
-                SFUShort classValue;
-                SFGlyph previousGlyph;
+                SFGlyphIndex pidx;
+                SFUShort cls;
                 
                 int mark2Index;
                 int x, y;
                 
-                tmpIndex = SFMakeGlyphIndex(i, j);
-                
-                // Class Index to be applied on base glyph.
-                classValue = stable->mark1Array.markRecord[mark1Index].cls;
-
-                if (!SFGetPreviousGlyphIndex(&tmpIndex, lookupFlag))
+                pidx = sidx;
+                if (!SFGetPreviousGlyphIndex(internal, &pidx, lookupFlag) || !SFGetGlyph(internal, pidx)) {
                     continue;
-                
-                previousGlyph = record->charRecord[tmpIndex.recordIndex].gRec[tmpIndex.glyphIndex].glyph;
-                if (previousGlyph == 0)
-					continue;
+                }
 
-                mark2Index = SFGetIndexOfGlyphInCoverage(&stable->mark2Coverage, previousGlyph);
-                if (mark2Index == UNDEFINED_INDEX)
+                mark2Index = SFGetIndexOfGlyphInCoverage(&stable->mark2Coverage, SFGetGlyph(internal, pidx));
+                if (mark2Index == UNDEFINED_INDEX) {
                     continue;   // Previous glyph did not match any of the base glyphs
 								// listed in base coverage table, so try matching sequence
 								// from next input glyph.
+                }
                 
-                record->charRecord[i].gRec[j].posRec.anchorType = atMark;
+                SFGetPositionRecord(internal, sidx).anchorType = atMark;
                 
-                x = stable->mark1Array.markRecord[mark1Index].markAnchor.xCoordinate - stable->mark2Array.mark2Record[mark2Index].mark2Anchor[classValue].xCoordinate;
-                if (x)
-                    record->charRecord[i].gRec[j].posRec.anchor.x = x - record->charRecord[tmpIndex.recordIndex].gRec[tmpIndex.glyphIndex].posRec.anchor.x;
+                // class Index to be applied on first mark glyph.
+                cls = stable->mark1Array.markRecord[mark1Index].cls;
                 
-                y = stable->mark1Array.markRecord[mark1Index].markAnchor.yCoordinate - stable->mark2Array.mark2Record[mark2Index].mark2Anchor[classValue].yCoordinate;
-                record->charRecord[i].gRec[j].posRec.anchor.y = y + record->charRecord[tmpIndex.recordIndex].gRec[tmpIndex.glyphIndex].posRec.anchor.y;
+                x = stable->mark1Array.markRecord[mark1Index].markAnchor.xCoordinate - stable->mark2Array.mark2Record[mark2Index].mark2Anchor[cls].xCoordinate;
+                if (x) {
+                    SFGetPositionRecord(internal, sidx).anchor.x = x - SFGetPositionRecord(internal, pidx).anchor.x;
+                }
+                
+                y = stable->mark1Array.markRecord[mark1Index].markAnchor.yCoordinate - stable->mark2Array.mark2Record[mark2Index].mark2Anchor[cls].yCoordinate;
+                SFGetPositionRecord(internal, sidx).anchor.y = y + SFGetPositionRecord(internal, pidx).anchor.y;
             }
         }
         
     continue_loop:
-        j = 0;
+        sidx.record++;
+        sidx.glyph = 0;
     }
 }
 
-static void SFApplyChainingContextual(ChainingContextualPosSubtable *stable, LookupFlag lookupFlag) {
-    SFGlyphIndex index;
-	SFGlyphIndex *inputIndexes = malloc(sizeof(SFGlyphIndex) * stable->format.format3.inputGlyphCount);
-    
-    if (stable->posFormat != 3)
-        return;
-    
-    index = SFMakeGlyphIndex(0, 0);
-    if (SFIsIgnoredGlyph(0, 0, lookupFlag)) {
-        if (!SFGetNextValidGlyphIndex(&index, lookupFlag))
-            return;
-    }
-    
-    do {
-        int coverageIndex;
-        
-        SFGlyphIndex tmpNextIndex;
-        SFGlyphIndex tmpPreviousIndex;
-        
-		int j = 1, k = 0, l = 0, m = 0, n = 0;
+#endif
 
-        coverageIndex = SFGetIndexOfGlyphInCoverage(&stable->format.format3.inputGlyphCoverage[0], record->charRecord[index.recordIndex].gRec[index.glyphIndex].glyph);
-        
-        if (coverageIndex == UNDEFINED_INDEX)
-            continue;
-        
-        inputIndexes[0] = index;
-        
-        // Loop to check input glyphs.
-        for (; j < stable->format.format3.inputGlyphCount; j++) {
-            SFGlyphIndex tmpIndex;
-            SFGlyph currentGlyph;
-            
-            tmpIndex = inputIndexes[k];
-            
-            // Checking if we have another glyph (except ignored glyphs) to match
-            if (!SFGetNextValidGlyphIndex(&tmpIndex, lookupFlag))
-                return;
-            
-            currentGlyph = record->charRecord[tmpIndex.recordIndex].gRec[tmpIndex.glyphIndex].glyph;
-            coverageIndex = SFGetIndexOfGlyphInCoverage(&stable->format.format3.inputGlyphCoverage[j], currentGlyph);
-            
-            inputIndexes[++k] = tmpIndex;
-            
-            // Current glyph does not match the input glyph,
-            // so try checking from next glyph.
-            if (coverageIndex == UNDEFINED_INDEX)
-                goto continue_parent_loop;
-        }
-        
-        tmpNextIndex = index;
-        
-        // Loop to check lookahead glyphs.
-        for (; m < stable->format.format3.lookaheadGlyphCount; m++) {
-            SFGlyph currentGlyph;
-            
-            if (!SFGetNextValidGlyphIndex(&tmpNextIndex, lookupFlag))
-                return;
-            
-            currentGlyph = record->charRecord[tmpNextIndex.recordIndex].gRec[tmpNextIndex.glyphIndex].glyph;
-            coverageIndex = SFGetIndexOfGlyphInCoverage(&stable->format.format3.lookaheadGlyphCoverage[m], currentGlyph);
-            
-            // Current glyph does not match the lookahead glyph,
-            // so try checking from next glyph.
-            if (coverageIndex == UNDEFINED_INDEX)
-                goto continue_parent_loop;
-        }
-        
-        tmpPreviousIndex = index;
-        
-        // Loop to check backtrack glyphs.
-        for (; l < stable->format.format3.backtrackGlyphCount; l++) {
-            SFGlyph currentGlyph;
-            
-            if (!SFGetPreviousValidGlyphIndex(&tmpPreviousIndex, lookupFlag))
-                goto continue_parent_loop;
-            
-            currentGlyph = record->charRecord[tmpPreviousIndex.recordIndex].gRec[tmpPreviousIndex.glyphIndex].glyph;
-            coverageIndex = SFGetIndexOfGlyphInCoverage(&stable->format.format3.backtrackGlyphCoverage[l], currentGlyph);
-            
-            // Current glyph does not match the backtrack glyph,
-            // so try checking from next glyph.
-            if (coverageIndex == UNDEFINED_INDEX)
-                goto continue_parent_loop;
-        }
-        
-        // Finally all conditions are satisfied, so we apply substitution here.
-        for (; n < stable->format.format3.posCount; n++) {
-            PosLookupRecord currentRecord = stable->format.format3.PosLookupRecord[n];
-            
-            SFApplyGPOSLookup(gpos->lookupList.lookupTables[currentRecord.lookupListIndex], inputIndexes[currentRecord.sequenceIndex], inputIndexes[stable->format.format3.inputGlyphCount - 1]);
-        }
-        
-        index = inputIndexes[stable->format.format3.inputGlyphCount - 1];
-        
-    continue_parent_loop:
-        {
-            //continue;
-        }
-    } while (SFGetNextValidGlyphIndex(&index, lookupFlag));
-
-	free(inputIndexes);
-}
-
-static void SFApplyGPOSLookup(LookupTable lookup, SFGlyphIndex sindex, SFGlyphIndex eindex) {
+static void SFApplyGPOSLookup(SFInternal *internal, LookupTable lookup, SFGlyphIndex sidx, SFGlyphIndex eidx) {
 	int i = 0;
 
+#ifdef GPOS_SINGLE
+    
     if (lookup.lookupType == ltpSingleAdjustment) {
         for (; i < lookup.subTableCount; i++)
-            SFApplySingleAdjustment(lookup.subtables[i], lookup.lookupFlag, sindex, eindex);
-    } else if (lookup.lookupType == ltpPairAdjustment) {
-        for (; i < lookup.subTableCount; i++)
-            SFApplyPairAdjustment(lookup.subtables[i], lookup.lookupFlag, sindex, eindex);
-    } else if (lookup.lookupType == ltpCursiveAttachment) {
-        for (; i < lookup.subTableCount; i++)
-            SFApplyCursiveAttachment(lookup.subtables[i], lookup.lookupFlag, sindex, eindex);
-    } else if (lookup.lookupType == ltpMarkToBaseAttachment) {
-        for (; i < lookup.subTableCount; i++)
-            SFApplyMarkToBaseAttachment(lookup.subtables[i], lookup.lookupFlag, sindex, eindex);
-    } else if (lookup.lookupType == ltpMarkToLigatureAttachment) {
-        for (; i < lookup.subTableCount; i++)
-            SFApplyMarkToLigatureAttachment(lookup.subtables[i], lookup.lookupFlag, sindex, eindex);
-    } else if (lookup.lookupType == ltpMarkToMarkAttachment) {
-        for (; i < lookup.subTableCount; i++)
-            SFApplyMarkToMarkAttachment(lookup.subtables[i], lookup.lookupFlag, sindex, eindex);
-    } else if (lookup.lookupType == ltpChainedContextPositioning) {
-        for (; i < lookup.subTableCount; i++)
-            SFApplyChainingContextual(lookup.subtables[i], lookup.lookupFlag);
+            SFApplySingleAdjustment(internal, lookup.subtables[i], lookup.lookupFlag, sidx, eidx);
     }
+    
+#define GPOS_ELSE
+    
+#endif
+    
+#ifdef GPOS_PAIR
+    
+#ifdef GPOS_ELSE
+    else
+#else
+#define GPOS_ELSE
+#endif
+        
+     if (lookup.lookupType == ltpPairAdjustment) {
+        for (; i < lookup.subTableCount; i++)
+            SFApplyPairAdjustment(internal, lookup.subtables[i], lookup.lookupFlag, sidx, eidx);
+    }
+    
+#endif
+    
+#ifdef GPOS_CURSIVE
+    
+#ifdef GPOS_ELSE
+     else
+#else
+#define GPOS_ELSE
+#endif
+             
+    if (lookup.lookupType == ltpCursiveAttachment) {
+        for (; i < lookup.subTableCount; i++)
+            SFApplyCursiveAttachment(internal, lookup.subtables[i], lookup.lookupFlag, sidx, eidx);
+    }
+    
+#endif
+    
+#ifdef GPOS_MARK_TO_BASE
+    
+#ifdef GPOS_ELSE
+    else
+#else
+#define GPOS_ELSE
+#endif
+        
+    if (lookup.lookupType == ltpMarkToBaseAttachment) {
+        for (; i < lookup.subTableCount; i++)
+            SFApplyMarkToBaseAttachment(internal, lookup.subtables[i], lookup.lookupFlag, sidx, eidx);
+    }
+    
+#endif
+    
+#ifdef GPOS_MARK_TO_LIGATURE
+    
+#ifdef GPOS_ELSE
+    else
+#else
+#define GPOS_ELSE
+#endif
+    
+    if (lookup.lookupType == ltpMarkToLigatureAttachment) {
+        for (; i < lookup.subTableCount; i++)
+            SFApplyMarkToLigatureAttachment(internal, lookup.subtables[i], lookup.lookupFlag, sidx, eidx);
+    }
+    
+#endif
+
+#ifdef GPOS_MARK_TO_MARK
+    
+#ifdef GPOS_ELSE
+    else
+#else
+#define GPOS_ELSE
+#endif
+        
+    if (lookup.lookupType == ltpMarkToMarkAttachment) {
+        for (; i < lookup.subTableCount; i++)
+            SFApplyMarkToMarkAttachment(internal, lookup.subtables[i], lookup.lookupFlag, sidx, eidx);
+    }
+    
+#endif
+    
+#ifdef GSUB_GPOS_CHAINING_CONTEXT
+    
+#ifdef GPOS_ELSE
+    else
+#else
+#define GPOS_ELSE
+#endif
+
+    if (lookup.lookupType == ltpChainedContextPositioning) {
+        for (; i < lookup.subTableCount; i++)
+            SFApplyChainingContextual(internal, lookup.subtables[i], lookup.lookupFlag, &SFApplyGPOSLookup);
+    }
+    
+#endif
+    
+#ifdef GSUB_ELSE
+#undef GSUB_ELSE
+#endif
 }
 
-static void SFApplyGPOSFeatureList(int featureIndex) {
-    FeatureTable feature = gpos->featureList.featureRecord[featureIndex].feature;
+static void SFApplyGPOSFeatureList(SFInternal *internal, int featureIndex) {
+    FeatureTable feature = internal->gpos->featureList.featureRecord[featureIndex].feature;
     
-    SFGlyphIndex sindex;
-    SFGlyphIndex eindex;
+    SFGlyphIndex sidx;
+    SFGlyphIndex eidx;
     
     int i;
     
-    sindex.recordIndex = 0;
-    sindex.glyphIndex = 0;
+    sidx.record = 0;
+    sidx.glyph = 0;
     
-    eindex.recordIndex = record->charCount - 1;
-    eindex.glyphIndex = record->charRecord[eindex.recordIndex].glyphCount - 1;
+    eidx.record = SFGetCharCount(internal) - 1;
+    eidx.glyph = SFGetGlyphCount(internal, eidx.record) - 1;
     
     for (i = 0; i < feature.lookupCount; i++) {
-        LookupTable currentLookup = gpos->lookupList.lookupTables[feature.lookupListIndex[i]];
-        
-        eindex.glyphIndex = record->charRecord[record->charCount - 1].glyphCount - 1;
-        
-        SFApplyGPOSLookup(currentLookup, sindex, eindex);
+        LookupTable currentLookup = internal->gpos->lookupList.lookupTables[feature.lookupListIndex[i]];
+        SFApplyGPOSLookup(internal, currentLookup, sidx, eidx);
     }
 }
 
@@ -610,25 +614,21 @@ static int SFGetIndexOfGPOSFeatureTag(char tag[5]) {
     return -1;
 }
 
-void SFApplyGPOS(SFTableGPOS *gposTable, SFTableGDEF *gdefTable, SFStringRecord *strRecord) {
+void SFApplyGPOS(SFInternal *internal) {
     SFBool arabScriptFound = SFFalse;
     int arabScriptIndex;
     
 	int i;
-
-    gpos = gposTable;
-    gdef = gdefTable;
-    record = strRecord;
     
-    for (i = 0; i < gpos->scriptList.scriptCount; i++) {
-        if (strcmp((const char *)gpos->scriptList.scriptRecord[i].scriptTag, "arab") == 0) {
+    for (i = 0; i < internal->gpos->scriptList.scriptCount; i++) {
+        if (strcmp((const char *)internal->gpos->scriptList.scriptRecord[i].scriptTag, "arab") == 0) {
             arabScriptFound = SFTrue;
             arabScriptIndex = i;
         }
     }
     
     if (arabScriptFound) {
-        int totalFeatures = gpos->scriptList.scriptRecord[arabScriptIndex].script.defaultLangSys.featureCount;
+        int totalFeatures = internal->gpos->scriptList.scriptRecord[arabScriptIndex].script.defaultLangSys.featureCount;
         
         int order1[GPOS_FEATURE_TAGS];
         
@@ -639,9 +639,9 @@ void SFApplyGPOS(SFTableGPOS *gposTable, SFTableGDEF *gdefTable, SFStringRecord 
             order1[i] = -1;
         
         for (i = 0; i < totalFeatures; i++) {
-            int featureIndex = gpos->scriptList.scriptRecord[arabScriptIndex].script.defaultLangSys.featureIndex[i];
+            int featureIndex = internal->gpos->scriptList.scriptRecord[arabScriptIndex].script.defaultLangSys.featureIndex[i];
             
-            int val = SFGetIndexOfGPOSFeatureTag((char *)gpos->featureList.featureRecord[featureIndex].featureTag);
+            int val = SFGetIndexOfGPOSFeatureTag((char *)internal->gpos->featureList.featureRecord[featureIndex].featureTag);
             if (val > -1)
                 order1[val] = featureIndex;
             else
@@ -650,11 +650,11 @@ void SFApplyGPOS(SFTableGPOS *gposTable, SFTableGDEF *gdefTable, SFStringRecord 
         
         for (i = 0; i < GPOS_FEATURE_TAGS; i++) {
             if (order1[i] > -1)
-                SFApplyGPOSFeatureList(order1[i]);
+                SFApplyGPOSFeatureList(internal, order1[i]);
         }
         
         for (i = 0; i < order2Len; i++)
-            SFApplyGPOSFeatureList(order2[i]);
+            SFApplyGPOSFeatureList(internal, order2[i]);
 
 		free(order2);
     }

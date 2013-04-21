@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2012 SheenFigure
+ * Copyright (C) 2013 SheenFigure
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,117 +22,208 @@
 using namespace SheenFigure;
 using namespace SheenFigure::Graphics;
 
-typedef struct GlyphDataDelegateReference {
-	GlyphDataDelegate ^func;
-	Object ^resObj;
-} GlyphDataDelegateReference;
+typedef struct SSReservedObjects {
+	GlyphDataDelegate ^_func;
+	Object ^_resObj;
+
+	FT_Face _ftFace;
+	uint32_t _rgbColor;
+} SSReservedObjects;
 
 static SFUnichar *GetUnistr(String ^str, int *length) {
 	*length = str->Length();
 
-	const wchar_t *orgstr = str->Data();
-	SFUnichar *unistr = (SFUnichar *)malloc(*length * sizeof(SFUnichar));
-	for (int i = 0; i < *length; i++)
-		unistr[i] = orgstr[i];
+	if (*length)
+	{
+		const wchar_t *orgstr = str->Data();
+		SFUnichar *unistr = (SFUnichar *)malloc(*length * sizeof(SFUnichar));
+		for (int i = 0; i < *length; i++)
+			unistr[i] = orgstr[i];
 
-	return unistr;
+		return unistr;
+	}
+
+	return NULL;
 }
 
-static void CallDelegate(void *pixels, int width, int rows, float x, float y, void *resObj) {
-	Array<int32>^ pixelsArray = ref new Array<int32>((int32 *)pixels, width * rows);
-	GlyphDataDelegateReference *reference = (GlyphDataDelegateReference *)resObj;
-	reference->func(pixelsArray, width, rows, x, y, reference->resObj);
-}
-
-Text::Text(void)
+void Text::Initialize(Platform::String ^string, SheenFigure::Graphics::Font ^font)
 {
-	refPtr = SFTextCreate(NULL, NULL, 0, 100);
+	sfText = SFTextCreateWithString(NULL, 0, NULL);
+
+	Windows::UI::Color color;
+	color.R = color.G = color.B = 0;
+
+	Font = font;
+	Color = color;
+	Alignment = SheenFigure::Graphics::TextAlignment::Right;
+	WritingDirection = SheenFigure::Graphics::WritingDirection::RTL;
+	String = string;
 }
 
-void Text::SetViewArea(int width) {
-	SFTextChangePageWidth(refPtr, (float)width - 4);
+Text::Text()
+{
+	Initialize(nullptr, nullptr);
 }
 
-void Text::SetColor(Color color) {
-	SFColor c = ((color.R << 16) | (color.G << 8)) | color.B;
-	SFTextSetColor(refPtr, c);
+Text::Text(Platform::String ^string, SheenFigure::Graphics::Font ^font)
+{
+	Initialize(string, font);
 }
 
-void Text::SetTextAlignment(TextAlignment align) {
-	SFTextSetAlignment(refPtr, (SFTextAlignment)align);
+Platform::String ^Text::String::get()
+{
+	return string;
 }
 
-void Text::ChangeFont(Font ^font) {
-	SFTextChangeFont(refPtr, font->GetRefPtr());
-}
+void Text::String::set(Platform::String ^value)
+{
+	if (!value)
+		value = "";
 
-void Text::ChangeText(String ^str) {
+	string = value;
+
+	free(unistr);
+	unistr = NULL;
+
 	int length;
-	SFUnichar *unistr = GetUnistr(str, &length);
-	SFTextChangeString(refPtr, unistr, length);
+	unistr = GetUnistr(string, &length);
+	SFTextSetString(sfText, unistr, length);
 }
 
-int Text::RenderText(GlyphDataDelegate ^func, int initialIndex, int linesCount, int x, int y, Object ^resObj) {
-	if (!SFTextGetFont(refPtr))
+SheenFigure::Graphics::Font ^Text::Font::get()
+{
+	return font;
+}
+
+void Text::Font::set(SheenFigure::Graphics::Font ^value)
+{
+	if (value != font)
+	{
+		font = value;
+		SFTextSetFont(sfText, font->GetSFFont());
+	}
+}
+
+Windows::UI::Color Text::Color::get()
+{
+	return color;
+}
+
+void Text::Color::set(Windows::UI::Color value)
+{
+	color = value;
+	rgbColor = ((color.R << 16) | (color.G << 8)) | color.B;
+}
+
+SheenFigure::Graphics::TextAlignment Text::Alignment::get()
+{
+	return alignment;
+}
+
+void Text::Alignment::set(SheenFigure::Graphics::TextAlignment value)
+{
+	if (value != alignment)
+	{
+		alignment = value;
+		SFTextSetAlignment(sfText, (SFTextAlignment)alignment);
+	}
+}
+
+SheenFigure::Graphics::WritingDirection Text::WritingDirection::get()
+{
+	return writingDirection;
+}
+
+void Text::WritingDirection::set(SheenFigure::Graphics::WritingDirection value)
+{
+	if (value != writingDirection)
+	{
+		writingDirection = value;
+		SFTextSetWritingDirection(sfText, (SFWritingDirection)writingDirection);
+	}
+}
+
+int Text::GetNextLineCharIndex(float frameWidth, int startIndex, int linesCount) {
+	if (!font)
 		throw (ref new Exception(0, "Font is not provided."));
 
-	float singleLineHeight = SFFontGetLeading(refPtr);
+	int tmpLines = linesCount;
+	int nextIndex = SFTextGetNextLineCharIndex(sfText, frameWidth, startIndex, &tmpLines);
+	if (nextIndex == -1) {
+		return (-tmpLines-1);
+    }
 
-	CGPoint pos;
-	pos.x = (float)x;
-	pos.y = SFFontGetAscender(SFTextGetFont(refPtr)) + y;
-	SFTextSetInitialPosition(refPtr, pos);
+	return nextIndex;
+}
 
-	GlyphDataDelegateReference reference;
-	reference.func = func;
-	reference.resObj = resObj;
+int Text::MeasureLines(float frameWidth)
+{
+	return SFTextMeasureLines(sfText, frameWidth);
+}
 
-	SFTextSetReservedObject(refPtr, &reference);
+float Text::MeasureHeight(float frameWidth)
+{
+	return SFTextMeasureHeight(sfText, frameWidth);
+}
 
-	int numLines = linesCount;
-	initialIndex = SFTextShowString(refPtr, CallDelegate, initialIndex, &numLines);
+static void renderGlyph(SFTextRef sfText, SFGlyph glyph, SFFloat x, SFFloat y, void *resObj) {
+	SSReservedObjects *resObjects = (SSReservedObjects *)resObj;
+
+	FT_Error error;
+	FT_Face face = resObjects->_ftFace;
+	FT_GlyphSlot slot = face->glyph;
+
+	error = FT_Load_Glyph(face, glyph, FT_LOAD_DEFAULT);
+	if (error) {
+		return;
+	}
+
+	error = FT_Render_Glyph(face->glyph, FT_RENDER_MODE_NORMAL);
+	if (error) {
+		return;
+	}
+
+	FT_Bitmap *bmp = &slot->bitmap;
+	int length = bmp->width * bmp->rows;
+	if (!length) {
+	    return;
+	}
+
+	Array<int32>^ pixels = ref new Array<int32>(length);
+
+	//Here we will treat grayscale pixels as alpha
+	for (int i = 0; i < length; i++)
+		pixels[i] = (bmp->buffer[i] << 24) | resObjects->_rgbColor;
+
+	float scale = Windows::Graphics::Display::DisplayProperties::LogicalDpi / 96.0f;
+	resObjects->_func(pixels, bmp->width, bmp->rows, (x * scale) + slot->bitmap_left, (y * scale) - slot->bitmap_top, resObjects->_resObj);
+}
+
+int Text::ShowString(GlyphDataDelegate ^func, float frameWidth, float x, float y, int startIndex, int lines, Object ^resObj) {
+	SSReservedObjects resObjects;
+	resObjects._func = func;
+	resObjects._resObj = resObj;
+
+	FT_Face ftFace = SFFontGetFTFace(font->GetSFFont());
+	FT_Reference_Face(ftFace);
+
+	resObjects._ftFace = ftFace;
+	resObjects._rgbColor = rgbColor;
+
+	SFPoint pos;
+	pos.x = x;
+	pos.y = y;
+
+	int numLines = lines;
+	int result = SFTextShowString(sfText, frameWidth, pos, startIndex, &numLines, &resObjects, &renderGlyph);
+
+	FT_Done_Face(ftFace);
 
 	return numLines;
 }
 
-int Text::GetCharIndexAfterLines(int initialIndex, int linesCount) {
-	if (!SFTextGetFont(refPtr))
-		throw (ref new Exception(0, "Font is not provided."));
-
-	int tmpLines = 0;
-	int startIndex = SFTextGetNextLineCharIndex(refPtr, linesCount, initialIndex, &tmpLines);
-
-	if (startIndex == -1)
-		return -tmpLines;
-
-	if (startIndex > initialIndex)
-		return startIndex;
-
-	return ++initialIndex;
-}
-
-int Text::MeasureHeight() {
-	if (!SFTextGetFont(refPtr))
-		throw (ref new Exception(0, "Font is not provided."));
-
-	int lines = 0;
-	int startIndex = 0;
-
-	while (startIndex > -1) {
-		int tmpLines = 0;
-		int tmpStartIndex = SFTextGetNextLineCharIndex(refPtr, 10, startIndex, &tmpLines);
-		lines += tmpLines;
-
-		if (tmpStartIndex > startIndex || tmpStartIndex == -1)
-			startIndex = tmpStartIndex;
-		else
-			startIndex++;
-	}
-
-	int mHeight = (int)(lines * SFFontGetLeading(refPtr));
-	return mHeight;
-}
-
-Text::~Text() {
-	SFTextRelease(refPtr);
+Text::~Text()
+{
+	SFTextRelease(sfText);
+	free(unistr);
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2012 SheenFigure
+ * Copyright (C) 2013 SheenFigure
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,24 +21,18 @@
 #include "SFConfig.h"
 
 #ifdef SF_IOS_CG
-
 #include <CoreGraphics/CoreGraphics.h>
 typedef CGFloat							SFFloat;
-
 #else
-
 typedef float							SFFloat;
+#endif
 
-#ifndef COREGRAPHICS_H_
-typedef struct CGPoint {
+typedef struct SFPoint {
 	SFFloat x;
 	SFFloat y;
-} CGPoint;
-#endif
+} SFPoint;
 
-#endif
-
-typedef char							SFBool;
+typedef int                             SFBool;
 #define SFFalse							0
 #define SFTrue							1
 
@@ -47,8 +41,6 @@ typedef uint16_t                        SFUShort;
 typedef uint32_t                        SFUInt;
 
 typedef SFUShort 						SFUnichar;
-
 typedef SFUShort                        SFGlyph;
-typedef SFUInt                          SFColor;
 
 #endif

@@ -1,5 +1,5 @@
 #
-# Copyright (C) 2012 SheenFigure
+# Copyright (C) 2013 SheenFigure
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -59,7 +59,7 @@ include $(BUILD_STATIC_LIBRARY)
 #######################SHEEN FIGURE########################
 include $(CLEAR_VARS)
 
-LOCAL_MODULE := sheenfigure-core
+LOCAL_MODULE := sheenfigure
 
 SF_ROOT_PATH := $(LOCAL_PATH)/../../SheenFigure
 
@@ -71,13 +71,11 @@ LOCAL_SRC_FILES := $(FILE_LIST:$(LOCAL_PATH)/%=%)
 LOCAL_CFLAGS := -std=gnu99
 
 LOCAL_C_INCLUDES := $(SF_ROOT_PATH)
-LOCAL_C_INCLUDES += $(SF_ROOT_PATH)/SFInternal/ssunistr
 LOCAL_C_INCLUDES += $(SF_ROOT_PATH)/SFInternal/bidi
 LOCAL_C_INCLUDES += $(SF_ROOT_PATH)/SFInternal
 LOCAL_C_INCLUDES += $(SF_ROOT_PATH)/SFGraphics
 
 LOCAL_EXPORT_C_INCLUDES := $(SF_ROOT_PATH)
-LOCAL_EXPORT_C_INCLUDES += $(SF_ROOT_PATH)/SFInternal/ssunistr
 LOCAL_EXPORT_C_INCLUDES += $(SF_ROOT_PATH)/SFInternal/bidi
 LOCAL_EXPORT_C_INCLUDES += $(SF_ROOT_PATH)/SFInternal
 LOCAL_EXPORT_C_INCLUDES += $(SF_ROOT_PATH)/SFGraphics
@@ -90,11 +88,11 @@ include $(BUILD_STATIC_LIBRARY)
 ############################JNI############################
 include $(CLEAR_VARS)
 
-LOCAL_MODULE := sheenfigure
+LOCAL_MODULE := sheenfigure-android
 
-FILE_LIST := $(LOCAL_PATH)/Font.c
-FILE_LIST += $(LOCAL_PATH)/Text.c
-FILE_LIST += $(LOCAL_PATH)/SheenFigure.c
+FILE_LIST := $(LOCAL_PATH)/SSJNI.c
+FILE_LIST += $(LOCAL_PATH)/SSFont.c
+FILE_LIST += $(LOCAL_PATH)/SSText.c
 LOCAL_SRC_FILES := $(FILE_LIST:$(LOCAL_PATH)/%=%)
 
 LOCAL_CFLAGS := "-DSF_ANDROID -std=gnu99"
@@ -102,7 +100,7 @@ LOCAL_LDLIBS := -llog
 
 LOCAL_C_INCLUDES := $(LOCAL_PATH)
 
-LOCAL_STATIC_LIBRARIES := sheenfigure-core
+LOCAL_STATIC_LIBRARIES := sheenfigure
 
 include $(BUILD_SHARED_LIBRARY)
 ###########################################################

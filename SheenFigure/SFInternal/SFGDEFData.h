@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2012 SheenFigure
+ * Copyright (C) 2013 SheenFigure
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,7 +22,6 @@
 #include "SFConfig.h"
 #include "SFTypes.h"
 #include "SFCommonData.h"
-
 
 #ifdef GDEF_GLYPH_CLASS_DEF
 

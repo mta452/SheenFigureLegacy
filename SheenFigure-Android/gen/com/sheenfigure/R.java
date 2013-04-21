@@ -9,21 +9,154 @@ package com.sheenfigure;
 
 public final class R {
     public static final class attr {
+        /** <p>Must be a string value, using '\\;' to escape characters such as '\\n' or '\\uxxxx' for a unicode character.
+<p>This may also be a reference to a resource (in the form
+"<code>@[<i>package</i>:]<i>type</i>:<i>name</i></code>") or
+theme attribute (in the form
+"<code>?[<i>package</i>:][<i>type</i>:]<i>name</i></code>")
+containing a value of this type.
+         */
+        public static final int text=0x7f010000;
+        /** <p>Must be one or more (separated by '|') of the following constant values.</p>
+<table>
+<colgroup align="left" />
+<colgroup align="left" />
+<colgroup align="left" />
+<tr><th>Constant</th><th>Value</th><th>Description</th></tr>
+<tr><td><code>right</code></td><td>0</td><td></td></tr>
+<tr><td><code>center</code></td><td>1</td><td></td></tr>
+<tr><td><code>left</code></td><td>2</td><td></td></tr>
+</table>
+         */
+        public static final int textAlignment=0x7f010002;
+        /** <p>Must be a color value, in the form of "<code>#<i>rgb</i></code>", "<code>#<i>argb</i></code>",
+"<code>#<i>rrggbb</i></code>", or "<code>#<i>aarrggbb</i></code>".
+<p>This may also be a reference to a resource (in the form
+"<code>@[<i>package</i>:]<i>type</i>:<i>name</i></code>") or
+theme attribute (in the form
+"<code>?[<i>package</i>:][<i>type</i>:]<i>name</i></code>")
+containing a value of this type.
+         */
+        public static final int textColor=0x7f010001;
+        /** <p>Must be one or more (separated by '|') of the following constant values.</p>
+<table>
+<colgroup align="left" />
+<colgroup align="left" />
+<colgroup align="left" />
+<tr><th>Constant</th><th>Value</th><th>Description</th></tr>
+<tr><td><code>auto</code></td><td>0</td><td></td></tr>
+<tr><td><code>rtl</code></td><td>1</td><td></td></tr>
+<tr><td><code>ltr</code></td><td>2</td><td></td></tr>
+</table>
+         */
+        public static final int writingDirection=0x7f010003;
     }
     public static final class drawable {
         public static final int ic_launcher=0x7f020000;
     }
     public static final class id {
-        public static final int main_layout=0x7f050000;
-        public static final int sf_label=0x7f050002;
-        public static final int sf_label_scroll=0x7f050001;
+        public static final int auto=0x7f040003;
+        public static final int center=0x7f040001;
+        public static final int left=0x7f040002;
+        public static final int ltr=0x7f040005;
+        public static final int main_layout=0x7f040006;
+        public static final int right=0x7f040000;
+        public static final int rtl=0x7f040004;
+        public static final int sf_label_description=0x7f040008;
+        public static final int sf_label_scroll=0x7f040007;
     }
     public static final class layout {
         public static final int main=0x7f030000;
     }
     public static final class string {
-        public static final int app_name=0x7f040000;
-        public static final int reference=0x7f040002;
-        public static final int title=0x7f040001;
+        public static final int app_name=0x7f050000;
+        public static final int reference=0x7f050002;
+        public static final int title=0x7f050001;
     }
+    public static final class styleable {
+        /** Attributes that can be used with a Label.
+           <p>Includes the following attributes:</p>
+           <table>
+           <colgroup align="left" />
+           <colgroup align="left" />
+           <tr><th>Attribute</th><th>Description</th></tr>
+           <tr><td><code>{@link #Label_text com.sheenfigure:text}</code></td><td></td></tr>
+           <tr><td><code>{@link #Label_textAlignment com.sheenfigure:textAlignment}</code></td><td></td></tr>
+           <tr><td><code>{@link #Label_textColor com.sheenfigure:textColor}</code></td><td></td></tr>
+           <tr><td><code>{@link #Label_writingDirection com.sheenfigure:writingDirection}</code></td><td></td></tr>
+           </table>
+           @see #Label_text
+           @see #Label_textAlignment
+           @see #Label_textColor
+           @see #Label_writingDirection
+         */
+        public static final int[] Label = {
+            0x7f010000, 0x7f010001, 0x7f010002, 0x7f010003
+        };
+        /**
+          <p>This symbol is the offset where the {@link com.sheenfigure.R.attr#text}
+          attribute's value can be found in the {@link #Label} array.
+
+
+          <p>Must be a string value, using '\\;' to escape characters such as '\\n' or '\\uxxxx' for a unicode character.
+<p>This may also be a reference to a resource (in the form
+"<code>@[<i>package</i>:]<i>type</i>:<i>name</i></code>") or
+theme attribute (in the form
+"<code>?[<i>package</i>:][<i>type</i>:]<i>name</i></code>")
+containing a value of this type.
+          @attr name android:text
+        */
+        public static final int Label_text = 0;
+        /**
+          <p>This symbol is the offset where the {@link com.sheenfigure.R.attr#textAlignment}
+          attribute's value can be found in the {@link #Label} array.
+
+
+          <p>Must be one or more (separated by '|') of the following constant values.</p>
+<table>
+<colgroup align="left" />
+<colgroup align="left" />
+<colgroup align="left" />
+<tr><th>Constant</th><th>Value</th><th>Description</th></tr>
+<tr><td><code>right</code></td><td>0</td><td></td></tr>
+<tr><td><code>center</code></td><td>1</td><td></td></tr>
+<tr><td><code>left</code></td><td>2</td><td></td></tr>
+</table>
+          @attr name android:textAlignment
+        */
+        public static final int Label_textAlignment = 2;
+        /**
+          <p>This symbol is the offset where the {@link com.sheenfigure.R.attr#textColor}
+          attribute's value can be found in the {@link #Label} array.
+
+
+          <p>Must be a color value, in the form of "<code>#<i>rgb</i></code>", "<code>#<i>argb</i></code>",
+"<code>#<i>rrggbb</i></code>", or "<code>#<i>aarrggbb</i></code>".
+<p>This may also be a reference to a resource (in the form
+"<code>@[<i>package</i>:]<i>type</i>:<i>name</i></code>") or
+theme attribute (in the form
+"<code>?[<i>package</i>:][<i>type</i>:]<i>name</i></code>")
+containing a value of this type.
+          @attr name android:textColor
+        */
+        public static final int Label_textColor = 1;
+        /**
+          <p>This symbol is the offset where the {@link com.sheenfigure.R.attr#writingDirection}
+          attribute's value can be found in the {@link #Label} array.
+
+
+          <p>Must be one or more (separated by '|') of the following constant values.</p>
+<table>
+<colgroup align="left" />
+<colgroup align="left" />
+<colgroup align="left" />
+<tr><th>Constant</th><th>Value</th><th>Description</th></tr>
+<tr><td><code>auto</code></td><td>0</td><td></td></tr>
+<tr><td><code>rtl</code></td><td>1</td><td></td></tr>
+<tr><td><code>ltr</code></td><td>2</td><td></td></tr>
+</table>
+          @attr name android:writingDirection
+        */
+        public static final int Label_writingDirection = 3;
+    };
 }

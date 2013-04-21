@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2012 SheenFigure
+ * Copyright (C) 2013 SheenFigure
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,13 +17,12 @@
 #include <stdlib.h>
 
 #include "SFTypes.h"
-#include "ssunistr.h"
 #include "fribidi_tab_char_type_9.i"
 #include "fribidi_tab_mirroring.i"
 
 #include "interaction.h"
 
-SFBool getMirrorChar(SFUnichar ch, SFUnichar *mirror) {
+SFBool getMirroredChar(SFUnichar ch, SFUnichar *mirror) {
     int pos, step;
     SFBool found;
     
@@ -35,18 +34,22 @@ SFBool getMirrorChar(SFUnichar ch, SFUnichar *mirror) {
         
         if (cmp_ch < ch) {
             pos += step;
-            if (pos > nFriBidiMirroredChars - 1)
+            if (pos > nFriBidiMirroredChars - 1) {
                 pos = nFriBidiMirroredChars - 1;
+            }
         } else if (cmp_ch > ch) {
             pos -= step;
-            if (pos < 0)
+            if (pos < 0) {
                 pos = 0;
-        } else
+            }
+        } else {
             break;
+        }
     }
     found = FriBidiMirroredChars[pos].ch == ch;
-    if (mirror)
+    if (mirror) {
         *mirror = found ? FriBidiMirroredChars[pos].mirrored_ch : ch;
+    }
     
     return found;
 }

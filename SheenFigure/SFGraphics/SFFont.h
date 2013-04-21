@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2012 SheenFigure
+ * Copyright (C) 2013 SheenFigure
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,17 +20,10 @@
 #include "SFConfig.h"
 #include "SFTypes.h"
 
-#ifndef _SF_FONT_REF
+#ifndef _SF_FONT_PRIVATE_H
 #define _SF_FONT_REF
 
 typedef void *SFFontRef;
-
-#endif
-
-#ifndef _SF_STRING_RECORD_REF
-#define _SF_STRING_RECORD_REF
-
-typedef void *SFStringRecordRef;
 
 #endif
 
@@ -38,8 +31,8 @@ typedef void *SFStringRecordRef;
 
 #include <CoreGraphics/CoreGraphics.h>
 
-SFFontRef SFFontCreate(CGFontRef cgFont, SFFloat size);
-SFFontRef SFFontCreateWithFileName(CFStringRef name, CFStringRef extension, SFFloat size);
+SFFontRef SFFontCreateWithCGFont(CGFontRef cgFont, SFFloat size);
+SFFontRef SFFontMakeCloneForCGFont(SFFontRef sfFont, CGFontRef cgFont, SFFloat size);
 CGFontRef SFFontGetCGFont(SFFontRef sfFont);
 
 #else
@@ -47,13 +40,11 @@ CGFontRef SFFontGetCGFont(SFFontRef sfFont);
 #include <ft2build.h>
 #include <freetype/freetype.h>
 
-SFFontRef SFFontCreateWithFileName(const char *name, SFFloat size);
+SFFontRef SFFontCreateWithFTFace(FT_Face ftFace, SFFloat size);
+SFFontRef SFFontMakeCloneForFTFace(SFFontRef sfFont, FT_Face ftFace, SFFloat size);
 FT_Face SFFontGetFTFace(SFFontRef sfFont);
 
 #endif
-
-SFStringRecordRef SFFontAllocateStringRecordForString(SFFontRef sfFont, SFUnichar *inputString, int length);
-void SFFontDeallocateStringRecord(SFFontRef sfFont, SFStringRecordRef strRecord);
 
 SFFloat SFFontGetSize(SFFontRef sfFont);
 SFFloat SFFontGetSizeByEm(SFFontRef sfFont);
@@ -62,7 +53,6 @@ SFFloat SFFontGetAscender(SFFontRef sfFont);
 SFFloat SFFontGetDescender(SFFontRef sfFont);
 SFFloat SFFontGetLeading(SFFontRef sfFont);
 
-SFFontRef SFFontMakeClone(SFFontRef sfFont, SFFloat size);
 SFFontRef SFFontRetain(SFFontRef sfFont);
 void SFFontRelease(SFFontRef sfFont);
 

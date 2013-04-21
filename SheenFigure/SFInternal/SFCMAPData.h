@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2012 SheenFigure
+ * Copyright (C) 2013 SheenFigure
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 #ifndef _SF_CMAP_DATA_H
 #define _SF_CMAP_DATA_H
 
+#include "SFConfig.h"
 #include "SFTypes.h"
 
 typedef enum {

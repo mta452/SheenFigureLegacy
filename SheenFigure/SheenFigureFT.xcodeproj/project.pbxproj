@@ -24,13 +24,10 @@
 		6E0214F8157B467B00057721 /* SFCMAPUtilization.h in Headers */ = {isa = PBXBuildFile; fileRef = 6E0214D5157B467B00057721 /* SFCMAPUtilization.h */; };
 		6E0214F9157B467B00057721 /* SFCommonData.c in Sources */ = {isa = PBXBuildFile; fileRef = 6E0214D6157B467B00057721 /* SFCommonData.c */; };
 		6E0214FA157B467B00057721 /* SFCommonData.h in Headers */ = {isa = PBXBuildFile; fileRef = 6E0214D7157B467B00057721 /* SFCommonData.h */; };
-		6E0214FB157B467B00057721 /* SFCommonMethods.c in Sources */ = {isa = PBXBuildFile; fileRef = 6E0214D8157B467B00057721 /* SFCommonMethods.c */; };
-		6E0214FC157B467B00057721 /* SFCommonMethods.h in Headers */ = {isa = PBXBuildFile; fileRef = 6E0214D9157B467B00057721 /* SFCommonMethods.h */; };
 		6E0214FD157B467B00057721 /* SFGDEFData.c in Sources */ = {isa = PBXBuildFile; fileRef = 6E0214DA157B467B00057721 /* SFGDEFData.c */; };
 		6E0214FE157B467B00057721 /* SFGDEFData.h in Headers */ = {isa = PBXBuildFile; fileRef = 6E0214DB157B467B00057721 /* SFGDEFData.h */; };
 		6E0214FF157B467B00057721 /* SFGDEFUtilization.c in Sources */ = {isa = PBXBuildFile; fileRef = 6E0214DC157B467B00057721 /* SFGDEFUtilization.c */; };
 		6E021500157B467B00057721 /* SFGDEFUtilization.h in Headers */ = {isa = PBXBuildFile; fileRef = 6E0214DD157B467B00057721 /* SFGDEFUtilization.h */; };
-		6E021501157B467B00057721 /* SFGlobal.h in Headers */ = {isa = PBXBuildFile; fileRef = 6E0214DE157B467B00057721 /* SFGlobal.h */; };
 		6E021502157B467B00057721 /* SFGPOSData.c in Sources */ = {isa = PBXBuildFile; fileRef = 6E0214DF157B467B00057721 /* SFGPOSData.c */; };
 		6E021503157B467B00057721 /* SFGPOSData.h in Headers */ = {isa = PBXBuildFile; fileRef = 6E0214E0157B467B00057721 /* SFGPOSData.h */; };
 		6E021504157B467B00057721 /* SFGPOSUtilization.c in Sources */ = {isa = PBXBuildFile; fileRef = 6E0214E1157B467B00057721 /* SFGPOSUtilization.c */; };
@@ -41,11 +38,12 @@
 		6E021509157B467B00057721 /* SFGSUBUtilization.h in Headers */ = {isa = PBXBuildFile; fileRef = 6E0214E6157B467B00057721 /* SFGSUBUtilization.h */; };
 		6E02150A157B467B00057721 /* SFInternal.c in Sources */ = {isa = PBXBuildFile; fileRef = 6E0214E7157B467B00057721 /* SFInternal.c */; };
 		6E02150B157B467B00057721 /* SFInternal.h in Headers */ = {isa = PBXBuildFile; fileRef = 6E0214E8157B467B00057721 /* SFInternal.h */; };
-		6E02150C157B467B00057721 /* ssunistr.c in Sources */ = {isa = PBXBuildFile; fileRef = 6E0214EA157B467B00057721 /* ssunistr.c */; };
-		6E02150D157B467B00057721 /* ssunistr.h in Headers */ = {isa = PBXBuildFile; fileRef = 6E0214EB157B467B00057721 /* ssunistr.h */; };
 		6E021562157B46EF00057721 /* SFTypes.h in Headers */ = {isa = PBXBuildFile; fileRef = 6EC20377157AD7E7002666E9 /* SFTypes.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		6E2A9678163B32EA000B9FA1 /* libfreetype.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 6E2A9677163B32E3000B9FA1 /* libfreetype.a */; };
 		6EC20373157AD461002666E9 /* SFConfig.h in Headers */ = {isa = PBXBuildFile; fileRef = 6EC2034B157AD461002666E9 /* SFConfig.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		6EEAF2AD17045FD000B1ED51 /* SFGSUBGPOSData.c in Sources */ = {isa = PBXBuildFile; fileRef = 6EEAF2AC17045FD000B1ED51 /* SFGSUBGPOSData.c */; };
+		6EEAF2B917046FC600B1ED51 /* SFGSUBGPOSUtilization.c in Sources */ = {isa = PBXBuildFile; fileRef = 6EEAF2B717046FC600B1ED51 /* SFGSUBGPOSUtilization.c */; };
+		6EEAF2BA17046FC600B1ED51 /* SFGSUBGPOSUtilization.h in Headers */ = {isa = PBXBuildFile; fileRef = 6EEAF2B817046FC600B1ED51 /* SFGSUBGPOSUtilization.h */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -83,13 +81,10 @@
 		6E0214D5157B467B00057721 /* SFCMAPUtilization.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SFCMAPUtilization.h; sourceTree = "<group>"; };
 		6E0214D6157B467B00057721 /* SFCommonData.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = SFCommonData.c; sourceTree = "<group>"; };
 		6E0214D7157B467B00057721 /* SFCommonData.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SFCommonData.h; sourceTree = "<group>"; };
-		6E0214D8157B467B00057721 /* SFCommonMethods.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = SFCommonMethods.c; sourceTree = "<group>"; };
-		6E0214D9157B467B00057721 /* SFCommonMethods.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SFCommonMethods.h; sourceTree = "<group>"; };
 		6E0214DA157B467B00057721 /* SFGDEFData.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = SFGDEFData.c; sourceTree = "<group>"; };
 		6E0214DB157B467B00057721 /* SFGDEFData.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SFGDEFData.h; sourceTree = "<group>"; };
 		6E0214DC157B467B00057721 /* SFGDEFUtilization.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = SFGDEFUtilization.c; sourceTree = "<group>"; };
 		6E0214DD157B467B00057721 /* SFGDEFUtilization.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SFGDEFUtilization.h; sourceTree = "<group>"; };
-		6E0214DE157B467B00057721 /* SFGlobal.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SFGlobal.h; sourceTree = "<group>"; };
 		6E0214DF157B467B00057721 /* SFGPOSData.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = SFGPOSData.c; sourceTree = "<group>"; };
 		6E0214E0157B467B00057721 /* SFGPOSData.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SFGPOSData.h; sourceTree = "<group>"; };
 		6E0214E1157B467B00057721 /* SFGPOSUtilization.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = SFGPOSUtilization.c; sourceTree = "<group>"; };
@@ -100,12 +95,14 @@
 		6E0214E6157B467B00057721 /* SFGSUBUtilization.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SFGSUBUtilization.h; sourceTree = "<group>"; };
 		6E0214E7157B467B00057721 /* SFInternal.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = SFInternal.c; sourceTree = "<group>"; };
 		6E0214E8157B467B00057721 /* SFInternal.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SFInternal.h; sourceTree = "<group>"; };
-		6E0214EA157B467B00057721 /* ssunistr.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = ssunistr.c; sourceTree = "<group>"; };
-		6E0214EB157B467B00057721 /* ssunistr.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ssunistr.h; sourceTree = "<group>"; };
 		6E2A966F163B32E2000B9FA1 /* FreeType.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = FreeType.xcodeproj; path = ../FreeType/FreeType.xcodeproj; sourceTree = "<group>"; };
 		6EC20319157AD40B002666E9 /* libsheenfigure.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libsheenfigure.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		6EC2034B157AD461002666E9 /* SFConfig.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SFConfig.h; sourceTree = "<group>"; };
 		6EC20377157AD7E7002666E9 /* SFTypes.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SFTypes.h; sourceTree = "<group>"; };
+		6EEAF2AC17045FD000B1ED51 /* SFGSUBGPOSData.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = SFGSUBGPOSData.c; sourceTree = "<group>"; };
+		6EEAF2AE1704600300B1ED51 /* SFGSUBGPOSData.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SFGSUBGPOSData.h; sourceTree = "<group>"; };
+		6EEAF2B717046FC600B1ED51 /* SFGSUBGPOSUtilization.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = SFGSUBGPOSUtilization.c; sourceTree = "<group>"; };
+		6EEAF2B817046FC600B1ED51 /* SFGSUBGPOSUtilization.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SFGSUBGPOSUtilization.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -134,21 +131,17 @@
 		6E0214C7157B467B00057721 /* SFInternal */ = {
 			isa = PBXGroup;
 			children = (
-				6E0214E9157B467B00057721 /* ssunistr */,
 				6E0214C8157B467B00057721 /* bidi */,
+				6E0214D6157B467B00057721 /* SFCommonData.c */,
+				6E0214D7157B467B00057721 /* SFCommonData.h */,
 				6E0214D2157B467B00057721 /* SFCMAPData.c */,
 				6E0214D3157B467B00057721 /* SFCMAPData.h */,
 				6E0214D4157B467B00057721 /* SFCMAPUtilization.c */,
 				6E0214D5157B467B00057721 /* SFCMAPUtilization.h */,
-				6E0214D6157B467B00057721 /* SFCommonData.c */,
-				6E0214D7157B467B00057721 /* SFCommonData.h */,
-				6E0214D8157B467B00057721 /* SFCommonMethods.c */,
-				6E0214D9157B467B00057721 /* SFCommonMethods.h */,
 				6E0214DA157B467B00057721 /* SFGDEFData.c */,
 				6E0214DB157B467B00057721 /* SFGDEFData.h */,
 				6E0214DC157B467B00057721 /* SFGDEFUtilization.c */,
 				6E0214DD157B467B00057721 /* SFGDEFUtilization.h */,
-				6E0214DE157B467B00057721 /* SFGlobal.h */,
 				6E0214DF157B467B00057721 /* SFGPOSData.c */,
 				6E0214E0157B467B00057721 /* SFGPOSData.h */,
 				6E0214E1157B467B00057721 /* SFGPOSUtilization.c */,
@@ -157,6 +150,10 @@
 				6E0214E4157B467B00057721 /* SFGSUBData.h */,
 				6E0214E5157B467B00057721 /* SFGSUBUtilization.c */,
 				6E0214E6157B467B00057721 /* SFGSUBUtilization.h */,
+				6EEAF2AC17045FD000B1ED51 /* SFGSUBGPOSData.c */,
+				6EEAF2AE1704600300B1ED51 /* SFGSUBGPOSData.h */,
+				6EEAF2B717046FC600B1ED51 /* SFGSUBGPOSUtilization.c */,
+				6EEAF2B817046FC600B1ED51 /* SFGSUBGPOSUtilization.h */,
 				6E0214E7157B467B00057721 /* SFInternal.c */,
 				6E0214E8157B467B00057721 /* SFInternal.h */,
 			);
@@ -175,15 +172,6 @@
 				6E0214CD157B467B00057721 /* interaction.h */,
 			);
 			path = bidi;
-			sourceTree = "<group>";
-		};
-		6E0214E9157B467B00057721 /* ssunistr */ = {
-			isa = PBXGroup;
-			children = (
-				6E0214EA157B467B00057721 /* ssunistr.c */,
-				6E0214EB157B467B00057721 /* ssunistr.h */,
-			);
-			path = ssunistr;
 			sourceTree = "<group>";
 		};
 		6E2A9670163B32E2000B9FA1 /* Products */ = {
@@ -231,16 +219,14 @@
 				6E0214F6157B467B00057721 /* SFCMAPData.h in Headers */,
 				6E0214F8157B467B00057721 /* SFCMAPUtilization.h in Headers */,
 				6E0214FA157B467B00057721 /* SFCommonData.h in Headers */,
-				6E0214FC157B467B00057721 /* SFCommonMethods.h in Headers */,
 				6E0214FE157B467B00057721 /* SFGDEFData.h in Headers */,
 				6E021500157B467B00057721 /* SFGDEFUtilization.h in Headers */,
-				6E021501157B467B00057721 /* SFGlobal.h in Headers */,
 				6E021503157B467B00057721 /* SFGPOSData.h in Headers */,
 				6E021505157B467B00057721 /* SFGPOSUtilization.h in Headers */,
 				6E021507157B467B00057721 /* SFGSUBData.h in Headers */,
 				6E021509157B467B00057721 /* SFGSUBUtilization.h in Headers */,
 				6E02150B157B467B00057721 /* SFInternal.h in Headers */,
-				6E02150D157B467B00057721 /* ssunistr.h in Headers */,
+				6EEAF2BA17046FC600B1ED51 /* SFGSUBGPOSUtilization.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -321,7 +307,6 @@
 				6E0214F5157B467B00057721 /* SFCMAPData.c in Sources */,
 				6E0214F7157B467B00057721 /* SFCMAPUtilization.c in Sources */,
 				6E0214F9157B467B00057721 /* SFCommonData.c in Sources */,
-				6E0214FB157B467B00057721 /* SFCommonMethods.c in Sources */,
 				6E0214FD157B467B00057721 /* SFGDEFData.c in Sources */,
 				6E0214FF157B467B00057721 /* SFGDEFUtilization.c in Sources */,
 				6E021502157B467B00057721 /* SFGPOSData.c in Sources */,
@@ -329,7 +314,8 @@
 				6E021506157B467B00057721 /* SFGSUBData.c in Sources */,
 				6E021508157B467B00057721 /* SFGSUBUtilization.c in Sources */,
 				6E02150A157B467B00057721 /* SFInternal.c in Sources */,
-				6E02150C157B467B00057721 /* ssunistr.c in Sources */,
+				6EEAF2AD17045FD000B1ED51 /* SFGSUBGPOSData.c in Sources */,
+				6EEAF2B917046FC600B1ED51 /* SFGSUBGPOSUtilization.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -350,6 +336,9 @@
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
 				CLANG_ENABLE_OBJC_ARC = NO;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
 				COPY_PHASE_STRIP = NO;
 				GCC_C_LANGUAGE_STANDARD = c89;
 				GCC_DYNAMIC_NO_PIC = NO;
@@ -384,6 +373,9 @@
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
 				CLANG_ENABLE_OBJC_ARC = NO;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
 				COPY_PHASE_STRIP = YES;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				GCC_C_LANGUAGE_STANDARD = c89;
