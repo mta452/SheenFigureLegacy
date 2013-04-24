@@ -52,13 +52,13 @@
 #ifdef SF_IOS_CG
         if (refPtr) {
             _cgFont = CGFontRetain(SFFontGetCGFont(refPtr));
-            _refPtr = SFFontMakeCloneForCGFont(refPtr, _cgFont, size);
+            _sfFont = SFFontMakeCloneForCGFont(refPtr, _cgFont, size);
         } else {
             CGDataProviderRef dataProvider = CGDataProviderCreateWithFilename([_path fileSystemRepresentation]);
             _cgFont = CGFontCreateWithDataProvider(dataProvider);
             CGDataProviderRelease(dataProvider);
 
-            _refPtr = SFFontCreateWithCGFont(_cgFont, size);
+            _sfFont = SFFontCreateWithCGFont(_cgFont, size);
         }
 #else
         const char *utf8path = [_path UTF8String];

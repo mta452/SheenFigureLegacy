@@ -139,7 +139,12 @@ static SFMeasuredLine getLine(SFTextRef sfText, SFFloat frameWidth, SFStringReco
             
             if (ch != ' ' && ceil(width) >= floor(frameWidth)) {
                 if (line.endIndex == line.startIndex) {
-                    line.width = width;
+                    if (i == line.endIndex) {
+                        line.width = width;
+                    } else {
+                        line.endIndex = i - 1;
+                        line.width = prevWidth;
+                    }
                 }
                 
                 return line;
@@ -289,7 +294,7 @@ static void drawVaryingYGlyphs(VaryingYGlyph **head, SFGlyphRenderFunction func,
 }
 
 static void drawLine(int baselevel, SFText *sfText, SFMeasuredLine line, SFPoint *position, void *resObj, SFGlyphRenderFunction func) {
-    if (line.endIndex - line.startIndex > 0) {
+    if (line.endIndex - line.startIndex >= 0) {
         int length = line.endIndex - line.startIndex + 1;
         int *levels = malloc(length * sizeof(int));
         int *visOrder = malloc(length * sizeof(int));

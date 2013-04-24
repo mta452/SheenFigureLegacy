@@ -272,7 +272,7 @@ static void renderGlyph(SFTextRef sfText, SFGlyph glyph, SFFloat x, SFFloat y, v
     if (textAlign != _textAlign) {
         _textAlign = textAlign;
         
-        SFTextSetAlignment(_sfText, _textAlign);
+        SFTextSetAlignment(_sfText, (SFTextAlignment)_textAlign);
     }
 }
 
@@ -280,7 +280,7 @@ static void renderGlyph(SFTextRef sfText, SFGlyph glyph, SFFloat x, SFFloat y, v
     if (writingDirection != _writingDirection) {
         _writingDirection = writingDirection;
         
-        SFTextSetWritingDirection(_sfText, _writingDirection);
+        SFTextSetWritingDirection(_sfText, (SFWritingDirection)_writingDirection);
     }
 }
 
