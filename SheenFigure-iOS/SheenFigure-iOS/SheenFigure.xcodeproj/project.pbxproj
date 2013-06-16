@@ -1,0 +1,483 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 46;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		6E8240B1176C190500AF29E3 /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6E8240B0176C190500AF29E3 /* UIKit.framework */; };
+		6E8240B2176C190E00AF29E3 /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6E8240B0176C190500AF29E3 /* UIKit.framework */; };
+		6E8240C5176C1C0800AF29E3 /* libsheenfigure.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 6E8240C1176C1BE700AF29E3 /* libsheenfigure.a */; };
+		6E8240C8176C1C1500AF29E3 /* libsheenfigure.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 6E8240BA176C1BDF00AF29E3 /* libsheenfigure.a */; };
+		6EDB99B4176B457400E32BBA /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6EDB99B3176B457400E32BBA /* Foundation.framework */; };
+		6EDB99C5176B45B800E32BBA /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6EDB99B3176B457400E32BBA /* Foundation.framework */; };
+		6EDB99DB176B481100E32BBA /* SSFont.m in Sources */ = {isa = PBXBuildFile; fileRef = 6EDB99CE176B481100E32BBA /* SSFont.m */; };
+		6EDB99DC176B481100E32BBA /* SSLabel.m in Sources */ = {isa = PBXBuildFile; fileRef = 6EDB99D1176B481100E32BBA /* SSLabel.m */; };
+		6EDB99DD176B481100E32BBA /* SSRenderOperation.m in Sources */ = {isa = PBXBuildFile; fileRef = 6EDB99D3176B481100E32BBA /* SSRenderOperation.m */; };
+		6EDB99DE176B481100E32BBA /* SSText.m in Sources */ = {isa = PBXBuildFile; fileRef = 6EDB99D5176B481100E32BBA /* SSText.m */; };
+		6EDB99E0176B481100E32BBA /* SSTextView.m in Sources */ = {isa = PBXBuildFile; fileRef = 6EDB99DA176B481100E32BBA /* SSTextView.m */; };
+		6EDB99E2176B481D00E32BBA /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6EDB99E1176B481D00E32BBA /* CoreGraphics.framework */; };
+		6EDB99E3176B485000E32BBA /* SSFont.m in Sources */ = {isa = PBXBuildFile; fileRef = 6EDB99CE176B481100E32BBA /* SSFont.m */; };
+		6EDB99E4176B485000E32BBA /* SSLabel.m in Sources */ = {isa = PBXBuildFile; fileRef = 6EDB99D1176B481100E32BBA /* SSLabel.m */; };
+		6EDB99E5176B485000E32BBA /* SSRenderOperation.m in Sources */ = {isa = PBXBuildFile; fileRef = 6EDB99D3176B481100E32BBA /* SSRenderOperation.m */; };
+		6EDB99E6176B485000E32BBA /* SSText.m in Sources */ = {isa = PBXBuildFile; fileRef = 6EDB99D5176B481100E32BBA /* SSText.m */; };
+		6EDB99E8176B485000E32BBA /* SSTextView.m in Sources */ = {isa = PBXBuildFile; fileRef = 6EDB99DA176B481100E32BBA /* SSTextView.m */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		6E8240B9176C1BDF00AF29E3 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 6E8240B5176C1BDE00AF29E3 /* SheenFigureCG.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 6EC20319157AD40B002666E9;
+			remoteInfo = sheenfigure;
+		};
+		6E8240C0176C1BE700AF29E3 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 6E8240BB176C1BE700AF29E3 /* SheenFigureFT.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 6EC20319157AD40B002666E9;
+			remoteInfo = sheenfigure;
+		};
+		6E8240C3176C1C0000AF29E3 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 6E8240BB176C1BE700AF29E3 /* SheenFigureFT.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 6EC20318157AD40B002666E9;
+			remoteInfo = sheenfigure;
+		};
+		6E8240C6176C1C0F00AF29E3 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 6E8240B5176C1BDE00AF29E3 /* SheenFigureCG.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 6EC20318157AD40B002666E9;
+			remoteInfo = sheenfigure;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		6EDB99AE176B457400E32BBA /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "include/${PRODUCT_NAME}";
+			dstSubfolderSpec = 16;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		6EDB99C6176B45B800E32BBA /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "include/${PRODUCT_NAME}";
+			dstSubfolderSpec = 16;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
+/* Begin PBXFileReference section */
+		6E8240B0176C190500AF29E3 /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = System/Library/Frameworks/UIKit.framework; sourceTree = SDKROOT; };
+		6E8240B5176C1BDE00AF29E3 /* SheenFigureCG.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = SheenFigureCG.xcodeproj; path = ../../SheenFigure/SheenFigureCG.xcodeproj; sourceTree = "<group>"; };
+		6E8240BB176C1BE700AF29E3 /* SheenFigureFT.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = SheenFigureFT.xcodeproj; path = ../../SheenFigure/SheenFigureFT.xcodeproj; sourceTree = "<group>"; };
+		6EDB99B0176B457400E32BBA /* libSheenFigureCG.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libSheenFigureCG.a; sourceTree = BUILT_PRODUCTS_DIR; };
+		6EDB99B3176B457400E32BBA /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
+		6EDB99CB176B45B800E32BBA /* libSheenFigureFT.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libSheenFigureFT.a; sourceTree = BUILT_PRODUCTS_DIR; };
+		6EDB99CC176B47B200E32BBA /* SheenFigure-Prefix.pch */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "SheenFigure-Prefix.pch"; sourceTree = SOURCE_ROOT; };
+		6EDB99CD176B481100E32BBA /* SSFont.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SSFont.h; sourceTree = SOURCE_ROOT; };
+		6EDB99CE176B481100E32BBA /* SSFont.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SSFont.m; sourceTree = SOURCE_ROOT; };
+		6EDB99CF176B481100E32BBA /* SSFontPrivate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SSFontPrivate.h; sourceTree = SOURCE_ROOT; };
+		6EDB99D0176B481100E32BBA /* SSLabel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SSLabel.h; sourceTree = SOURCE_ROOT; };
+		6EDB99D1176B481100E32BBA /* SSLabel.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SSLabel.m; sourceTree = SOURCE_ROOT; };
+		6EDB99D2176B481100E32BBA /* SSRenderOperation.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SSRenderOperation.h; sourceTree = SOURCE_ROOT; };
+		6EDB99D3176B481100E32BBA /* SSRenderOperation.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SSRenderOperation.m; sourceTree = SOURCE_ROOT; };
+		6EDB99D4176B481100E32BBA /* SSText.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SSText.h; sourceTree = SOURCE_ROOT; };
+		6EDB99D5176B481100E32BBA /* SSText.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SSText.m; sourceTree = SOURCE_ROOT; };
+		6EDB99D8176B481100E32BBA /* SSTextPrivate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SSTextPrivate.h; sourceTree = SOURCE_ROOT; };
+		6EDB99D9176B481100E32BBA /* SSTextView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SSTextView.h; sourceTree = SOURCE_ROOT; };
+		6EDB99DA176B481100E32BBA /* SSTextView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SSTextView.m; sourceTree = SOURCE_ROOT; };
+		6EDB99E1176B481D00E32BBA /* CoreGraphics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreGraphics.framework; path = System/Library/Frameworks/CoreGraphics.framework; sourceTree = SDKROOT; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		6EDB99AD176B457400E32BBA /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				6EDB99B4176B457400E32BBA /* Foundation.framework in Frameworks */,
+				6E8240B1176C190500AF29E3 /* UIKit.framework in Frameworks */,
+				6EDB99E2176B481D00E32BBA /* CoreGraphics.framework in Frameworks */,
+				6E8240C8176C1C1500AF29E3 /* libsheenfigure.a in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		6EDB99C4176B45B800E32BBA /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				6EDB99C5176B45B800E32BBA /* Foundation.framework in Frameworks */,
+				6E8240B2176C190E00AF29E3 /* UIKit.framework in Frameworks */,
+				6E8240C5176C1C0800AF29E3 /* libsheenfigure.a in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		6E8240B6176C1BDE00AF29E3 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				6E8240BA176C1BDF00AF29E3 /* libsheenfigure.a */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		6E8240BC176C1BE700AF29E3 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				6E8240C1176C1BE700AF29E3 /* libsheenfigure.a */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		6EDB99A7176B457400E32BBA = {
+			isa = PBXGroup;
+			children = (
+				6EDB99B5176B457400E32BBA /* SheenFigure */,
+				6EDB99B2176B457400E32BBA /* Frameworks */,
+				6EDB99B1176B457400E32BBA /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		6EDB99B1176B457400E32BBA /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				6EDB99B0176B457400E32BBA /* libSheenFigureCG.a */,
+				6EDB99CB176B45B800E32BBA /* libSheenFigureFT.a */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		6EDB99B2176B457400E32BBA /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				6E8240B5176C1BDE00AF29E3 /* SheenFigureCG.xcodeproj */,
+				6E8240BB176C1BE700AF29E3 /* SheenFigureFT.xcodeproj */,
+				6EDB99B3176B457400E32BBA /* Foundation.framework */,
+				6E8240B0176C190500AF29E3 /* UIKit.framework */,
+				6EDB99E1176B481D00E32BBA /* CoreGraphics.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		6EDB99B5176B457400E32BBA /* SheenFigure */ = {
+			isa = PBXGroup;
+			children = (
+				6EDB99CF176B481100E32BBA /* SSFontPrivate.h */,
+				6EDB99CD176B481100E32BBA /* SSFont.h */,
+				6EDB99CE176B481100E32BBA /* SSFont.m */,
+				6EDB99D8176B481100E32BBA /* SSTextPrivate.h */,
+				6EDB99D4176B481100E32BBA /* SSText.h */,
+				6EDB99D5176B481100E32BBA /* SSText.m */,
+				6EDB99D2176B481100E32BBA /* SSRenderOperation.h */,
+				6EDB99D3176B481100E32BBA /* SSRenderOperation.m */,
+				6EDB99D0176B481100E32BBA /* SSLabel.h */,
+				6EDB99D1176B481100E32BBA /* SSLabel.m */,
+				6EDB99D9176B481100E32BBA /* SSTextView.h */,
+				6EDB99DA176B481100E32BBA /* SSTextView.m */,
+				6EDB99B6176B457400E32BBA /* Supporting Files */,
+			);
+			path = SheenFigure;
+			sourceTree = "<group>";
+		};
+		6EDB99B6176B457400E32BBA /* Supporting Files */ = {
+			isa = PBXGroup;
+			children = (
+				6EDB99CC176B47B200E32BBA /* SheenFigure-Prefix.pch */,
+			);
+			name = "Supporting Files";
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		6EDB99AF176B457400E32BBA /* SheenFigureCG */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 6EDB99BE176B457400E32BBA /* Build configuration list for PBXNativeTarget "SheenFigureCG" */;
+			buildPhases = (
+				6EDB99AC176B457400E32BBA /* Sources */,
+				6EDB99AD176B457400E32BBA /* Frameworks */,
+				6EDB99AE176B457400E32BBA /* CopyFiles */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				6E8240C7176C1C0F00AF29E3 /* PBXTargetDependency */,
+			);
+			name = SheenFigureCG;
+			productName = SheenFigureCG;
+			productReference = 6EDB99B0176B457400E32BBA /* libSheenFigureCG.a */;
+			productType = "com.apple.product-type.library.static";
+		};
+		6EDB99C1176B45B800E32BBA /* SheenFigureFT */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 6EDB99C8176B45B800E32BBA /* Build configuration list for PBXNativeTarget "SheenFigureFT" */;
+			buildPhases = (
+				6EDB99C2176B45B800E32BBA /* Sources */,
+				6EDB99C4176B45B800E32BBA /* Frameworks */,
+				6EDB99C6176B45B800E32BBA /* CopyFiles */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				6E8240C4176C1C0000AF29E3 /* PBXTargetDependency */,
+			);
+			name = SheenFigureFT;
+			productName = SheenFigureFT;
+			productReference = 6EDB99CB176B45B800E32BBA /* libSheenFigureFT.a */;
+			productType = "com.apple.product-type.library.static";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		6EDB99A8176B457400E32BBA /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				LastUpgradeCheck = 0460;
+				ORGANIZATIONNAME = "Sheen Solutions";
+			};
+			buildConfigurationList = 6EDB99AB176B457400E32BBA /* Build configuration list for PBXProject "SheenFigure" */;
+			compatibilityVersion = "Xcode 3.2";
+			developmentRegion = English;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+			);
+			mainGroup = 6EDB99A7176B457400E32BBA;
+			productRefGroup = 6EDB99B1176B457400E32BBA /* Products */;
+			projectDirPath = "";
+			projectReferences = (
+				{
+					ProductGroup = 6E8240B6176C1BDE00AF29E3 /* Products */;
+					ProjectRef = 6E8240B5176C1BDE00AF29E3 /* SheenFigureCG.xcodeproj */;
+				},
+				{
+					ProductGroup = 6E8240BC176C1BE700AF29E3 /* Products */;
+					ProjectRef = 6E8240BB176C1BE700AF29E3 /* SheenFigureFT.xcodeproj */;
+				},
+			);
+			projectRoot = "";
+			targets = (
+				6EDB99AF176B457400E32BBA /* SheenFigureCG */,
+				6EDB99C1176B45B800E32BBA /* SheenFigureFT */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXReferenceProxy section */
+		6E8240BA176C1BDF00AF29E3 /* libsheenfigure.a */ = {
+			isa = PBXReferenceProxy;
+			fileType = archive.ar;
+			path = libsheenfigure.a;
+			remoteRef = 6E8240B9176C1BDF00AF29E3 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		6E8240C1176C1BE700AF29E3 /* libsheenfigure.a */ = {
+			isa = PBXReferenceProxy;
+			fileType = archive.ar;
+			path = libsheenfigure.a;
+			remoteRef = 6E8240C0176C1BE700AF29E3 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+/* End PBXReferenceProxy section */
+
+/* Begin PBXSourcesBuildPhase section */
+		6EDB99AC176B457400E32BBA /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				6EDB99DB176B481100E32BBA /* SSFont.m in Sources */,
+				6EDB99DE176B481100E32BBA /* SSText.m in Sources */,
+				6EDB99DD176B481100E32BBA /* SSRenderOperation.m in Sources */,
+				6EDB99DC176B481100E32BBA /* SSLabel.m in Sources */,
+				6EDB99E0176B481100E32BBA /* SSTextView.m in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		6EDB99C2176B45B800E32BBA /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				6EDB99E3176B485000E32BBA /* SSFont.m in Sources */,
+				6EDB99E6176B485000E32BBA /* SSText.m in Sources */,
+				6EDB99E5176B485000E32BBA /* SSRenderOperation.m in Sources */,
+				6EDB99E4176B485000E32BBA /* SSLabel.m in Sources */,
+				6EDB99E8176B485000E32BBA /* SSTextView.m in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		6E8240C4176C1C0000AF29E3 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = sheenfigure;
+			targetProxy = 6E8240C3176C1C0000AF29E3 /* PBXContainerItemProxy */;
+		};
+		6E8240C7176C1C0F00AF29E3 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = sheenfigure;
+			targetProxy = 6E8240C6176C1C0F00AF29E3 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		6EDB99BC176B457400E32BBA /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 4.3;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = iphoneos;
+			};
+			name = Debug;
+		};
+		6EDB99BD176B457400E32BBA /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 4.3;
+				SDKROOT = iphoneos;
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		6EDB99BF176B457400E32BBA /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				DSTROOT = /tmp/SheenFigure.dst;
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = "SheenFigure-Prefix.pch";
+				HEADER_SEARCH_PATHS = "../../SheenFigure/**";
+				OTHER_LDFLAGS = "-ObjC";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+			};
+			name = Debug;
+		};
+		6EDB99C0176B457400E32BBA /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				DSTROOT = /tmp/SheenFigure.dst;
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = "SheenFigure-Prefix.pch";
+				HEADER_SEARCH_PATHS = "../../SheenFigure/**";
+				OTHER_LDFLAGS = "-ObjC";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+			};
+			name = Release;
+		};
+		6EDB99C9176B45B800E32BBA /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				DSTROOT = /tmp/SheenFigure.dst;
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = "SheenFigure-Prefix.pch";
+				HEADER_SEARCH_PATHS = (
+					../../FreeType/include,
+					"../../SheenFigure/**",
+				);
+				OTHER_CFLAGS = "-DUSE_FREETYPE";
+				OTHER_LDFLAGS = "-ObjC";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+			};
+			name = Debug;
+		};
+		6EDB99CA176B45B800E32BBA /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				DSTROOT = /tmp/SheenFigure.dst;
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = "SheenFigure-Prefix.pch";
+				HEADER_SEARCH_PATHS = (
+					../../FreeType/include,
+					"../../SheenFigure/**",
+				);
+				OTHER_CFLAGS = "-DUSE_FREETYPE";
+				OTHER_LDFLAGS = "-ObjC";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		6EDB99AB176B457400E32BBA /* Build configuration list for PBXProject "SheenFigure" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				6EDB99BC176B457400E32BBA /* Debug */,
+				6EDB99BD176B457400E32BBA /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		6EDB99BE176B457400E32BBA /* Build configuration list for PBXNativeTarget "SheenFigureCG" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				6EDB99BF176B457400E32BBA /* Debug */,
+				6EDB99C0176B457400E32BBA /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		6EDB99C8176B45B800E32BBA /* Build configuration list for PBXNativeTarget "SheenFigureFT" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				6EDB99C9176B45B800E32BBA /* Debug */,
+				6EDB99CA176B45B800E32BBA /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 6EDB99A8176B457400E32BBA /* Project object */;
+}

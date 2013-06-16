@@ -44,6 +44,8 @@ SFStringRecord *SFMakeStringRecordForBaseLevel(const SFUnichar *charsPtr, int le
         record->charRecord[i].gRec[0].posRec = SFPositionRecordZero;
     }
     
+    record->_retainCount = 1;
+    
     return record;
 }
 
@@ -64,18 +66,30 @@ void SFClearStringRecordForBaseLevel(SFStringRecord *record, int baselevel) {
     generateBidiTypesAndLevels(baselevel, record->chars, record->types, record->levels, record->charCount);
 }
 
-void SFFreeStringRecord(SFStringRecord *record) {
+SFStringRecord *SFRetainStringRecord(SFStringRecord *record) {
     if (record) {
-        int i;
-        for (i = 0; i < record->charCount; i++) {
-            free(record->charRecord[i].gRec);
-        }
+        record->_retainCount++;
+    }
+    
+    return record;
+}
 
-        free(record->types);
-        free(record->levels);
-        free(record->charRecord);
+void SFReleaseStringRecord(SFStringRecord *record) {
+    if (record) {
+        record->_retainCount--;
         
-        free(record);
+        if (record->_retainCount == 0) {
+            int i;
+            for (i = 0; i < record->charCount; i++) {
+                free(record->charRecord[i].gRec);
+            }
+            
+            free(record->types);
+            free(record->levels);
+            free(record->charRecord);
+            
+            free(record);
+        }
     }
 }
 

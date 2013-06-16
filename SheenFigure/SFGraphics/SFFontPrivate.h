@@ -17,8 +17,7 @@
 #ifndef _SF_FONT_PRIVATE_H
 #define _SF_FONT_PRIVATE_H
 
-#include "SFConfig.h"
-#include "SFTypes.h"
+#include <pthread.h>
 
 #ifdef SF_IOS_CG
 #include <CoreGraphics/CoreGraphics.h>
@@ -31,6 +30,9 @@
 #include <freetype/fttypes.h>
 #include <freetype/tttags.h>
 #endif
+
+#include "SFConfig.h"
+#include "SFTypes.h"
 
 #include "SFCMAPData.h"
 #include "SFGDEFData.h"

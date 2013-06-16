@@ -312,7 +312,7 @@ SFFontRef SFFontRetain(SFFontRef sfFont) {
     if (sfFont) {
         sfFont->_retainCount++;
     }
-    
+
     return sfFont;
 }
 

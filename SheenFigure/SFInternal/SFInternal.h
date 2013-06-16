@@ -84,6 +84,8 @@ typedef struct SFStringRecord {
     int *types;                     //types[charCount]
     int *levels;                    //levels[charCount]
     SFCharRecord *charRecord;       //charRecord[charCount]
+    
+    SFUInt _retainCount;
 } SFStringRecord;
 
 typedef struct SFInternal {
@@ -97,7 +99,8 @@ typedef struct SFInternal {
 SFStringRecord *SFMakeStringRecordForBaseLevel(const SFUnichar *charsPtr, int len, int baselevel);
 void SFClearCharRecord(SFStringRecord *record);
 void SFClearStringRecordForBaseLevel(SFStringRecord *record, int baselevel);
-void SFFreeStringRecord(SFStringRecord *record);
+SFStringRecord *SFRetainStringRecord(SFStringRecord *record);
+void SFReleaseStringRecord(SFStringRecord *record);
 
 #define SFIsOddLevel(p, i)          (p->record->levels[i] & 1)
 

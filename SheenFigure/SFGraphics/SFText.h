@@ -23,7 +23,7 @@
 #ifndef _SF_TEXT_REF
 #define _SF_TEXT_REF
 
-typedef struct SFText *SFTextRef;
+typedef void *SFTextRef;
 
 #endif
 
