@@ -45,7 +45,7 @@ typedef struct VaryingYGlyph {
 } VaryingYGlyph;
 
 
-static int SFGetAdvance(SFStringRecord *record, SFFontRef sfFont, int recordIndex, int glyphIndex) {
+static int getAdvance(SFFontRef sfFont, SFStringRecord *record, int recordIndex, int glyphIndex) {
 #ifdef SF_IOS_CG
     int adv;
 #else
@@ -70,18 +70,43 @@ static int SFGetAdvance(SFStringRecord *record, SFFontRef sfFont, int recordInde
     return adv;
 }
 
-static int SFTextGetBaseLevel(SFTextRef sfText) {
+static SFStringRecord *applyFontTables(SFFontRef sfFont, SFStringRecord *record) {
+    SFInternal internal;
+    
+    SFFontReadTables(sfFont);
+    
+    internal.record = record;
+    internal.cmap = &sfFont->_tables->_cmap;
+    internal.gdef = &sfFont->_tables->_gdef;
+    internal.gsub = &sfFont->_tables->_gsub;
+    internal.gpos = &sfFont->_tables->_gpos;
+    
+    if (sfFont->_tables->_availableTables & itCMAP) {
+        SFApplyCMAP(&internal);
+    }
+    
+    if (sfFont->_tables->_availableTables & itGSUB) {
+        SFApplyGSUB(&internal);
+    }
+    
+    if (sfFont->_tables->_availableTables & itGPOS) {
+        SFApplyGPOS(&internal);
+    }
+    
+    return record;
+}
+
+static int getBaseLevel(SFTextRef sfText) {
     if (sfText->_writingDirection == SFWritingDirectionAuto) {
-        return baseLevel(sfText->_record->types, sfText->_strLength);
+        return baseLevel(sfText->_record->types, sfText->_record->charCount);
     }
     
     return sfText->_writingDirection - 1;
 }
 
-static SFMeasuredLine getLine(SFTextRef sfText, SFStringRecord *record, SFFloat frameWidth, int startIndex) {
+static SFMeasuredLine getLine(SFFontRef sfFont, SFStringRecord *record, SFFloat frameWidth, int startIndex) {
     SFFloat width = 0;
     SFFloat prevWidth = 0;
-    SFFontRef sfFont = sfText->_sfFont;
     
     SFGlyph glyph;
     SFPositionRecord crntPosRecord;
@@ -132,7 +157,7 @@ static SFMeasuredLine getLine(SFTextRef sfText, SFStringRecord *record, SFFloat 
                 if (aType & atEntry)
                     width -= crntPosRecord.anchor.x * SFFontGetSizeByEm(sfFont);
                 else {
-                    int adv = SFGetAdvance(record, sfFont, i, j);
+                    int adv = getAdvance(sfFont, record, i, j);
                     width += (crntPosRecord.advance.x + adv - crntPosRecord.placement.x) * SFFontGetSizeByEm(sfFont);
                 }
             }
@@ -158,117 +183,6 @@ static SFMeasuredLine getLine(SFTextRef sfText, SFStringRecord *record, SFFloat 
     return line;
 }
 
-static SFStringRecord *applyFontTables(SFFontRef sfFont, SFStringRecord *record) {
-    SFInternal internal;
-    
-    SFFontReadTables(sfFont);
-    
-    internal.record = record;
-    internal.cmap = &sfFont->_tables->_cmap;
-    internal.gdef = &sfFont->_tables->_gdef;
-    internal.gsub = &sfFont->_tables->_gsub;
-    internal.gpos = &sfFont->_tables->_gpos;
-
-    if (sfFont->_tables->_availableTables & itCMAP) {
-        SFApplyCMAP(&internal);
-    }
-    
-    if (sfFont->_tables->_availableTables & itGSUB) {
-        SFApplyGSUB(&internal);
-    }
-    
-    if (sfFont->_tables->_availableTables & itGPOS) {
-        SFApplyGPOS(&internal);
-    }
-    
-    return record;
-}
-
-SFTextRef SFTextCreateWithString(const SFUnichar *str, int length, SFFontRef sfFont) {
-    SFTextRef sfText = malloc(sizeof(SFText));
-    
-    sfText->_str = str;
-    sfText->_strLength = length;
-    sfText->_sfFont = SFFontRetain(sfFont);
-    sfText->_writingDirection = SFWritingDirectionRTL;
-
-    sfText->_record = NULL;
-    
-    if (str && length > -1 && sfFont) {
-        sfText->_record = SFMakeStringRecordForBaseLevel(str, length, sfText->_writingDirection - 1);
-        applyFontTables(sfFont, sfText->_record);
-    }
-    
-    sfText->_txtAlign = SFTextAlignmentRight;
-    sfText->_retainCount = 1;
-    
-    return sfText;
-}
-
-SFTextRef SFTextRetain(SFTextRef sfText) {
-    sfText->_retainCount++;
-    
-    return sfText;
-}
-
-void SFTextRelease(SFTextRef sfText) {
-    sfText->_retainCount--;
-    
-    if (sfText->_retainCount == 0) {
-        SFReleaseStringRecord(sfText->_record);
-        SFFontRelease(sfText->_sfFont);
-        free(sfText);
-    }
-}
-
-void SFTextSetString(SFTextRef sfText, const SFUnichar *str, int length) {
-    SFReleaseStringRecord(sfText->_record);
-    
-    sfText->_str = str;
-    sfText->_strLength = length;
-    
-    if (str && length > -1) {
-        sfText->_record = SFMakeStringRecordForBaseLevel(str, length, sfText->_writingDirection - 1);
-        if (sfText->_sfFont) {
-            applyFontTables(sfText->_sfFont, sfText->_record);
-        }
-    } else {
-        sfText->_record = NULL;
-    }
-}
-
-void SFTextSetFont(SFTextRef sfText, SFFontRef sfFont) {
-    if (sfFont) {
-        if (sfFont != sfText->_sfFont) {
-            SFFontRelease(sfText->_sfFont);
-            sfText->_sfFont = SFFontRetain(sfFont);
-            
-            if (sfText->_record) {
-                SFClearCharRecord(sfText->_record);
-                applyFontTables(sfText->_sfFont, sfText->_record);
-            }
-        }
-    } else {
-        SFReleaseStringRecord(sfText->_record);
-        sfText->_record = NULL;
-    }
-}
-
-void SFTextSetAlignment(SFTextRef sfText, SFTextAlignment alignment) {
-    sfText->_txtAlign = alignment;
-}
-
-void SFTextSetWritingDirection(SFTextRef sfText, SFWritingDirection writingDirection) {
-    if (writingDirection != sfText->_writingDirection) {
-        sfText->_writingDirection = writingDirection;
-        
-        if (sfText->_record) {
-            SFClearStringRecordForBaseLevel(sfText->_record, sfText->_writingDirection - 1);
-            applyFontTables(sfText->_sfFont, sfText->_record);
-        }
-    }
-}
-
 static void saveVaryingYGlyph(VaryingYGlyph **head, SFGlyph glyph, SFPoint position) {
     VaryingYGlyph *current = malloc(sizeof(VaryingYGlyph));
     current->glyph = glyph;
@@ -277,12 +191,12 @@ static void saveVaryingYGlyph(VaryingYGlyph **head, SFGlyph glyph, SFPoint posit
     *head = current;
 }
 
-static void drawVaryingYGlyphs(VaryingYGlyph **head, SFGlyphRenderFunction func, SFTextRef sfText, SFFloat varyingY, void *resObj) {
+static void drawVaryingYGlyphs(VaryingYGlyph **head, SFFloat varyingY, void *resObj, SFGlyphRenderFunction func) {
     VaryingYGlyph *current = *head;
     while (current) {
         VaryingYGlyph *previous;
         
-        (*func)(sfText, current->glyph, current->position.x, current->position.y - varyingY, resObj);
+        (*func)(current->glyph, current->position.x, current->position.y - varyingY, resObj);
         
         previous = current;
         current = current->next;
@@ -293,7 +207,7 @@ static void drawVaryingYGlyphs(VaryingYGlyph **head, SFGlyphRenderFunction func,
     *head = NULL;
 }
 
-static void drawLine(int baselevel, SFText *sfText, SFStringRecord *record, SFMeasuredLine line, SFPoint *position, void *resObj, SFGlyphRenderFunction func) {
+static void drawLine(SFFontRef sfFont, SFStringRecord *record, int baselevel, SFMeasuredLine line, SFPoint *position, void *resObj, SFGlyphRenderFunction func) {
     if (line.endIndex - line.startIndex >= 0) {
         int length = line.endIndex - line.startIndex + 1;
         int *levels = malloc(length * sizeof(int));
@@ -309,7 +223,7 @@ static void drawLine(int baselevel, SFText *sfText, SFStringRecord *record, SFMe
         SFMirroredChar *mchars;
         SFMirroredChar *crntmchar;
         
-        SFFloat sizeByEm = SFFontGetSizeByEm(sfText->_sfFont);
+        SFFloat sizeByEm = SFFontGetSizeByEm(sfFont);
         SFFloat leading = position->y;
 
         for (i = line.startIndex, j = 0; i <= line.endIndex; i++, j++) {
@@ -336,7 +250,7 @@ static void drawLine(int baselevel, SFText *sfText, SFStringRecord *record, SFMe
                 
                 if (crntmchar && crntmchar->index == (vi - line.startIndex)) {
                     SFMirroredChar *nextmchar = crntmchar->next;
-                    crntGlyph = SFCharToGlyph(&sfText->_sfFont->_tables->_cmap, crntmchar->ch);
+                    crntGlyph = SFCharToGlyph(&sfFont->_tables->_cmap, crntmchar->ch);
                     free(crntmchar);
                     crntmchar = nextmchar;
                 } else {
@@ -364,7 +278,7 @@ static void drawLine(int baselevel, SFText *sfText, SFStringRecord *record, SFMe
                         
                         saveVaryingYGlyph(&varyingYGlyphs, crntGlyph, p);
                     } else {
-                        (*func)(sfText, crntGlyph, markX, markY, resObj);
+                        (*func)(crntGlyph, markX, markY, resObj);
                     }
                 } else {
                     if (isCursive) {
@@ -375,13 +289,13 @@ static void drawLine(int baselevel, SFText *sfText, SFStringRecord *record, SFMe
                         if (hasExitAnchor) {
                             saveVaryingYGlyph(&varyingYGlyphs, crntGlyph, *position);
                         } else {
-                            drawVaryingYGlyphs(&varyingYGlyphs, func, sfText, position->y - leading, resObj);
+                            drawVaryingYGlyphs(&varyingYGlyphs, position->y - leading, resObj, func);
                             position->y = leading;
                             
-                            (*func)(sfText, crntGlyph, position->x, position->y, resObj);
+                            (*func)(crntGlyph, position->x, position->y, resObj);
                         }
                     } else {
-                        int adv = SFGetAdvance(record, sfText->_sfFont, vi, k);
+                        int adv = getAdvance(sfFont, record, vi, k);
                         
                         position->x -= (pos.advance.x + adv - pos.placement.x) * sizeByEm;
                         position->y -= pos.placement.y * sizeByEm;
@@ -391,12 +305,12 @@ static void drawLine(int baselevel, SFText *sfText, SFStringRecord *record, SFMe
                             hasExitAnchor = SFTrue;
                         } else {
                             if (hasExitAnchor) {
-                                drawVaryingYGlyphs(&varyingYGlyphs, func, sfText, position->y - leading, resObj);
+                                drawVaryingYGlyphs(&varyingYGlyphs, position->y - leading, resObj, func);
                                 position->y = leading;
                             }
                             
                             hasExitAnchor = SFFalse;
-                            (*func)(sfText, crntGlyph, position->x, position->y, resObj);
+                            (*func)(crntGlyph, position->x, position->y, resObj);
                         }
                     }
                 }
@@ -408,134 +322,261 @@ static void drawLine(int baselevel, SFText *sfText, SFStringRecord *record, SFMe
     }
 }
 
-static int drawText(int baselevel, SFText *sfText, SFFloat frameWidth, SFPoint *position, int *lines, int startIndex, void *resObj, SFGlyphRenderFunction func) {
-    SFStringRecord *record;
-    int retVal;
+static int drawText(SFFontRef sfFont, SFStringRecord *record, int baselevel, SFTextAlignment align, SFFloat frameWidth, SFPoint *position, int *lines, int startIndex, void *resObj, SFGlyphRenderFunction func) {
+    SFFloat initialX = position->x;
     
-    int maxLines = INT32_MAX;
-    if (!lines) {
-        lines = &maxLines;
-    } else if (*lines < 0) {
-        *lines = maxLines;
-    }
+    SFMeasuredLine line;
+    int nextIndex = startIndex;
+    int endIndex = record->charCount - 1;
     
-    record = SFRetainStringRecord(sfText->_record);
-    
-    if (record) {
-        SFFloat initialX = position->x;
-
-        SFMeasuredLine line;
-        int nextIndex = startIndex;
-        int endIndex = record->charCount - 1;
+    int i = 0;
+    while (i < *lines) {
+        line = getLine(sfFont, record, frameWidth, nextIndex);
         
-        int i = 0;
-        while (i < *lines) {
-            line = getLine(sfText, record, frameWidth, nextIndex);
-
-            if (sfText->_txtAlign == SFTextAlignmentRight) {
-                position->x += frameWidth;
-            } else if (sfText->_txtAlign == SFTextAlignmentCenter) {
-                position->x += line.width + (frameWidth - line.width) / 2;
-            } else if (sfText->_txtAlign == SFTextAlignmentLeft) {
-                position->x += line.width;
-            }
-
-            drawLine(baselevel, sfText, record, line, position, resObj, func);
-
-            position->x = initialX;
-            position->y += SFFontGetLeading(sfText->_sfFont);
-
-            i++;
-            
-            if (line.endIndex < endIndex) {
-                nextIndex = line.endIndex + 1;
-            } else {
-                nextIndex = -1;
-                break;
-            }
+        if (align == SFTextAlignmentRight) {
+            position->x += frameWidth;
+        } else if (align == SFTextAlignmentCenter) {
+            position->x += line.width + (frameWidth - line.width) / 2;
+        } else if (align == SFTextAlignmentLeft) {
+            position->x += line.width;
         }
         
-        *lines = i;
-        retVal = startIndex;
-    } else {
-        *lines = 0;
-        retVal = -1;
+        drawLine(sfFont, record, baselevel, line, position, resObj, func);
+        
+        position->x = initialX;
+        position->y += SFFontGetLeading(sfFont);
+        
+        i++;
+        
+        if (line.endIndex < endIndex) {
+            nextIndex = line.endIndex + 1;
+        } else {
+            nextIndex = -1;
+            break;
+        }
     }
     
-    SFReleaseStringRecord(record);
+    *lines = i;
+    return nextIndex;
+}
+
+static int getNextLineCharIndex(SFFontRef sfFont, SFStringRecord *record, SFFloat frameWidth, int startIndex, int *countLines) {
+    SFMeasuredLine line;
+    int nextIndex = startIndex;
+    int endIndex = record->charCount - 1;
     
-    return retVal;
+    int i = 0;
+    while (i < *countLines) {
+        line = getLine(sfFont, record, frameWidth, nextIndex);
+        i++;
+        
+        if (line.endIndex < endIndex) {
+            nextIndex = line.endIndex + 1;
+        } else {
+            nextIndex = -1;
+            break;
+        }
+    }
+    
+    *countLines = i;
+    return nextIndex;
+}
+
+static int measureLines(SFFontRef sfFont, SFStringRecord *record, SFFloat frameWidth) {
+    SFMeasuredLine line;
+    int startIndex = 0;
+    int endIndex = record->charCount - 1;
+    
+    int lineCount = 0;
+    
+    while (startIndex < endIndex) {
+        line = getLine(sfFont, record, frameWidth, startIndex);
+        lineCount++;
+        
+        startIndex = line.endIndex + 1;
+    }
+    
+    return lineCount;
+}
+
+SFTextRef SFTextCreateWithString(SFUnichar *str, int length, SFFontRef sfFont) {
+    SFTextRef sfText = malloc(sizeof(SFText));
+
+    sfText->_sfFont = SFFontRetain(sfFont);
+    sfText->_writingDirection = SFWritingDirectionRTL;
+    
+    if (sfFont && str && length > -1) {
+        sfText->_record = SFMakeStringRecordForBaseLevel(str, length, sfText->_writingDirection - 1);
+        applyFontTables(sfFont, sfText->_record);
+    } else {
+        sfText->_record = NULL;
+    }
+    
+    sfText->_txtAlign = SFTextAlignmentRight;
+    sfText->_retainCount = 1;
+    
+    return sfText;
+}
+
+void SFTextSetString(SFTextRef sfText, SFUnichar *str, int length) {
+    SFStringRecord *refRecord = sfText->_record;
+
+    if (str && length > -1) {
+        SFStringRecord *newRecord = SFMakeStringRecordForBaseLevel(str, length, sfText->_writingDirection - 1);
+        if (sfText->_sfFont) {
+            applyFontTables(sfText->_sfFont, newRecord);
+        }
+        
+        sfText->_record = newRecord;
+        
+        if (refRecord && str == refRecord->chars) {
+            SFReleaseStringRecordWithoutChars(refRecord);
+        } else {
+            SFReleaseStringRecordWithChars(refRecord);
+        }
+    } else {
+        sfText->_record = NULL;
+        SFReleaseStringRecordWithChars(refRecord);
+    }
+}
+
+void SFTextSetFont(SFTextRef sfText, SFFontRef sfFont) {
+    if (sfFont) {
+        if (sfFont != sfText->_sfFont) {
+            SFStringRecord *refRecord = sfText->_record;
+            SFFontRef refFont = sfText->_sfFont;
+            
+            sfText->_sfFont = SFFontRetain(sfFont);
+            SFFontRelease(refFont);
+            
+            if (refRecord) {
+                SFStringRecord *newRecord = SFMakeStringRecordForBaseLevel(refRecord->chars, refRecord->charCount, sfText->_writingDirection - 1);
+                applyFontTables(sfFont, newRecord);
+                
+                sfText->_record = newRecord;
+                
+                SFReleaseStringRecordWithoutChars(refRecord);
+            }
+        }
+    } else {
+        SFStringRecord *refRecord = sfText->_record;
+        sfText->_record = NULL;
+        SFReleaseStringRecordWithChars(refRecord);
+    }
+}
+
+void SFTextSetAlignment(SFTextRef sfText, SFTextAlignment alignment) {
+    sfText->_txtAlign = alignment;
+}
+
+void SFTextSetWritingDirection(SFTextRef sfText, SFWritingDirection writingDirection) {
+    if (writingDirection != sfText->_writingDirection) {
+        SFStringRecord *refRecord = sfText->_record;
+        SFFontRef refFont = SFFontRetain(sfText->_sfFont);
+        
+        sfText->_writingDirection = writingDirection;
+        
+        if (refFont && refRecord) {
+            SFStringRecord *newRecord = SFMakeStringRecordForBaseLevel(refRecord->chars, refRecord->charCount, sfText->_writingDirection - 1);
+            applyFontTables(refFont, newRecord);
+            
+            sfText->_record = newRecord;
+            
+            SFReleaseStringRecordWithoutChars(refRecord);
+        }
+        
+        SFFontRelease(refFont);
+    }
 }
 
 int SFTextGetNextLineCharIndex(SFTextRef sfText, SFFloat frameWidth, int startIndex, int *countLines) {
-    SFStringRecord *record;
-    int retIndex;
-    
-    record = SFRetainStringRecord(sfText->_record);
+    int retIndex = -1;
+    SFFontRef font = SFFontRetain(sfText->_sfFont);
+    SFStringRecord *record = SFRetainStringRecord(sfText->_record);
 
-    if (sfText->_sfFont && record) {
-        SFMeasuredLine line;
-        int nextIndex = startIndex;
-        int endIndex = record->charCount - 1;
-        
-        int i = 0;
-        while (i < *countLines) {
-            line = getLine(sfText, record, frameWidth, nextIndex);
-            i++;
-            
-            if (line.endIndex < endIndex) {
-                nextIndex = line.endIndex + 1;
-            } else {
-                nextIndex = -1;
-                break;
-            }
-        }
-        
-        *countLines = i;
-        retIndex = nextIndex;
-    } else {
-        *countLines = 0;
-        retIndex = -1;
+    if (font && record) {
+        retIndex = getNextLineCharIndex(font, record, frameWidth, startIndex, countLines);
     }
     
-    SFReleaseStringRecord(record);
+    SFFontRelease(font);
+    SFReleaseStringRecordWithChars(record);
     
     return retIndex;
 }
 
 int SFTextMeasureLines(SFTextRef sfText, SFFloat frameWidth) {
-    SFStringRecord *record;
     int lineCount = 0;
+    SFFontRef font = SFFontRetain(sfText->_sfFont);
+    SFStringRecord *record = SFRetainStringRecord(sfText->_record);
     
-    record = SFRetainStringRecord(sfText->_record);
-    
-    if (sfText->_sfFont && record) {
-        SFMeasuredLine line;
-        int startIndex = 0;
-        int endIndex = sfText->_record->charCount - 1;
-
-        while (startIndex < endIndex) {
-            line = getLine(sfText, record, frameWidth, startIndex);
-            lineCount++;
-
-            startIndex = line.endIndex + 1;
-        }
+    if (font && record) {
+        lineCount = measureLines(font, record, frameWidth);
     }
     
-    SFReleaseStringRecord(record);
+    SFFontRelease(font);
+    SFReleaseStringRecordWithChars(record);
     
     return lineCount;
 }
 
 SFFloat SFTextMeasureHeight(SFTextRef sfText, SFFloat frameWidth) {
-    if (sfText->_sfFont) {
-        return SFTextMeasureLines(sfText, frameWidth) * sfText->_sfFont->_leading;
+    int height = 0;
+    SFFontRef font = SFFontRetain(sfText->_sfFont);
+    SFStringRecord *record = SFRetainStringRecord(sfText->_record);
+    
+    if (font && record) {
+        height = measureLines(font, record, frameWidth) * font->_leading;
     }
     
-    return 0;
+    SFFontRelease(font);
+    SFReleaseStringRecordWithChars(record);
+    
+    return height;
 }
 
 int SFTextShowString(SFTextRef sfText, SFFloat frameWidth, SFPoint position, int startIndex, int *lines, void *resObj, SFGlyphRenderFunction func) {
-    position.y += sfText->_sfFont->_ascender;
-    return drawText(SFTextGetBaseLevel(sfText), sfText, frameWidth, &position, lines, startIndex, resObj, func);
+    int retIndex = -1;
+    SFFontRef font = SFFontRetain(sfText->_sfFont);
+    SFStringRecord *record = SFRetainStringRecord(sfText->_record);
+    
+    if (font && record) {
+        int maxLines = INT32_MAX;
+        if (!lines) {
+            lines = &maxLines;
+        } else if (*lines < 0) {
+            *lines = maxLines;
+        }
+        
+        position.y += sfText->_sfFont->_ascender;
+        retIndex = drawText(font, record, getBaseLevel(sfText), sfText->_txtAlign, frameWidth, &position, lines, startIndex, resObj, func);
+    } else {
+        if (lines) {
+            *lines = 0;
+        }
+    }
+    
+    SFFontRelease(font);
+    SFReleaseStringRecordWithChars(record);
+    
+    return retIndex;
+}
+
+SFTextRef SFTextRetain(SFTextRef sfText) {
+    if (sfText) {
+        sfText->_retainCount++;
+    }
+    
+    return sfText;
+}
+
+void SFTextRelease(SFTextRef sfText) {
+    if (sfText) {
+        sfText->_retainCount--;
+        
+        if (sfText->_retainCount == 0) {
+            SFReleaseStringRecordWithChars(sfText->_record);
+            SFFontRelease(sfText->_sfFont);
+            free(sfText);
+        }
+    }
 }

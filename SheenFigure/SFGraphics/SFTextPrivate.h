@@ -23,9 +23,6 @@
 #include "SFFontPrivate.h"
 
 typedef struct SFText {
-    const SFUnichar *_str;
-    int _strLength;
-
     SFFont *_sfFont;
     SFStringRecord *_record;
     int _writingDirection;

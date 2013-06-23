@@ -80,12 +80,12 @@ typedef struct SFStringRecord {
     int charCount;
     int glyphCount;
     
-    const SFUnichar *chars;         //chars[charCount]
+    SFUnichar *chars;               //chars[charCount]
     int *types;                     //types[charCount]
     int *levels;                    //levels[charCount]
     SFCharRecord *charRecord;       //charRecord[charCount]
     
-    SFUInt _retainCount;
+    SFUInt retainCount;
 } SFStringRecord;
 
 typedef struct SFInternal {
@@ -96,11 +96,13 @@ typedef struct SFInternal {
     SFTableGPOS *gpos;
 } SFInternal;
 
-SFStringRecord *SFMakeStringRecordForBaseLevel(const SFUnichar *charsPtr, int len, int baselevel);
+SFStringRecord *SFMakeStringRecordForBaseLevel(SFUnichar *chars, int len, int baselevel);
 void SFClearCharRecord(SFStringRecord *record);
 void SFClearStringRecordForBaseLevel(SFStringRecord *record, int baselevel);
 SFStringRecord *SFRetainStringRecord(SFStringRecord *record);
-void SFReleaseStringRecord(SFStringRecord *record);
+void SFReleaseStringRecord(SFStringRecord *record, SFBool releaseChars);
+void SFReleaseStringRecordWithoutChars(SFStringRecord *record);
+void SFReleaseStringRecordWithChars(SFStringRecord *record);
 
 #define SFIsOddLevel(p, i)          (p->record->levels[i] & 1)
 

@@ -27,7 +27,7 @@ typedef void *SFTextRef;
 
 #endif
 
-typedef void (*SFGlyphRenderFunction)(SFTextRef sfText, SFGlyph glyph, SFFloat x, SFFloat y, void *resObj);
+typedef void (*SFGlyphRenderFunction)(SFGlyph glyph, SFFloat x, SFFloat y, void *resObj);
 
 typedef enum {
     SFTextAlignmentRight = 0,
@@ -41,11 +41,11 @@ typedef enum {
     SFWritingDirectionLTR = 2,
 } SFWritingDirection;
 
-SFTextRef SFTextCreateWithString(const SFUnichar *str, int length, SFFontRef sfFont);
+SFTextRef SFTextCreateWithString(SFUnichar *str, int length, SFFontRef sfFont);
 SFTextRef SFTextRetain(SFTextRef sfText);
 void SFTextRelease(SFTextRef sfText);
 
-void SFTextSetString(SFTextRef sfText, const SFUnichar *str, int length);
+void SFTextSetString(SFTextRef sfText, SFUnichar *str, int length);
 void SFTextSetFont(SFTextRef sfText, SFFontRef sfFont);
 void SFTextSetAlignment(SFTextRef sfText, SFTextAlignment alignment);
 void SFTextSetWritingDirection(SFTextRef sfText, SFWritingDirection writingDirection);

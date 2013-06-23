@@ -22,7 +22,7 @@
 
 const SFPositionRecord SFPositionRecordZero = {{0, 0}, {0, 0}, 0, {0, 0}};
 
-SFStringRecord *SFMakeStringRecordForBaseLevel(const SFUnichar *charsPtr, int len, int baselevel) {
+SFStringRecord *SFMakeStringRecordForBaseLevel(SFUnichar *chars, int len, int baselevel) {
     SFStringRecord *record = malloc(sizeof(SFStringRecord));
 
     int i;
@@ -30,12 +30,12 @@ SFStringRecord *SFMakeStringRecordForBaseLevel(const SFUnichar *charsPtr, int le
     record->charCount = len;
     record->glyphCount = len;
     
-    record->chars = charsPtr;
+    record->chars = chars;
     record->types = malloc(sizeof(int) * len);
     record->levels = malloc(sizeof(int) * len);
     record->charRecord = malloc(sizeof(SFCharRecord) * len);
     
-    generateBidiTypesAndLevels(baselevel, charsPtr, record->types, record->levels, len);
+    generateBidiTypesAndLevels(baselevel, chars, record->types, record->levels, len);
     
     for (i = 0; i < len; i++) {
         record->charRecord[i].glyphCount = 1;
@@ -44,7 +44,7 @@ SFStringRecord *SFMakeStringRecordForBaseLevel(const SFUnichar *charsPtr, int le
         record->charRecord[i].gRec[0].posRec = SFPositionRecordZero;
     }
     
-    record->_retainCount = 1;
+    record->retainCount = 1;
     
     return record;
 }
@@ -68,20 +68,24 @@ void SFClearStringRecordForBaseLevel(SFStringRecord *record, int baselevel) {
 
 SFStringRecord *SFRetainStringRecord(SFStringRecord *record) {
     if (record) {
-        record->_retainCount++;
+        record->retainCount++;
     }
     
     return record;
 }
 
-void SFReleaseStringRecord(SFStringRecord *record) {
+void SFReleaseStringRecord(SFStringRecord *record, SFBool releaseChars) {
     if (record) {
-        record->_retainCount--;
+        record->retainCount--;
         
-        if (record->_retainCount == 0) {
+        if (record->retainCount == 0) {
             int i;
             for (i = 0; i < record->charCount; i++) {
                 free(record->charRecord[i].gRec);
+            }
+            
+            if (releaseChars) {
+                free(record->chars);
             }
             
             free(record->types);
@@ -91,6 +95,14 @@ void SFReleaseStringRecord(SFStringRecord *record) {
             free(record);
         }
     }
+}
+
+void SFReleaseStringRecordWithoutChars(SFStringRecord *record) {
+    SFReleaseStringRecord(record, SFFalse);
+}
+
+void SFReleaseStringRecordWithChars(SFStringRecord *record) {
+    SFReleaseStringRecord(record, SFTrue);
 }
 
 SFGlyphIndex SFMakeGlyphIndex(int recordIndex, int glyphIndex) {

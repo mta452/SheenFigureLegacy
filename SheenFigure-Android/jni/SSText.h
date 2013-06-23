@@ -22,7 +22,6 @@
 typedef struct SSTextClass {
 	SFTextRef _sfText;
 	SFFontRef _sfFont;
-	SFUnichar *_unistr;
 
 	uint32_t _rgbColor;
 } SSTextClass;

@@ -99,7 +99,6 @@ static void initialize(JNIEnv *env, jobject obj) {
 
 	text = malloc(sizeof(SSTextClass));
 	text->_sfText = SFTextCreateWithString(NULL, 0, NULL);
-	text->_unistr = NULL;
 
 	if (setRefPtr(env, obj, text)) {
 		LOGI("Text has been initialized for object 0x%x.", (int)text);
@@ -112,12 +111,9 @@ static void initialize(JNIEnv *env, jobject obj) {
 static void setString(JNIEnv *env, jobject obj, jstring str) {
 	SSTextClass *text = getRefPtr(env, obj);
 
-    free(text->_unistr);
-    text->_unistr = NULL;
-    
 	int length = 0;
-	text->_unistr = getUnistr(env, str, &length);
-    SFTextSetString(text->_sfText, text->_unistr, length);
+	SFUnichar *unistr = getUnistr(env, str, &length);
+    SFTextSetString(text->_sfText, unistr, length);
 }
 
 static void setFont(JNIEnv *env, jobject obj, jint refPtr) {
@@ -165,7 +161,7 @@ static float measureHeight(JNIEnv *env, jobject obj, jfloat frameWidth) {
     return SFTextMeasureHeight(getRefPtr(env, obj)->_sfText, frameWidth);
 }
 
-static void renderGlyph(SFTextRef sfText, SFGlyph glyph, SFFloat x, SFFloat y, void *resObj) {
+static void renderGlyph(SFGlyph glyph, SFFloat x, SFFloat y, void *resObj) {
 	SSReservedObjects *resObjects = (SSReservedObjects *)resObj;
 
 	FT_Error error;

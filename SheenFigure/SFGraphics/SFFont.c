@@ -317,25 +317,23 @@ SFFontRef SFFontRetain(SFFontRef sfFont) {
 }
 
 void SFFontRelease(SFFontRef sfFont) {
-    if (!sfFont) {
-        return;
-    }
-    
-    sfFont->_retainCount--;
-    
-    if (sfFont->_retainCount == 0) {
+    if (sfFont) {
+        sfFont->_retainCount--;
+        
+        if (sfFont->_retainCount == 0) {
 #ifdef SF_IOS_CG
-        if (sfFont->_cgFont) {
-            CGFontRelease(sfFont->_cgFont);
-        }
+            if (sfFont->_cgFont) {
+                CGFontRelease(sfFont->_cgFont);
+            }
 #else
-        if (sfFont->_ftFace) {
-            FT_Done_Face(sfFont->_ftFace);
-        }
+            if (sfFont->_ftFace) {
+                FT_Done_Face(sfFont->_ftFace);
+            }
 #endif
             
-        SFFontTablesRelease(sfFont->_tables);
-        
-        free(sfFont);
+            SFFontTablesRelease(sfFont->_tables);
+            
+            free(sfFont);
+        }
     }
 }

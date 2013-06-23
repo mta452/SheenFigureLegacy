@@ -42,7 +42,6 @@ typedef struct SSReservedObjects {
 
 @implementation SSText {
     SFTextRef _sfText;
-    SFUnichar *_unistr;
 }
 
 @synthesize string=_string;
@@ -87,7 +86,7 @@ static const CGFloat _glyphDecode[] = { 1, 0 };
     return SFTextMeasureHeight(_sfText, frameWidth);
 }
 
-static void renderGlyph(SFTextRef sfText, SFGlyph glyph, SFFloat x, SFFloat y, void *resObj) {
+static void renderGlyph(SFGlyph glyph, SFFloat x, SFFloat y, void *resObj) {
     SSReservedObjects *resObjects = resObj;
     if (*(resObjects->_cancel)) {
         return;
@@ -160,7 +159,6 @@ static void renderGlyph(SFTextRef sfText, SFGlyph glyph, SFFloat x, SFFloat y, v
 #endif
     CGContextSetFillColorWithColor(context, _textColor.CGColor);
     
-    
     SSReservedObjects resObj;
     resObj._context = context;
     resObj._cancel = cancel;
@@ -204,16 +202,15 @@ static void renderGlyph(SFTextRef sfText, SFGlyph glyph, SFFloat x, SFFloat y, v
     if (string != _string) {
         SS_RELEASE(_string);
         _string = SS_RETAIN(string);
-        
-        free(_unistr);
-        _unistr = NULL;
+
+        SFUnichar *unistr = NULL;
         
         if (_string && _string.length > 0) {
-            _unistr = malloc(_string.length * sizeof(SFUnichar));
-            [_string getCharacters:_unistr range:NSMakeRange(0, _string.length)];
+            unistr = malloc(_string.length * sizeof(SFUnichar));
+            [_string getCharacters:unistr range:NSMakeRange(0, _string.length)];
         }
         
-        SFTextSetString(_sfText, _unistr, _string.length);
+        SFTextSetString(_sfText, unistr, _string.length);
     }
 }
 
@@ -263,7 +260,6 @@ static void renderGlyph(SFTextRef sfText, SFGlyph glyph, SFFloat x, SFFloat y, v
     SS_RELEASE(_font);
     
     SFTextRelease(_sfText);
-    free(_unistr);
     
 #ifndef SS_ARC_ENABLED
     [super dealloc];
