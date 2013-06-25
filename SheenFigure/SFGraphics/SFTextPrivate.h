@@ -17,6 +17,8 @@
 #ifndef _SF_TEXT_PRIVATE_H
 #define _SF_TEXT_PRIVATE_H
 
+#include <pthread.h>
+
 #include "SFConfig.h"
 #include "SFTypes.h"
 #include "SFInternal.h"
@@ -28,6 +30,7 @@ typedef struct SFText {
     int _writingDirection;
     int _txtAlign;
     
+    pthread_mutex_t _retainMutex;
     SFUInt _retainCount;
 } SFText;
 

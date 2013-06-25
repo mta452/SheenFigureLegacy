@@ -17,6 +17,8 @@
 #ifndef _SF_INTERNAL_H
 #define _SF_INTERNAL_H
 
+#include <pthread.h>
+
 #include "SFConfig.h"
 #include "SFTypes.h"
 #include "SFCommonData.h"
@@ -85,6 +87,9 @@ typedef struct SFStringRecord {
     int *levels;                    //levels[charCount]
     SFCharRecord *charRecord;       //charRecord[charCount]
     
+    SFBool retainChars;
+    
+    pthread_mutex_t retainMutex;
     SFUInt retainCount;
 } SFStringRecord;
 
@@ -100,9 +105,7 @@ SFStringRecord *SFMakeStringRecordForBaseLevel(SFUnichar *chars, int len, int ba
 void SFClearCharRecord(SFStringRecord *record);
 void SFClearStringRecordForBaseLevel(SFStringRecord *record, int baselevel);
 SFStringRecord *SFRetainStringRecord(SFStringRecord *record);
-void SFReleaseStringRecord(SFStringRecord *record, SFBool releaseChars);
-void SFReleaseStringRecordWithoutChars(SFStringRecord *record);
-void SFReleaseStringRecordWithChars(SFStringRecord *record);
+void SFReleaseStringRecord(SFStringRecord *record);
 
 #define SFIsOddLevel(p, i)          (p->record->levels[i] & 1)
 

@@ -413,6 +413,8 @@ SFTextRef SFTextCreateWithString(SFUnichar *str, int length, SFFontRef sfFont) {
     }
     
     sfText->_txtAlign = SFTextAlignmentRight;
+    
+    pthread_mutex_init(&sfText->_retainMutex, NULL);
     sfText->_retainCount = 1;
     
     return sfText;
@@ -430,14 +432,13 @@ void SFTextSetString(SFTextRef sfText, SFUnichar *str, int length) {
         sfText->_record = newRecord;
         
         if (refRecord && str == refRecord->chars) {
-            SFReleaseStringRecordWithoutChars(refRecord);
-        } else {
-            SFReleaseStringRecordWithChars(refRecord);
+            refRecord->retainChars = SFTrue;
         }
     } else {
         sfText->_record = NULL;
-        SFReleaseStringRecordWithChars(refRecord);
     }
+    
+    SFReleaseStringRecord(refRecord);
 }
 
 void SFTextSetFont(SFTextRef sfText, SFFontRef sfFont) {
@@ -455,13 +456,14 @@ void SFTextSetFont(SFTextRef sfText, SFFontRef sfFont) {
                 
                 sfText->_record = newRecord;
                 
-                SFReleaseStringRecordWithoutChars(refRecord);
+                refRecord->retainChars = SFTrue;
+                SFReleaseStringRecord(refRecord);
             }
         }
     } else {
         SFStringRecord *refRecord = sfText->_record;
         sfText->_record = NULL;
-        SFReleaseStringRecordWithChars(refRecord);
+        SFReleaseStringRecord(refRecord);
     }
 }
 
@@ -482,7 +484,8 @@ void SFTextSetWritingDirection(SFTextRef sfText, SFWritingDirection writingDirec
             
             sfText->_record = newRecord;
             
-            SFReleaseStringRecordWithoutChars(refRecord);
+            refRecord->retainChars = SFTrue;
+            SFReleaseStringRecord(refRecord);
         }
         
         SFFontRelease(refFont);
@@ -493,13 +496,13 @@ int SFTextGetNextLineCharIndex(SFTextRef sfText, SFFloat frameWidth, int startIn
     int retIndex = -1;
     SFFontRef font = SFFontRetain(sfText->_sfFont);
     SFStringRecord *record = SFRetainStringRecord(sfText->_record);
-
+    
     if (font && record) {
         retIndex = getNextLineCharIndex(font, record, frameWidth, startIndex, countLines);
     }
     
     SFFontRelease(font);
-    SFReleaseStringRecordWithChars(record);
+    SFReleaseStringRecord(record);
     
     return retIndex;
 }
@@ -514,7 +517,7 @@ int SFTextMeasureLines(SFTextRef sfText, SFFloat frameWidth) {
     }
     
     SFFontRelease(font);
-    SFReleaseStringRecordWithChars(record);
+    SFReleaseStringRecord(record);
     
     return lineCount;
 }
@@ -529,7 +532,7 @@ SFFloat SFTextMeasureHeight(SFTextRef sfText, SFFloat frameWidth) {
     }
     
     SFFontRelease(font);
-    SFReleaseStringRecordWithChars(record);
+    SFReleaseStringRecord(record);
     
     return height;
 }
@@ -556,14 +559,18 @@ int SFTextShowString(SFTextRef sfText, SFFloat frameWidth, SFPoint position, int
     }
     
     SFFontRelease(font);
-    SFReleaseStringRecordWithChars(record);
+    SFReleaseStringRecord(record);
     
     return retIndex;
 }
 
 SFTextRef SFTextRetain(SFTextRef sfText) {
     if (sfText) {
+        pthread_mutex_lock(&sfText->_retainMutex);
+        
         sfText->_retainCount++;
+        
+        pthread_mutex_unlock(&sfText->_retainMutex);
     }
     
     return sfText;
@@ -571,11 +578,16 @@ SFTextRef SFTextRetain(SFTextRef sfText) {
 
 void SFTextRelease(SFTextRef sfText) {
     if (sfText) {
+        pthread_mutex_lock(&sfText->_retainMutex);
+        
         sfText->_retainCount--;
         
+        pthread_mutex_unlock(&sfText->_retainMutex);
+        
         if (sfText->_retainCount == 0) {
-            SFReleaseStringRecordWithChars(sfText->_record);
+            SFReleaseStringRecord(sfText->_record);
             SFFontRelease(sfText->_sfFont);
+            pthread_mutex_destroy(&sfText->_retainMutex);
             free(sfText);
         }
     }

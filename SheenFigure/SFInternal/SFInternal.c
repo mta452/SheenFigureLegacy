@@ -44,6 +44,9 @@ SFStringRecord *SFMakeStringRecordForBaseLevel(SFUnichar *chars, int len, int ba
         record->charRecord[i].gRec[0].posRec = SFPositionRecordZero;
     }
     
+    record->retainChars = SFFalse;
+    
+    pthread_mutex_init(&record->retainMutex, NULL);
     record->retainCount = 1;
     
     return record;
@@ -68,15 +71,23 @@ void SFClearStringRecordForBaseLevel(SFStringRecord *record, int baselevel) {
 
 SFStringRecord *SFRetainStringRecord(SFStringRecord *record) {
     if (record) {
+        pthread_mutex_lock(&record->retainMutex);
+        
         record->retainCount++;
+        
+        pthread_mutex_unlock(&record->retainMutex);
     }
     
     return record;
 }
 
-void SFReleaseStringRecord(SFStringRecord *record, SFBool releaseChars) {
+void SFReleaseStringRecord(SFStringRecord *record) {
     if (record) {
+        pthread_mutex_lock(&record->retainMutex);
+        
         record->retainCount--;
+        
+        pthread_mutex_unlock(&record->retainMutex);
         
         if (record->retainCount == 0) {
             int i;
@@ -84,7 +95,7 @@ void SFReleaseStringRecord(SFStringRecord *record, SFBool releaseChars) {
                 free(record->charRecord[i].gRec);
             }
             
-            if (releaseChars) {
+            if (!record->retainChars) {
                 free(record->chars);
             }
             
@@ -95,14 +106,6 @@ void SFReleaseStringRecord(SFStringRecord *record, SFBool releaseChars) {
             free(record);
         }
     }
-}
-
-void SFReleaseStringRecordWithoutChars(SFStringRecord *record) {
-    SFReleaseStringRecord(record, SFFalse);
-}
-
-void SFReleaseStringRecordWithChars(SFStringRecord *record) {
-    SFReleaseStringRecord(record, SFTrue);
 }
 
 SFGlyphIndex SFMakeGlyphIndex(int recordIndex, int glyphIndex) {

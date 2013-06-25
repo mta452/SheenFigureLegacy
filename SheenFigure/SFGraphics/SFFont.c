@@ -125,9 +125,11 @@ SFFontRef SFFontCreateWithCGFont(CGFontRef cgFont, SFFloat size) {
     SFFont *sfFont = malloc(sizeof(SFFont));
     sfFont->_cgFont = CGFontRetain(cgFont);
     sfFont->_tables = SFFontTablesCreate();
-    sfFont->_retainCount = 1;
-
+    
     setFontSize(sfFont, size);
+    
+    pthread_mutex_init(&sfFont->_retainMutex, NULL);
+    sfFont->_retainCount = 1;
     
     return sfFont;
 }
@@ -136,9 +138,11 @@ SFFontRef SFFontMakeCloneForCGFont(SFFontRef sfFont, CGFontRef cgFont, SFFloat s
     SFFont *clone = malloc(sizeof(SFFont));
     clone->_cgFont = CGFontRetain(cgFont);
     clone->_tables = SFFontTablesRetain(sfFont->_tables);
-    clone->_retainCount = 1;
-
+    
     setFontSize(clone, size);
+    
+    pthread_mutex_init(&clone->_retainMutex, NULL);
+    clone->_retainCount = 1;
     
     return clone;
 }
@@ -251,24 +255,30 @@ static void setFontSize(SFFontRef sfFont, SFFloat size) {
 
 SFFontRef SFFontCreateWithFTFace(FT_Face ftFace, SFFloat size) {
     SFFont *sfFont = malloc(sizeof(SFFont));
+    
+    FT_Reference_Face(ftFace);
     sfFont->_ftFace = ftFace;
     sfFont->_tables = SFFontTablesCreate();
+    
+    setFontSize(sfFont, size);
+    
+    pthread_mutex_init(&sfFont->_retainMutex, NULL);
 	sfFont->_retainCount = 1;
-
-    FT_Reference_Face(ftFace);
-	setFontSize(sfFont, size);
-
+    
 	return sfFont;
 }
 
 SFFontRef SFFontMakeCloneForFTFace(SFFontRef sfFont, FT_Face ftFace, SFFloat size) {
 	SFFont *clone = malloc(sizeof(SFFont));
-	clone->_ftFace = ftFace;
-    clone->_tables = SFFontTablesRetain(sfFont->_tables);
-    clone->_retainCount = 1;
     
     FT_Reference_Face(ftFace);
-	setFontSize(clone, size);
+	clone->_ftFace = ftFace;
+    clone->_tables = SFFontTablesRetain(sfFont->_tables);
+    
+    setFontSize(clone, size);
+    
+    pthread_mutex_init(&clone->_retainMutex, NULL);
+    clone->_retainCount = 1;
     
 	return clone;
 }
@@ -310,15 +320,23 @@ SFFloat SFFontGetLeading(SFFontRef sfFont) {
 
 SFFontRef SFFontRetain(SFFontRef sfFont) {
     if (sfFont) {
+        pthread_mutex_lock(&sfFont->_retainMutex);
+        
         sfFont->_retainCount++;
+        
+        pthread_mutex_unlock(&sfFont->_retainMutex);
     }
-
+    
     return sfFont;
 }
 
 void SFFontRelease(SFFontRef sfFont) {
     if (sfFont) {
+        pthread_mutex_lock(&sfFont->_retainMutex);
+        
         sfFont->_retainCount--;
+        
+        pthread_mutex_unlock(&sfFont->_retainMutex);
         
         if (sfFont->_retainCount == 0) {
 #ifdef SF_IOS_CG
@@ -332,6 +350,8 @@ void SFFontRelease(SFFontRef sfFont) {
 #endif
             
             SFFontTablesRelease(sfFont->_tables);
+            
+            pthread_mutex_destroy(&sfFont->_retainMutex);
             
             free(sfFont);
         }

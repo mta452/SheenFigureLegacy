@@ -76,6 +76,7 @@ typedef struct SFFont {
     SFFloat _descender;
     SFFloat _leading;
     
+    pthread_mutex_t _retainMutex;
     SFUInt _retainCount;
 } SFFont;
 

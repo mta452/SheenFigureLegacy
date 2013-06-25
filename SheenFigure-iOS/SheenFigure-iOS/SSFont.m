@@ -84,6 +84,20 @@
     return SS_AUTORELEASE([[SSFont alloc] initWithPath:path size:size]);
 }
 
+#ifdef SF_IOS_CG
+
+- (CGFontRef)cgFont {
+    return _cgFont;
+}
+
+#else
+
+- (FT_Face)ftFace {
+    return _ftFace;
+}
+
+#endif
+
 - (SFFontRef)sfFont {
     return _sfFont;
 }

@@ -22,6 +22,12 @@
 
 - (id)initWithPath:(NSString *)path size:(float)size refPtr:(SFFontRef)refPtr;
 
+#ifdef SF_IOS_CG
+- (CGFontRef)cgFont;
+#else
+- (FT_Face)ftFace;
+#endif
+
 - (SFFontRef)sfFont;
 - (dispatch_queue_t)renderQueue;
 

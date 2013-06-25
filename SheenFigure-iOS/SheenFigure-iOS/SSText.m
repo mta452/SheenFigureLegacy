@@ -149,10 +149,8 @@ static void renderGlyph(SFGlyph glyph, SFFloat x, SFFloat y, void *resObj) {
     CGContextSetTextMatrix(context, flip);
     CGContextSetTextDrawingMode(context, kCGTextFill);
     
-    SFFontRef sfFont = [_font sfFont];
-    CGFontRef cgFont = CGFontRetain(SFFontGetCGFont(sfFont));
-    CGContextSetFont(context, cgFont);
-    CGContextSetFontSize(context, SFFontGetSize(sfFont));
+    CGContextSetFont(context, [_font cgFont]);
+    CGContextSetFontSize(context, SFFontGetSize([_font sfFont]));
 #else
     CGFloat scale = [[UIScreen mainScreen] scale];
     CGContextScaleCTM(context, 1 / scale, 1 / scale);
@@ -164,11 +162,7 @@ static void renderGlyph(SFGlyph glyph, SFFloat x, SFFloat y, void *resObj) {
     resObj._cancel = cancel;
     resObj._renderQueue = _font.renderQueue;
 #ifndef SF_IOS_CG
-    SFFontRef sfFont = [_font sfFont];
-    FT_Face ftFace = SFFontGetFTFace(sfFont);
-    FT_Reference_Face(ftFace);
-    
-    resObj._ftFont = ftFace;
+    resObj._ftFont = [_font ftFace];
 #endif
     
     SFPoint point;
@@ -176,12 +170,6 @@ static void renderGlyph(SFGlyph glyph, SFFloat x, SFFloat y, void *resObj) {
     point.y = pos.y;
     
 	int result = SFTextShowString(_sfText, frameWidth, point, index, lines, &resObj, &renderGlyph);
-    
-#ifdef SF_IOS_CG
-    CGFontRelease(cgFont);
-#else
-    FT_Done_Face(ftFace);
-#endif
     
     CGContextRestoreGState(context);
 

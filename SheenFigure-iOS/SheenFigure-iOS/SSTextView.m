@@ -291,7 +291,7 @@
     const CGFloat contentOffset = self.contentOffset.y;
     const CGRect visibleBounds = CGRectMake(0, contentOffset, boundsSize.width, boundsSize.height);
 
-    NSMutableArray *linesMap = [_linesMap copy];
+    NSMutableArray *linesMap = SS_AUTORELEASE([_linesMap copy]);
     
     const NSInteger numLines = linesMap.count;
     const NSInteger numViews = _linesView.count;
@@ -322,16 +322,18 @@
                 [lineView setLineIndex:[[linesMap objectAtIndex:lineIndex] integerValue] forceRender:NO];
                 [_linesView addObject:lineView];
                 [self addSubview:lineView];
+                
+                SS_RELEASE(lineView);
             }
         }
     }
     
     _forceRender = NO;
-    SS_RELEASE(linesMap);
-
-    for (; lineIndex < _linesView.count; lineIndex++) {
-        [[_linesView objectAtIndex:lineIndex] removeFromSuperview];
-        [_linesView removeObjectAtIndex:lineIndex];
+    
+    for (; lineIndex < _linesView.count;) {
+        SSTextLineView *lineView = [_linesView lastObject];
+        [lineView removeFromSuperview];
+        [_linesView removeLastObject];
     }
 }
 
