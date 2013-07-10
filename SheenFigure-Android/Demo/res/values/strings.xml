@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">SheenFigureDemo</string>
+    <string name="title">Sheen Figure</string>
+    <string name="reference">http://ur.wikipedia.org/wiki/Mobile</string>
+</resources>
