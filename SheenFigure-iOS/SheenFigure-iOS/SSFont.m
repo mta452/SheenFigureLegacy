@@ -27,6 +27,71 @@
 #import "SSFont.h"
 #import "SSFontPrivate.h"
 
+#ifndef SF_IOS_CG
+
+static const CGFloat _glyphDecode[] = { 1, 0 };
+
+@implementation SSGlyph
+
+@synthesize top=_top;
+@synthesize left=_left;
+@synthesize image=_image;
+
+- (id)initWithTop:(int)top left:(int)left bitmap:(FT_Bitmap *)bitmap {
+    self = [super init];
+    if (self) {
+        _top = top;
+        _left = left;
+        _image = NULL;
+        
+        if (bitmap) {
+            int length = bitmap->width * bitmap->rows;
+            if (length) {
+                _pixels = malloc(length);
+                memcpy(_pixels, bitmap->buffer, length);
+                
+                CGDataProviderRef data = CGDataProviderCreateWithData(NULL, _pixels, length, NULL);
+                _image = CGImageMaskCreate(bitmap->width, bitmap->rows, 8, 8, bitmap->width, data, _glyphDecode, false);
+                CGDataProviderRelease(data);
+            }
+        }
+    }
+    
+    return self;
+}
+
++ (SSGlyph *)glyphWithTop:(int)top left:(int)left bitmap:(FT_Bitmap *)bitmap {
+    return SS_AUTORELEASE([[SSGlyph alloc] initWithTop:top left:left bitmap:bitmap]);
+}
+
+- (BOOL)isEmpty {
+    return !_image;
+}
+
+- (int)width {
+    return CGImageGetWidth(_image);
+}
+
+- (int)height {
+    return CGImageGetHeight(_image);
+}
+
+- (void)dealloc {
+    if (_image) {
+        CGImageRelease(_image);
+        free(_pixels);
+    }
+    
+#ifndef SS_ARC_ENABLED
+    [super dealloc];
+#endif
+}
+
+@end
+
+#endif
+
+
 @implementation SSFont {
     SFFontRef _sfFont;
     
@@ -35,9 +100,9 @@
 #else
     FT_Library _ftLib;
     FT_Face _ftFace;
+    NSLock *_lock;
+    NSMutableDictionary *_cache;
 #endif
-    
-    dispatch_queue_t _renderQueue;
 }
 
 - (id)initWithPath:(NSString *)path size:(float)size refPtr:(SFFontRef)refPtr {
@@ -51,18 +116,31 @@
             _sfFont = SFFontMakeCloneForCGFont(refPtr, _cgFont, size);
         } else {
             CGDataProviderRef dataProvider = CGDataProviderCreateWithFilename([_path fileSystemRepresentation]);
-            _cgFont = CGFontCreateWithDataProvider(dataProvider);
-            CGDataProviderRelease(dataProvider);
-
-            _sfFont = SFFontCreateWithCGFont(_cgFont, size);
+            if (dataProvider) {
+                _cgFont = CGFontCreateWithDataProvider(dataProvider);
+                CGDataProviderRelease(dataProvider);
+                
+                _sfFont = SFFontCreateWithCGFont(_cgFont, size);
+            } else {
+                SS_RELEASE(self);
+                return nil;
+            }
         }
 #else
-        const char *utf8path = [_path UTF8String];
+        _lock = [[NSLock alloc] init];
+        _cache = [[NSMutableDictionary alloc] init];
         
         FT_Init_FreeType(&_ftLib);
         
+        const char *utf8path = [_path UTF8String];
+        FT_Error error = FT_New_Face(_ftLib, utf8path, 0, &_ftFace);
+        if (error) {
+            FT_Done_FreeType(_ftLib);
+            SS_RELEASE(self);
+            return nil;
+        }
+        
         CGFloat scale = [[UIScreen mainScreen] scale];
-        FT_New_Face(_ftLib, utf8path, 0, &_ftFace);
         FT_Set_Char_Size(_ftFace, 0, size * scale * 64, 72, 72);
         
         if (refPtr) {
@@ -126,13 +204,47 @@
     return SFFontGetLeading(_sfFont);
 }
 
-- (dispatch_queue_t)renderQueue {
-    if (!_renderQueue) {
-        _renderQueue = dispatch_queue_create("com.sheenfigue.GlyphRenderQueue", NULL);
+#ifndef SF_IOS_CG
+
+- (SSGlyph *)generateGlyph:(SFGlyph)glyph {
+    [_lock lock];
+    
+    SSGlyph *g;
+    
+    FT_Error error;
+    error = FT_Load_Glyph(_ftFace, glyph, FT_LOAD_RENDER);
+    if (error) {
+        g = [SSGlyph glyphWithTop:_ftFace->glyph->bitmap_top left:_ftFace->glyph->bitmap_left bitmap:NULL];
+    } else {
+        g = [SSGlyph glyphWithTop:_ftFace->glyph->bitmap_top left:_ftFace->glyph->bitmap_left bitmap:&_ftFace->glyph->bitmap];
     }
     
-    return _renderQueue;
+    [_lock unlock];
+    
+    return g;
 }
+
+- (SSGlyph *)getGlyph:(SFGlyph)glyph {
+    NSNumber *cacheKey = [NSNumber numberWithUnsignedShort:glyph];
+    SSGlyph *cacheGlyph;
+    @synchronized(_cache) {
+        cacheGlyph = [_cache objectForKey:cacheKey];
+        if (!cacheGlyph) {
+            cacheGlyph = [self generateGlyph:glyph];
+            [_cache setObject:cacheGlyph forKey:cacheKey];
+        }
+    }
+    
+    return cacheGlyph;
+}
+
+- (void)clearCache {
+    @synchronized(_cache) {
+        [_cache removeAllObjects];
+    }
+}
+
+#endif
 
 - (void)dealloc {
     SS_RELEASE(_path);
@@ -141,14 +253,13 @@
 #ifdef SF_IOS_CG
     CGFontRelease(_cgFont);
 #else
+    SS_RELEASE(_lock);
+    SS_RELEASE(_cache);
+    
     FT_Done_Face(_ftFace);
     FT_Done_FreeType(_ftLib);
 #endif
-    
-    if (_renderQueue) {
-        dispatch_release(_renderQueue);
-    }
-    
+
 #ifndef SS_ARC_ENABLED
     [super dealloc];
 #endif

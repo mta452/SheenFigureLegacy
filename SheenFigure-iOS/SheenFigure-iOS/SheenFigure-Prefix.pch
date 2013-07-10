@@ -36,11 +36,13 @@
 #endif
 
 #ifdef SS_ARC_ENABLED
+#define SS_BRIDGE               __bridge
 #define SS_COPY(xx)             (xx)
 #define SS_RETAIN(xx)           (xx)
 #define SS_RELEASE(xx)          (xx = nil)
 #define SS_AUTORELEASE(xx)      (xx)
 #else
+#define SS_BRIDGE               
 #define SS_COPY(xx)             [xx copy]
 #define SS_RETAIN(xx)           [xx retain]
 #define SS_RELEASE(xx)          [xx release], xx = nil

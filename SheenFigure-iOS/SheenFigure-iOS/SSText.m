@@ -30,15 +30,21 @@
 #import "SSFontPrivate.h"
 #import "SSTextPrivate.h"
 
-typedef struct SSReservedObjects {
-    dispatch_queue_t _renderQueue;
+@interface SSReservedObjects : NSObject {
+@public
     CGContextRef _context;
     BOOL *_cancel;
     
 #ifndef SF_IOS_CG
-    FT_Face _ftFont;
+    SSFont *_font;
 #endif
-} SSReservedObjects;
+}
+
+@end
+
+@implementation SSReservedObjects
+
+@end
 
 @implementation SSText {
     SFTextRef _sfText;
@@ -48,8 +54,6 @@ typedef struct SSReservedObjects {
 @synthesize font=_font;
 @synthesize textAlignment=_textAlign;
 @synthesize writingDirection=_writingDirection;
-
-static const CGFloat _glyphDecode[] = { 1, 0 };
 
 - (id)init {
     return [self initWithString:nil font:nil];
@@ -87,58 +91,34 @@ static const CGFloat _glyphDecode[] = { 1, 0 };
 }
 
 static void renderGlyph(SFGlyph glyph, SFFloat x, SFFloat y, void *resObj) {
-    SSReservedObjects *resObjects = resObj;
+    SSReservedObjects *resObjects = (SS_BRIDGE SSReservedObjects *)(resObj);
     if (*(resObjects->_cancel)) {
         return;
     }
-    
-    dispatch_sync(resObjects->_renderQueue, ^{
+
 #ifdef SF_IOS_CG
-        CGContextShowGlyphsAtPoint(resObjects->_context, floorf(x), floorf(y), &glyph, 1);
+    CGContextShowGlyphsAtPoint(resObjects->_context, floorf(x), floorf(y), &glyph, 1);
 #else
-        FT_Error error;
-        
-        FT_Face face = resObjects->_ftFont;
-        FT_GlyphSlot slot = face->glyph;
-        
-        error = FT_Load_Glyph(face, glyph, FT_LOAD_RENDER);
-        if (error) {
-            return;
-        }
-        
-        FT_Bitmap *bmp = &slot->bitmap;
-        int length = bmp->width * bmp->rows;
-        if (!length) {
-            return;
-        }
-
-        CGContextSaveGState(resObjects->_context);
-        
-        CGDataProviderRef data = CGDataProviderCreateWithData(NULL, bmp->buffer, bmp->width * bmp->rows, NULL);
-        CGImageRef glyphImage = CGImageMaskCreate(bmp->width, bmp->rows, 8, 8, bmp->width, data, _glyphDecode, false);
-        
-        CGFloat scale = [[UIScreen mainScreen] scale];
-        
-        CGRect bmpRect;
-        bmpRect.origin.x = floorf((x * scale) + slot->bitmap_left);
-        bmpRect.origin.y = floorf((y * scale) - slot->bitmap_top);
-        bmpRect.size = CGSizeMake(bmp->width, bmp->rows);
-        
-        CGContextTranslateCTM(resObjects->_context, bmpRect.origin.x, bmpRect.origin.y + bmpRect.size.height);
-        CGContextScaleCTM(resObjects->_context, 1, -1);
-        
-        bmpRect.origin = CGPointZero;
-
-        CGContextClipToMask(resObjects->_context, bmpRect, glyphImage);
-        CGContextAddRect(resObjects->_context, bmpRect);
-        CGContextDrawPath(resObjects->_context, kCGPathFill);
-        
-        CGImageRelease(glyphImage);
-        CGDataProviderRelease(data);
-        
-        CGContextRestoreGState(resObjects->_context);
+    CGContextSaveGState(resObjects->_context);
+    
+    SSGlyph *g = [resObjects->_font getGlyph:glyph];
+    
+    CGFloat scale = [[UIScreen mainScreen] scale];
+    
+    CGRect bmpRect;
+    bmpRect.origin.x = floorf((x * scale) + g.left);
+    bmpRect.origin.y = floorf((y * scale) - g.top);
+    bmpRect.size = CGSizeMake(g.width, g.height);
+    
+    CGContextTranslateCTM(resObjects->_context, bmpRect.origin.x, bmpRect.origin.y + bmpRect.size.height);
+    CGContextScaleCTM(resObjects->_context, 1, -1);
+    
+    bmpRect.origin = CGPointZero;
+    
+    CGContextDrawImage(resObjects->_context, bmpRect, g.image);
+    
+    CGContextRestoreGState(resObjects->_context);
 #endif
-    });
 }
 
 - (int)showStringOnContext:(CGContextRef)context forFrameWidth:(float)frameWidth atPosition:(CGPoint)pos fromIndex:(int)index havingLines:(int *)lines cancel:(BOOL *)cancel {
@@ -156,22 +136,23 @@ static void renderGlyph(SFGlyph glyph, SFFloat x, SFFloat y, void *resObj) {
     CGContextScaleCTM(context, 1 / scale, 1 / scale);
 #endif
     CGContextSetFillColorWithColor(context, _textColor.CGColor);
-    
-    SSReservedObjects resObj;
-    resObj._context = context;
-    resObj._cancel = cancel;
-    resObj._renderQueue = _font.renderQueue;
+
+    SSReservedObjects *resObj = [[SSReservedObjects alloc] init];
+    resObj->_context = context;
+    resObj->_cancel = cancel;
 #ifndef SF_IOS_CG
-    resObj._ftFont = [_font ftFace];
+    resObj->_font = _font;
 #endif
     
     SFPoint point;
     point.x = pos.x;
     point.y = pos.y;
     
-	int result = SFTextShowString(_sfText, frameWidth, point, index, lines, &resObj, &renderGlyph);
+	int result = SFTextShowString(_sfText, frameWidth, point, index, lines, (SS_BRIDGE void *)(resObj), &renderGlyph);
     
     CGContextRestoreGState(context);
+    
+    SS_RELEASE(resObj);
 
     return result;
 }
@@ -192,7 +173,6 @@ static void renderGlyph(SFGlyph glyph, SFFloat x, SFFloat y, void *resObj) {
         _string = SS_RETAIN(string);
 
         SFUnichar *unistr = NULL;
-        
         if (_string && _string.length > 0) {
             unistr = malloc(_string.length * sizeof(SFUnichar));
             [_string getCharacters:unistr range:NSMakeRange(0, _string.length)];

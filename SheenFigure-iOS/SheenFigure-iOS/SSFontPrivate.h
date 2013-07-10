@@ -18,6 +18,29 @@
 
 #import "SSFont.h"
 
+#ifndef SF_IOS_CG
+
+@interface SSGlyph : NSObject {
+@private
+    int _top;
+    int _left;
+    void *_pixels;
+    CGImageRef _image;
+}
+
+- (id)initWithTop:(int)top left:(int)left bitmap:(FT_Bitmap *)bitmap;
++ (SSGlyph *)glyphWithTop:(int)top left:(int)left bitmap:(FT_Bitmap *)bitmap;
+
+@property (nonatomic, readonly) int top;
+@property (nonatomic, readonly) int left;
+@property (nonatomic, readonly) int width;
+@property (nonatomic, readonly) int height;
+@property (nonatomic, readonly) CGImageRef image;
+
+@end
+
+#endif
+
 @interface SSFont ()
 
 - (id)initWithPath:(NSString *)path size:(float)size refPtr:(SFFontRef)refPtr;
@@ -26,9 +49,9 @@
 - (CGFontRef)cgFont;
 #else
 - (FT_Face)ftFace;
+- (SSGlyph *)getGlyph:(SFGlyph)glyph;
 #endif
 
 - (SFFontRef)sfFont;
-- (dispatch_queue_t)renderQueue;
 
 @end

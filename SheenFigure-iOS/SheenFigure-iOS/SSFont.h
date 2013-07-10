@@ -32,4 +32,8 @@
 - (float)descender;
 - (float)leading;
 
+#ifndef SF_IOS_CG
+- (void)clearCache;
+#endif
+
 @end
